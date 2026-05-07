@@ -400,7 +400,7 @@
  </div>
  <div class="actions">
  <a class="button secondary" href="/">Retornar ao Painel Principal</a>
- <button onclick="loadAll()">Atualizar Dados Dados</button>
+ <button onclick="loadAll()">Atualizar Dados Dados Dados</button>
  </div>
  </div>
 </header>
@@ -419,7 +419,7 @@
 
  <nav class="tabs">
  <button id="tabOps" class="active" onclick="setTab('operations')">Ciclos Operacionais</button>
- <button id="tabSims" onclick="setTab('simulations')">Simulações Operacionais Operacionais</button>
+ <button id="tabSims" onclick="setTab('simulations')">Simulações Operacionais Operacionais Operacionais</button>
  </nav>
 
  <section class="panel">
@@ -435,12 +435,12 @@
  <option value="30d">Últimos 30 dias</option>
  </select>
  </label>
- <label>Tanque de Processo de Processo
+ <label>Tanque de Processo de Processo de Processo
  <select id="tank">
  <option value="all">Todos</option>
- <option value="1">Tanque de Processo de Processo 1</option>
- <option value="2">Tanque de Processo de Processo 2</option>
- <option value="3">Tanque de Processo de Processo 3</option>
+ <option value="1">Tanque de Processo de Processo de Processo 1</option>
+ <option value="2">Tanque de Processo de Processo de Processo 2</option>
+ <option value="3">Tanque de Processo de Processo de Processo 3</option>
  </select>
  </label>
  <label>Responsável Operacional
@@ -455,9 +455,9 @@
  <option value="concluido">Concluído</option>
  <option value="abortado">Abortado</option>
  <option value="em_andamento">Em andamento</option>
- <option value="success">Simulação Operacional Operacional segura</option>
- <option value="warning">Simulação Operacional Operacional atenção</option>
- <option value="critical">Simulação Operacional Operacional crítica</option>
+ <option value="success">Simulação Operacional Operacional Operacional segura</option>
+ <option value="warning">Simulação Operacional Operacional Operacional atenção</option>
+ <option value="critical">Simulação Operacional Operacional Operacional crítica</option>
  </select>
  </label>
  <label>Categoria de tanque
@@ -563,7 +563,7 @@ async function loadAll() {
  const data = await request("/records/operations?" + query.toString());
  renderOperations(data.items || []);
  } else {
- document.getElementById("tableTitle").innerText = "Simulações Operacionais Operacionais";
+ document.getElementById("tableTitle").innerText = "Simulações Operacionais Operacionais Operacionais";
  const query = new URLSearchParams({
  period: f.period,
  tank_type: f.tankType,
@@ -588,7 +588,7 @@ function renderOperations(rows) {
  <th>Data e Hora</th>
  <th>Responsável Operacional</th>
  <th>Estado Operacional</th>
- <th>Tanque de Processo de Processo</th>
+ <th>Tanque de Processo de Processo de Processo</th>
  <th>Linha de Vácuo</th>
  <th>Pressão Final do Processo</th>
  <th>Risco</th>
@@ -623,7 +623,7 @@ function renderSimulations(rows) {
  <th>Data e Hora</th>
  <th>Nome</th>
  <th>Estado Operacional</th>
- <th>Tanque de Processo de Processo</th>
+ <th>Tanque de Processo de Processo de Processo</th>
  <th>Linha de Vácuo</th>
  <th>Pressão Final do Processo</th>
  <th>Risco</th>
@@ -633,7 +633,7 @@ function renderSimulations(rows) {
 
  document.getElementById("tbody").innerHTML = rows.length ? rows.map(row => `
  <tr>
- <td>${badge("Simulação Operacional Operacional", "sim")}</td>
+ <td>${badge("Simulação Operacional Operacional Operacional", "sim")}</td>
  <td><b>${row.id}</b></td>
  <td>${row.created_at || "--"}</td>
  <td>${row.name || "--"}</td>
@@ -706,7 +706,7 @@ async function openOperation(id) {
  <div class="panel">
  <h3>Parâmetros Operacionais</h3>
  <div class="kv">
- <div><small>Tanque de Processo de Processo</small><b>${record.tank_code}</b></div>
+ <div><small>Tanque de Processo de Processo de Processo</small><b>${record.tank_code}</b></div>
  <div><small>Categoria</small><b>${record.tank_type}</b></div>
  <div><small>Volume</small><b>${fmt(record.tank_volume_liters, "L")}</b></div>
  <div><small>Limite estrutural</small><b>${fmt(record.structural_limit_mbar, "mbar")}</b></div>
@@ -720,7 +720,7 @@ async function openOperation(id) {
  </div>
 
  <div class="panel">
- <h3>Resultados Operacionais Operacionais</h3>
+ <h3>Resultados Operacionais Operacionais Operacionais</h3>
  <div class="kv">
  <div><small>Pressão Final do Processo</small><b>${fmt(record.final_pressure_mbar, "mbar")}</b></div>
  <div><small>Duração real</small><b>${fmt(record.duration_seconds, "s")}</b></div>
@@ -744,7 +744,7 @@ async function openOperation(id) {
  </section>
 
  <section class="actions">
- <button onclick="resimulateOperation('${record.id}')">Reexecutar Simulação Operacional</button>
+ <button onclick="resimulateOperation('${record.id}')">Reexecutar Simulação Operacional Operacional</button>
  <a class="button secondary" href="${API}/records/operations/${record.id}/report" target="_blank">Gerar Relatório Técnico</a>
  <a class="button secondary" href="${API}/records/operations/${record.id}/csv" target="_blank">Exportar Dados CSV</a>
  </section>
@@ -762,14 +762,14 @@ async function openSimulation(id) {
  document.getElementById("detail").classList.add("visible");
  document.getElementById("detail").innerHTML = `
  <section>
- <span class="eyebrow">Detalhamento da Simulação Operacional Operacional</span>
+ <span class="eyebrow">Detalhamento da Simulação Operacional Operacional Operacional</span>
  <h2>${record.id} · ${record.name}</h2>
  <p>Usuário: <b>${record.user || "--"}</b> · Data/hora: ${record.created_at}</p>
  </section>
 
  <section class="split">
  <div class="panel">
- <h3>Parâmetros da Simulação Operacional</h3>
+ <h3>Parâmetros da Simulação Operacional Operacional</h3>
  <div class="kv">
  <div><small>Categoria de tanque</small><b>${record.tank_type || "--"}</b></div>
  <div><small>Linha de Vácuo</small><b>${record.hose_id || "--"}</b></div>
@@ -779,12 +779,12 @@ async function openSimulation(id) {
  <div><small>Atraso da Injeção de Óleo</small><b>${fmt(record.oil_delay_seconds, "s")}</b></div>
  <div><small>Velocidade Roots</small><b>${fmt(record.roots_speed_pct, "%")}</b></div>
  <div><small>Índice de Integridade da Bomba</small><b>${fmt(record.pump_health_factor)}</b></div>
- <div><small>Fator de Fator de Calibração</small><b>${fmt(record.calibration_factor)}</b></div>
+ <div><small>Fator de Fator de Fator de Calibração</small><b>${fmt(record.calibration_factor)}</b></div>
  </div>
  </div>
 
  <div class="panel">
- <h3>Resultados Operacionais Operacionais simulados</h3>
+ <h3>Resultados Operacionais Operacionais Operacionais simulados</h3>
  <div class="kv">
  <div><small>Tempo estimado</small><b>${fmt(metrics.estimated_time_seconds, "s")}</b></div>
  <div><small>Pressão Final do Processo</small><b>${fmt(metrics.final_real_pressure_mbar, "mbar")}</b></div>
@@ -797,7 +797,7 @@ async function openSimulation(id) {
  </section>
 
  <section class="panel">
- <h3>Curva da Simulação Operacional</h3>
+ <h3>Curva da Simulação Operacional Operacional</h3>
  ${drawChart(data.chart)}
  </section>
 
@@ -807,7 +807,7 @@ async function openSimulation(id) {
  </section>
 
  <section class="actions">
- <button onclick="resimulateSimulation('${record.id}')">Reexecutar Simulação Operacional</button>
+ <button onclick="resimulateSimulation('${record.id}')">Reexecutar Simulação Operacional Operacional</button>
  <button onclick="convertSimulation('${record.id}')">Enviar para Execução</button>
  <a class="button secondary" href="${API}/records/simulations/${record.id}/csv" target="_blank">Exportar Dados CSV</a>
  </section>
@@ -824,7 +824,7 @@ async function resimulateOperation(id) {
 
 async function resimulateSimulation(id) {
  await request(`/records/simulations/${id}/resimulate`, { method: "POST" });
- alert("Simulação Operacional Operacional executada novamente.");
+ alert("Simulação Operacional Operacional Operacional executada novamente.");
  await openSimulation(id);
 }
 

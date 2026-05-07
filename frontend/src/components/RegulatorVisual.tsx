@@ -39,7 +39,7 @@ export function RegulatorVisual({
  <div className="regulator-card-head">
  <div>
  <strong>{title}</strong>
- <span>{mode === "simulation" ? "Simulação Operacional Operacional do Gêmeo Digital" : "Operação em tempo real"}</span>
+ <span>{mode === "simulation" ? "Simulação Operacional Operacional Operacional do Gêmeo Digital" : "Operação em tempo real"}</span>
  </div>
  <small>{status}</small>
  </div>

@@ -351,11 +351,11 @@ export function DigitalTwinPage({
  </label>
 
  <label>
- Tanque de Processo de Processo específico
+ Tanque de Processo de Processo de Processo específico
  <select value={config.selected_tank} onChange={(e) => update("selected_tank", Number(e.target.value))}>
- <option value={1}>Tanque de Processo de Processo 1</option>
- <option value={2}>Tanque de Processo de Processo 2</option>
- <option value={3}>Tanque de Processo de Processo 3</option>
+ <option value={1}>Tanque de Processo de Processo de Processo 1</option>
+ <option value={2}>Tanque de Processo de Processo de Processo 2</option>
+ <option value={3}>Tanque de Processo de Processo de Processo 3</option>
  </select>
  </label>
  </div>
