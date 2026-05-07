@@ -1,21 +1,43 @@
-﻿import { AlertTriangle, Bot, CheckCircle2, CircuitBoard, FlaskConical, Play, ShieldAlert, Wrench } from "lucide-react";
+﻿import { AlertTriangle, Bot, ClipboardCheck, FlaskConical, Gauge, Wrench } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { api } from "../api/client";
 import { PressureChart } from "../components/PressureChart";
+import { RegulatorFromManualResult } from "../components/RegulatorVisual";
 import { TwinComparison } from "../components/TwinComparison";
 import { DataTable, DemoBadge, fmt, Kpi, Meter, PageHeader, StatusBadge } from "../components/ui";
 import type {
   ChatResponse,
   Maintenance,
+  ManualOperationConfig,
+  ManualOperationResult,
+  OperationConfigOptions,
   OperationState,
   PressureReading,
-  ScenarioDefinition,
-  ScenarioRunResult,
   SimulationResult,
   Tank,
   TwinState,
 } from "../types/domain";
+
+const defaultConfig: ManualOperationConfig = {
+  tank_type: "medio",
+  hose_id: 1,
+  target_pressure_mbar: 0.2,
+  roots_start_pressure_mbar: 0.6,
+  stop_pressure_mbar: 0.2,
+  oil_flow_l_min: 2,
+  oil_delay_seconds: 2,
+  max_cycle_seconds: 1800,
+  roots_speed_hz: 65,
+  vacuum_ramp: "suave",
+  hose_correction_enabled: true,
+  oil_compensation_enabled: true,
+  selected_tank: 1,
+  deviation_alert_mbar: 10,
+  simulate_hose_leak: false,
+  simulate_sensor_failure: false,
+  simulate_plc_loss: false,
+};
 
 export function DigitalTwinPage({
   twin,
@@ -29,7 +51,6 @@ export function DigitalTwinPage({
   setChatText,
   chat,
   onChat,
-  onRunWhatIf,
 }: {
   twin: TwinState | null;
   state: OperationState | null;
@@ -44,316 +65,277 @@ export function DigitalTwinPage({
   onChat: (event: FormEvent) => void;
   onRunWhatIf: () => void;
 }) {
-  const [scenarios, setScenarios] = useState<ScenarioDefinition[]>([]);
-  const [scenarioResult, setScenarioResult] = useState<ScenarioRunResult | null>(null);
-  const [scenarioError, setScenarioError] = useState<string | null>(null);
-  const [runningScenario, setRunningScenario] = useState<string | null>(null);
-  const [aiQuestion, setAiQuestion] = useState("Explique o risco do cenário atual e a ação recomendada.");
-  const [aiAnswer, setAiAnswer] = useState<ChatResponse | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-
-  useEffect(() => {
-    api.scenarios()
-      .then(setScenarios)
-      .catch((error) => setScenarioError(error instanceof Error ? error.message : "Falha ao carregar cenários."));
-  }, []);
+  const [options, setOptions] = useState<OperationConfigOptions | null>(null);
+  const [config, setConfig] = useState<ManualOperationConfig>(defaultConfig);
+  const [result, setResult] = useState<ManualOperationResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const latestWhatIf = whatIfs[0];
 
-  const scenarioTone = scenarioResult?.status_final === "critical"
-    ? "bad"
-    : scenarioResult?.status_final === "warning"
-      ? "warn"
-      : "good";
+  useEffect(() => {
+    api.configOptions()
+      .then((data) => {
+        setOptions(data);
+        const firstHose = data.hoses[0];
+        if (firstHose) setConfig((old) => ({ ...old, hose_id: firstHose.id }));
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Falha ao carregar configurações."));
+  }, []);
 
-  const lastTimeline = scenarioResult?.timeline.at(-1);
-  const flattenedTimeline = useMemo(() => {
-    if (!scenarioResult) return [];
-    return scenarioResult.timeline.flatMap((point) =>
-      point.tanks.map((tank) => ({
-        t_seconds: point.t_seconds,
-        tank_id: tank.tank_id,
-        pressure_mbar: tank.pressure_mbar,
-        expected_pressure_mbar: tank.expected_pressure_mbar,
-        collapse_risk_pct: tank.collapse_risk_pct,
-        hose_loss_mbar: tank.hose_loss_mbar,
-        oil_flow_l_min: tank.oil_flow_l_min,
-        oil_volume_liters: tank.oil_volume_liters,
-      })),
-    );
-  }, [scenarioResult]);
+  const tone = result?.status === "critical" ? "bad" : result?.status === "warning" ? "warn" : "good";
 
-  async function runScenario(id: string) {
-    setScenarioError(null);
-    setRunningScenario(id);
-    try {
-      const result = await api.runScenario(id);
-      setScenarioResult(result);
-    } catch (error) {
-      setScenarioError(error instanceof Error ? error.message : "Falha ao executar cenário.");
-    } finally {
-      setRunningScenario(null);
-    }
+  const resultHistory = useMemo(() => {
+    if (!result) return history;
+    return result.timeline.map((point, index) => ({
+      id: index + 1,
+      cycle_id: 0,
+      timestamp: String(point.t_seconds),
+      tank_id: 1,
+      pressure_mbar: point.real_pressure_mbar,
+      expected_pressure_mbar: point.expected_pressure_mbar,
+      oil_volume_liters: point.oil_volume_liters,
+      oil_flow_l_min: result.config.oil_flow_l_min,
+      hose_loss_mbar: point.hose_loss_mbar,
+      collapse_risk_pct: point.collapse_risk_pct,
+    }));
+  }, [history, result]);
+
+  function update<K extends keyof ManualOperationConfig>(key: K, value: ManualOperationConfig[K]) {
+    setConfig((old) => ({ ...old, [key]: value }));
   }
 
-  async function askAI(event: FormEvent) {
-    event.preventDefault();
-    setAiLoading(true);
+  function applyPreset(id: string) {
+    const preset = options?.presets?.[id];
+    if (!preset) return;
+    setConfig({ ...defaultConfig, ...preset.config });
+    setResult(null);
+  }
+
+  async function simulate() {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await api.aiChat(aiQuestion);
-      setAiAnswer(response);
-    } catch (error) {
-      setAiAnswer({
-        answer: error instanceof Error ? error.message : "Falha ao consultar assistente.",
-        intent: "error",
-        suggested_actions: ["Verificar backend", "Verificar chave OpenAI"],
-      });
+      const response = await api.manualSimulate(config);
+      setResult(response);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao simular operação.");
     } finally {
-      setAiLoading(false);
+      setLoading(false);
     }
   }
 
   return (
-    <section className="page-stack twin-page">
+    <section className="page-stack twin-workbench">
       <PageHeader
-        eyebrow="Inteligência do processo"
-        title="Gêmeo Digital do Processo de Vácuo"
-        subtitle="Compare o comportamento real simulado com o esperado e execute cenários de sucesso e falha para demonstrar o valor da solução."
+        eyebrow="Gêmeo Digital"
+        title="Simulação inteligente do processo"
+        subtitle="Configure uma operação hipotética e veja se ela é segura, crítica ou exige atenção antes de acontecer na fábrica."
         actions={<DemoBadge />}
       />
 
-      {scenarioError && <div className="error">{scenarioError}</div>}
+      {error && <div className="error">{error}</div>}
 
-      <section className="grid">
-        <Kpi
-          label="Saúde do sistema"
-          value={fmt(twin?.health_index, "%")}
-          hint="Estimativa baseada em desvio, alarmes e estabilidade."
-          tone={(twin?.health_index ?? 0) > 75 ? "good" : "warn"}
-        />
-        <Kpi
-          label="Estabilidade"
-          value={fmt(twin?.stability_index, "%")}
-          hint="Aderência entre curva esperada e operação."
-          tone={(twin?.stability_index ?? 0) > 75 ? "good" : "warn"}
-        />
-        <Kpi
-          label="Desvio real x esperado"
-          value={fmt(twin?.pressure_deviation_pct, "%")}
-          hint="Diferença média da pressão."
-          tone={(twin?.pressure_deviation_pct ?? 0) > 30 ? "bad" : (twin?.pressure_deviation_pct ?? 0) > 15 ? "warn" : "good"}
-        />
-        <Kpi
-          label="Risco estrutural máximo"
-          value={fmt(maxRisk, "%")}
-          hint="Maior risco atual entre tanques."
-          tone={maxRisk > 82 ? "bad" : maxRisk > 65 ? "warn" : "good"}
-        />
+      <section className="operator-guide">
+        <strong>O que esta tela faz?</strong>
+        <span>Esta é a bancada de simulação. Aqui você escolhe tanque, mangueira, pressão, óleo, Roots e falhas. O Gêmeo Digital calcula curva, risco, alarmes e recomendações.</span>
       </section>
 
-      <section className="panel wide scenario-lab">
-        <div className="panel-title">
-          <div>
-            <h2><FlaskConical size={18} /> Cenários de demonstração</h2>
-            <p>Use estes cenários para mostrar quando a operação dá certo, quando dá errado e como o Gêmeo Digital recomenda ações.</p>
-          </div>
-          <StatusBadge tone={scenarioTone}>{scenarioResult ? scenarioResult.status_final : "Aguardando cenário"}</StatusBadge>
-        </div>
-
-        <div className="scenario-grid">
-          {scenarios.map((scenario) => {
-            const tone = scenario.expected_result === "critical" ? "bad" : scenario.expected_result === "warning" ? "warn" : "good";
-            return (
-              <article key={scenario.id} className={`scenario-card ${tone}`}>
-                <div className="scenario-card-head">
-                  {tone === "good" ? <CheckCircle2 size={20} /> : tone === "warn" ? <AlertTriangle size={20} /> : <ShieldAlert size={20} />}
-                  <div>
-                    <strong>{scenario.name}</strong>
-                    <span>{scenario.expected_result}</span>
-                  </div>
-                </div>
-                <p>{scenario.description}</p>
-                <small>{scenario.operator_story}</small>
-                <div className="scenario-alarms">
-                  {scenario.expected_alarms.length ? scenario.expected_alarms.map((item) => <span key={item}>{item}</span>) : <span>Sem alarmes críticos</span>}
-                </div>
-                <button type="button" onClick={() => runScenario(scenario.id)} disabled={runningScenario === scenario.id}>
-                  <Play size={16} />
-                  {runningScenario === scenario.id ? "Executando..." : "Executar cenário"}
-                </button>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      {scenarioResult && (
-        <section className={`scenario-result ${scenarioTone}`}>
-          <div>
-            <span className="eyebrow">Resultado da simulação</span>
-            <h2>{scenarioResult.scenario.name}</h2>
-            <p>{scenarioResult.diagnostico}</p>
-            <strong>{scenarioResult.recomendacao}</strong>
-          </div>
-          <div className="scenario-result-kpis">
-            <Kpi label="Pressão final projetada" value={fmt(scenarioResult.metricas.projected_final_pressure_mbar, "mbar")} tone={scenarioTone} />
-            <Kpi label="Risco máximo" value={fmt(scenarioResult.metricas.max_collapse_risk_pct, "%")} tone={scenarioTone} />
-            <Kpi label="Óleo" value={`${fmt(scenarioResult.metricas.oil_flow_l_min, "L/min")}`} hint={`Atraso ${scenarioResult.metricas.oil_delay_seconds}s`} tone={scenarioTone} />
-            <Kpi label="Roots" value={scenarioResult.metricas.roots_started ? "Partiu" : "Não partiu"} tone={scenarioTone} />
-          </div>
-        </section>
-      )}
-
-      <section className="grid twin-grid">
-        <section className="panel twin-diagnosis">
+      <section className="twin-layout">
+        <aside className="simulation-control-panel">
           <div className="panel-title">
             <div>
-              <h2><CircuitBoard size={18} /> Diagnóstico automático</h2>
-              <p>Recomendações geradas pelo Gêmeo Digital.</p>
+              <h2><FlaskConical size={18} /> Cenários prontos</h2>
+              <p>Escolha um cenário para demonstrar sucesso ou falha.</p>
             </div>
-            <StatusBadge tone={twin?.bottleneck?.includes("risco") ? "bad" : twin?.bottleneck?.includes("mangueira") ? "warn" : "good"}>
-              {twin?.bottleneck ?? "Aguardando"}
-            </StatusBadge>
           </div>
 
+          <div className="preset-grid">
+            {options && Object.entries(options.presets).map(([id, preset]) => (
+              <button key={id} type="button" className="preset-card" onClick={() => applyPreset(id)}>
+                <strong>{preset.name}</strong>
+                <span>{preset.description}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="panel-title compact-title">
+            <div>
+              <h2><ClipboardCheck size={18} /> Parâmetros</h2>
+              <p>Campos usados no cálculo da simulação.</p>
+            </div>
+          </div>
+
+          <div className="form-grid">
+            <label>Tipo do tanque
+              <select value={config.tank_type} onChange={(e) => update("tank_type", e.target.value)}>
+                {options && Object.entries(options.tank_types).map(([key, tank]) => <option key={key} value={key}>{tank.label}</option>)}
+              </select>
+            </label>
+
+            <label>Mangueira
+              <select value={config.hose_id} onChange={(e) => update("hose_id", Number(e.target.value))}>
+                {options?.hoses.map((hose) => <option key={hose.id} value={hose.id}>{hose.code} · {hose.length_m}m</option>)}
+              </select>
+            </label>
+
+            <label>Pressão final desejada (mbar)
+              <input type="number" step="0.01" value={config.target_pressure_mbar} onChange={(e) => update("target_pressure_mbar", Number(e.target.value))} />
+            </label>
+
+            <label>Pressão para ligar Roots (mbar)
+              <input type="number" step="0.01" value={config.roots_start_pressure_mbar} onChange={(e) => update("roots_start_pressure_mbar", Number(e.target.value))} />
+            </label>
+
+            <label>Pressão para desligar bombas (mbar)
+              <input type="number" step="0.01" value={config.stop_pressure_mbar} onChange={(e) => update("stop_pressure_mbar", Number(e.target.value))} />
+            </label>
+
+            <label>Vazão de óleo (L/min)
+              <input type="number" step="0.1" value={config.oil_flow_l_min} onChange={(e) => update("oil_flow_l_min", Number(e.target.value))} />
+            </label>
+
+            <label>Atraso do óleo (s)
+              <input type="number" value={config.oil_delay_seconds} onChange={(e) => update("oil_delay_seconds", Number(e.target.value))} />
+            </label>
+
+            <label>Tempo máximo (s)
+              <input type="number" value={config.max_cycle_seconds} onChange={(e) => update("max_cycle_seconds", Number(e.target.value))} />
+            </label>
+
+            <label>Velocidade Roots (Hz)
+              <input type="number" value={config.roots_speed_hz} onChange={(e) => update("roots_speed_hz", Number(e.target.value))} />
+            </label>
+
+            <label>Rampa de vácuo
+              <select value={config.vacuum_ramp} onChange={(e) => update("vacuum_ramp", e.target.value)}>
+                {options && Object.entries(options.ramps).map(([key, ramp]) => <option key={key} value={key}>{ramp.label}</option>)}
+              </select>
+            </label>
+
+            <label>Limite de desvio (mbar)
+              <input type="number" value={config.deviation_alert_mbar} onChange={(e) => update("deviation_alert_mbar", Number(e.target.value))} />
+            </label>
+
+            <label>Tanque específico
+              <select value={config.selected_tank} onChange={(e) => update("selected_tank", Number(e.target.value))}>
+                <option value={1}>Tanque 1</option>
+                <option value={2}>Tanque 2</option>
+                <option value={3}>Tanque 3</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="switch-grid">
+            <label><input type="checkbox" checked={config.hose_correction_enabled} onChange={(e) => update("hose_correction_enabled", e.target.checked)} /> Correção da mangueira</label>
+            <label><input type="checkbox" checked={config.oil_compensation_enabled} onChange={(e) => update("oil_compensation_enabled", e.target.checked)} /> Compensação de óleo</label>
+            <label><input type="checkbox" checked={config.simulate_hose_leak} onChange={(e) => update("simulate_hose_leak", e.target.checked)} /> Simular vazamento</label>
+            <label><input type="checkbox" checked={config.simulate_sensor_failure} onChange={(e) => update("simulate_sensor_failure", e.target.checked)} /> Falha de sensor</label>
+            <label><input type="checkbox" checked={config.simulate_plc_loss} onChange={(e) => update("simulate_plc_loss", e.target.checked)} /> Perda de comunicação com CLP</label>
+          </div>
+
+          <button type="button" className="simulate-main-button" onClick={simulate} disabled={loading}>
+            {loading ? "Simulando..." : "Simular no Gêmeo Digital"}
+          </button>
+        </aside>
+
+        <section className="simulation-result-panel">
+          <section className={`manual-result-card ${tone}`}>
+            <div>
+              <span className="eyebrow">Resultado da simulação</span>
+              <h2>{result ? statusLabel(result.status) : "Aguardando simulação"}</h2>
+              <p>{result?.diagnosis ?? "Escolha um cenário pronto ou configure os campos manualmente para o Gêmeo Digital analisar."}</p>
+              {result && <strong>{result.recommendation}</strong>}
+            </div>
+
+            <div className="manual-result-metrics">
+              <Kpi label="Pressão efetiva" value={fmt(result?.metrics.max_effective_pressure_mbar, "mbar")} tone={tone} />
+              <Kpi label="Risco" value={fmt(result?.metrics.max_collapse_risk_pct, "%")} tone={tone} />
+              <Kpi label="Desvio" value={fmt(result?.metrics.max_deviation_mbar, "mbar")} tone={tone} />
+              <Kpi label="Tempo estimado" value={result?.metrics.estimated_time_seconds ? fmt(result.metrics.estimated_time_seconds, "s") : "--"} />
+            </div>
+          </section>
+
+          {result && <RegulatorFromManualResult result={result} />}
+
+          <section className="panel">
+            <div className="panel-title">
+              <div>
+                <h2><Gauge size={18} /> Rampa simulada</h2>
+                <p>Pressão real no tanque, pressão esperada e leitura estimada no sensor.</p>
+              </div>
+            </div>
+            <PressureChart history={resultHistory} expected />
+          </section>
+
+          {result?.alarms.length ? (
+            <section className="panel">
+              <div className="panel-title">
+                <div>
+                  <h2><AlertTriangle size={18} /> Alarmes projetados</h2>
+                  <p>Eventos que ocorreriam com os parâmetros definidos.</p>
+                </div>
+                <StatusBadge tone={tone}>{result.alarms.length} alarmes</StatusBadge>
+              </div>
+              <div className="alarm-list">
+                {result.alarms.map((alarm) => (
+                  <article key={alarm.code} className={`alarm-item ${alarm.severity}`}>
+                    <div><strong>{alarm.code}</strong><span>{alarm.message}</span></div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </section>
+      </section>
+
+      <section className="grid twin-grid">
+        <section className="panel">
+          <div className="panel-title">
+            <div><h2>Diagnóstico automático atual</h2><p>Baseado no ciclo em tempo real, quando houver dados.</p></div>
+            <StatusBadge>{twin?.bottleneck ?? "Aguardando"}</StatusBadge>
+          </div>
           <Meter label="Saúde" value={twin?.health_index ?? 0} tone={(twin?.health_index ?? 0) > 75 ? "good" : "warn"} />
           <Meter label="Estabilidade" value={twin?.stability_index ?? 0} tone={(twin?.stability_index ?? 0) > 75 ? "good" : "warn"} />
-
           <ul className="recommendation-list">
-            {(twin?.recommendations.length ? twin.recommendations : ["Operação estável. Manter acompanhamento do ciclo."]).map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-            {state?.oil_injection.fault && <li>Verificar injeção de óleo antes de reiniciar o ciclo.</li>}
-            {!state?.plc_comm_ok && <li>Validar comunicação com CLP e sensores de pressão.</li>}
+            {(twin?.recommendations.length ? twin.recommendations : ["Inicie um ciclo ou execute uma simulação para gerar diagnóstico."]).map((item) => <li key={item}>{item}</li>)}
           </ul>
         </section>
 
-        <section className="panel twin-comparison-panel">
+        <section className="panel">
           <div className="panel-title">
-            <div>
-              <h2>Comparação por tanque</h2>
-              <p>Pressão real simulada, pressão esperada e desvio.</p>
-            </div>
+            <div><h2>Comparação por tanque</h2><p>Operação real simulada x esperado.</p></div>
           </div>
           <TwinComparison state={state} tanks={tanks} />
         </section>
 
-        <section className="panel wide">
-          <div className="panel-title">
-            <div>
-              <h2>Curva de cenário: real x esperado</h2>
-              <p>Mostra a diferença entre a operação simulada e o comportamento esperado.</p>
-            </div>
-          </div>
-
-          {scenarioResult ? (
-            <ScenarioChart timeline={scenarioResult.timeline} />
-          ) : (
-            <PressureChart history={history} expected />
-          )}
-        </section>
-
         <section className="panel">
           <div className="panel-title">
-            <div>
-              <h2><Play size={18} /> What-if antigo</h2>
-              <p>Cenário simples legado de mangueira e vazamento.</p>
-            </div>
-            <button type="button" className="ghost" onClick={onRunWhatIf}>Executar</button>
-          </div>
-
-          {latestWhatIf ? (
-            <div className="whatif-result">
-              <Kpi label="Risco projetado" value={fmt(latestWhatIf.max_collapse_risk_pct, "%")} tone={latestWhatIf.max_collapse_risk_pct > 82 ? "bad" : "warn"} />
-              <p>Alarmes prováveis: {latestWhatIf.alarms || "Sem alarmes projetados"}</p>
-              <p>{latestWhatIf.summary}</p>
-            </div>
-          ) : (
-            <p className="empty-state">Execute um cenário para visualizar o resultado.</p>
-          )}
-        </section>
-
-        <section className="panel">
-          <div className="panel-title">
-            <div>
-              <h2><Wrench size={18} /> Manutenção preditiva</h2>
-              <p>Bombas Leybold e mangueiras monitoradas pelo protótipo.</p>
-            </div>
-            <StatusBadge>{maintenance.length} ativos</StatusBadge>
+            <div><h2><Wrench size={18} /> Manutenção preditiva</h2><p>Bombas e mangueiras monitoradas.</p></div>
           </div>
           <DataTable rows={maintenance.slice(0, 5)} />
         </section>
 
         <section className="panel chat-panel">
           <div className="panel-title">
-            <div>
-              <h2><Bot size={18} /> Assistente técnico com contexto</h2>
-              <p>Usa OpenAI quando houver chave configurada. Sem chave, usa fallback local.</p>
-            </div>
+            <div><h2><Bot size={18} /> Assistente técnico</h2><p>Pergunte sobre risco, óleo, Roots, pressão ou alarmes.</p></div>
           </div>
-
-          <form onSubmit={askAI}>
-            <input value={aiQuestion} onChange={(event) => setAiQuestion(event.target.value)} />
-            <button type="submit" disabled={aiLoading}>{aiLoading ? "Analisando..." : "Perguntar à IA"}</button>
-          </form>
-
-          <p className="assistant-answer">{aiAnswer?.answer ?? chat?.answer ?? "Pergunte sobre risco, óleo, Roots, alarmes ou cenários."}</p>
-
-          <form onSubmit={onChat} className="legacy-chat-form">
+          <form onSubmit={onChat}>
             <input value={chatText} onChange={(event) => setChatText(event.target.value)} />
-            <button type="submit" className="ghost">Chat local</button>
+            <button type="submit">Enviar</button>
           </form>
-
-          <div className="chips">
-            {(aiAnswer?.suggested_actions ?? chat?.suggested_actions ?? []).map((item) => <span key={item}>{item}</span>)}
-          </div>
+          <p className="assistant-answer">{chat?.answer ?? "Aguardando pergunta do operador."}</p>
+          <div className="chips">{chat?.suggested_actions.map((item) => <span key={item}>{item}</span>)}</div>
+          {latestWhatIf && <small>Último what-if: {latestWhatIf.summary}</small>}
         </section>
       </section>
     </section>
   );
 }
 
-function ScenarioChart({ timeline }: { timeline: ScenarioRunResult["timeline"] }) {
-  const points = timeline.slice(-40);
-  const tanks = [1, 2, 3];
-  const colors = ["#1e5d4b", "#b97820", "#aa382f"];
-  const max = Math.max(...points.flatMap((item) => item.tanks.map((tank) => tank.pressure_mbar)), 100);
-  const min = Math.min(...points.flatMap((item) => item.tanks.map((tank) => tank.pressure_mbar)), 0);
-  const span = Math.max(max - min, 1);
-
-  function polyline(tankId: number, expected = false) {
-    const series = points.map((item) => {
-      const tank = item.tanks.find((entry) => entry.tank_id === tankId);
-      return expected ? tank?.expected_pressure_mbar ?? 0 : tank?.pressure_mbar ?? 0;
-    });
-
-    return series
-      .map((value, index) => {
-        const x = (index / Math.max(series.length - 1, 1)) * 100;
-        const y = 96 - ((value - min) / span) * 88;
-        return `${x},${y}`;
-      })
-      .join(" ");
-  }
-
-  return (
-    <div className="chart-panel scenario-chart">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Curva de cenário">
-        <line x1="0" x2="100" y1="96" y2="96" className="axis" />
-        <line x1="0" x2="0" y1="4" y2="96" className="axis" />
-        {[20, 40, 60, 80].map((y) => <line key={y} x1="0" x2="100" y1={y} y2={y} className="grid-line" />)}
-        {tanks.map((tankId, index) => (
-          <g key={tankId}>
-            <polyline points={polyline(tankId)} fill="none" stroke={colors[index]} strokeWidth="2.2" />
-            <polyline points={polyline(tankId, true)} fill="none" stroke={colors[index]} strokeDasharray="3 3" strokeOpacity="0.48" strokeWidth="1.5" />
-          </g>
-        ))}
-      </svg>
-      <div className="legend">
-        {tanks.map((tankId, index) => (
-          <span key={tankId}><i style={{ background: colors[index] }} /> Tanque {tankId}: real / esperado</span>
-        ))}
-      </div>
-    </div>
-  );
+function statusLabel(status: string) {
+  if (status === "success") return "Operação segura";
+  if (status === "warning") return "Operação com atenção";
+  if (status === "critical") return "Operação crítica";
+  return status;
 }

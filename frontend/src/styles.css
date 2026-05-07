@@ -893,3 +893,531 @@ main {
     padding: 16px;
   }
 }
+
+/* ============================================================
+   UX industrial: menu hambúrguer, Gêmeo Digital e regulador visual
+   ============================================================ */
+
+main {
+  max-width: none;
+  padding: 0;
+}
+
+.app-topbar {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #dbe4df;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: 14px 22px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(12px);
+}
+
+.hamburger {
+  background: #1f302b;
+  border-radius: 10px;
+  min-width: 44px;
+  padding: 0;
+}
+
+.app-title {
+  display: grid;
+  gap: 2px;
+  margin-right: auto;
+}
+
+.app-title strong {
+  font-size: 1.05rem;
+}
+
+.app-title small {
+  color: #65736d;
+}
+
+.topbar-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.side-nav {
+  background: #10211b;
+  color: #ffffff;
+  height: 100vh;
+  left: 0;
+  padding: 18px;
+  position: fixed;
+  top: 0;
+  transform: translateX(-105%);
+  transition: transform 0.22s ease;
+  width: 330px;
+  z-index: 80;
+  box-shadow: 30px 0 80px rgb(0 0 0 / 24%);
+}
+
+.menu-is-open .side-nav {
+  transform: translateX(0);
+}
+
+.side-nav-head {
+  align-items: center;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+}
+
+.side-nav-head .brand {
+  color: #f4b8aa;
+}
+
+.side-nav nav {
+  display: grid;
+  gap: 8px;
+}
+
+.side-nav nav button {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 12px;
+  color: #eaf2ee;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 22px 1fr;
+  justify-content: start;
+  min-height: 64px;
+  padding: 12px;
+  text-align: left;
+}
+
+.side-nav nav button.active,
+.side-nav nav button:hover {
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 22%);
+}
+
+.side-nav nav button span {
+  display: grid;
+  gap: 3px;
+}
+
+.side-nav nav button small {
+  color: #aab9b3;
+}
+
+.mobile-overlay {
+  background: rgb(10 20 16 / 42%);
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 0.22s ease;
+  z-index: 70;
+}
+
+.menu-is-open .mobile-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.content-area {
+  margin: 0 auto;
+  max-width: 1520px;
+  padding: 24px;
+}
+
+.icon-only {
+  min-width: 38px;
+  padding: 0;
+}
+
+.operator-guide {
+  align-items: start;
+  background: #f5f9f7;
+  border: 1px solid #dce8e2;
+  border-left: 5px solid #1e5d4b;
+  border-radius: 12px;
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+}
+
+.operator-guide strong {
+  color: #12231d;
+}
+
+.operator-guide span {
+  color: #53645d;
+  line-height: 1.45;
+}
+
+.regulator-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.regulator-card {
+  background: #ffffff;
+  border: 1px solid #d8e0dd;
+  border-top: 6px solid #2e8f5b;
+  border-radius: 16px;
+  box-shadow: 0 14px 38px rgb(18 32 27 / 7%);
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.regulator-card.warn {
+  border-top-color: #c78a2d;
+}
+
+.regulator-card.bad {
+  border-top-color: #aa382f;
+}
+
+.regulator-card-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.regulator-card-head strong {
+  display: block;
+  font-size: 1.12rem;
+}
+
+.regulator-card-head span,
+.regulator-card-head small {
+  color: #65736d;
+}
+
+.regulator-visual-wrap {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.regulator-svg {
+  filter: drop-shadow(0 18px 18px rgb(18 32 27 / 13%));
+  height: 300px;
+  max-width: 100%;
+}
+
+.regulator-cap,
+.regulator-neck,
+.regulator-foot {
+  fill: #25352f;
+}
+
+.regulator-body {
+  fill: #eef4f1;
+}
+
+.regulator-outline {
+  fill: none;
+  stroke: #17241f;
+  stroke-width: 4;
+}
+
+.regulator-base-line {
+  stroke: #17241f;
+  stroke-width: 4;
+}
+
+.layer-gas {
+  fill: #3b82f6;
+  opacity: 0.72;
+}
+
+.layer-pressure {
+  fill: #ef4444;
+}
+
+.layer-oil {
+  fill: #facc15;
+  opacity: 0.88;
+}
+
+.regulator-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.regulator-legend span {
+  align-items: center;
+  background: #f6f8f7;
+  border: 1px solid #e1e8e4;
+  border-radius: 999px;
+  color: #34443e;
+  display: inline-flex;
+  font-size: 0.82rem;
+  gap: 7px;
+  padding: 6px 10px;
+}
+
+.regulator-legend i {
+  border-radius: 999px;
+  display: inline-block;
+  height: 10px;
+  width: 10px;
+}
+
+.gas-dot {
+  background: #3b82f6;
+}
+
+.pressure-dot {
+  background: #ef4444;
+}
+
+.oil-dot {
+  background: #facc15;
+}
+
+.regulator-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.regulator-metrics span {
+  background: #f8faf9;
+  border: 1px solid #e2eae6;
+  border-radius: 10px;
+  display: grid;
+  gap: 4px;
+  min-height: 64px;
+  padding: 10px;
+}
+
+.regulator-metrics small {
+  color: #66756e;
+}
+
+.regulator-metrics strong {
+  color: #14231e;
+  overflow-wrap: anywhere;
+}
+
+.empty-regulator {
+  align-items: center;
+  background: #f6f8f7;
+  border: 1px dashed #cfdad5;
+  border-radius: 12px;
+  color: #64736c;
+  display: flex;
+  justify-content: center;
+  min-height: 300px;
+  padding: 20px;
+  text-align: center;
+}
+
+.twin-workbench .page-header {
+  background:
+    radial-gradient(circle at top right, rgb(30 93 75 / 9%), transparent 32%),
+    #ffffff;
+}
+
+.twin-layout {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(340px, 0.42fr) minmax(0, 1fr);
+}
+
+.simulation-control-panel {
+  background: #ffffff;
+  border: 1px solid #d8e0dd;
+  border-radius: 16px;
+  box-shadow: 0 14px 38px rgb(18 32 27 / 7%);
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  position: sticky;
+  top: 98px;
+}
+
+.preset-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.preset-card {
+  background: #f8faf9;
+  border: 1px solid #dfe8e3;
+  border-radius: 12px;
+  color: #14231e;
+  display: grid;
+  gap: 6px;
+  justify-content: stretch;
+  min-height: 70px;
+  padding: 12px;
+  text-align: left;
+}
+
+.preset-card:hover {
+  background: #ecf5f0;
+  border-color: #bcd9cc;
+  color: #14231e;
+}
+
+.preset-card span {
+  color: #5d6d66;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.compact-title {
+  margin-bottom: -4px;
+}
+
+.form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid label,
+.switch-grid label {
+  color: #53645d;
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 760;
+  gap: 6px;
+}
+
+.form-grid input,
+.form-grid select {
+  background: #f8faf9;
+  border: 1px solid #ccd8d3;
+  border-radius: 8px;
+  color: #13231d;
+  min-height: 40px;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.switch-grid {
+  background: #f7faf8;
+  border: 1px solid #e2eae6;
+  border-radius: 10px;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.switch-grid label {
+  align-items: center;
+  color: #283832;
+  display: flex;
+  font-size: 0.9rem;
+}
+
+.switch-grid input {
+  accent-color: #1e5d4b;
+  height: 16px;
+  width: 16px;
+}
+
+.simulate-main-button {
+  font-size: 1rem;
+  font-weight: 800;
+  min-height: 48px;
+}
+
+.simulation-result-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.manual-result-card {
+  background: #ffffff;
+  border: 1px solid #d8e0dd;
+  border-left: 7px solid #2e8f5b;
+  border-radius: 16px;
+  box-shadow: 0 14px 38px rgb(18 32 27 / 7%);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+  padding: 22px;
+}
+
+.manual-result-card.warn {
+  border-left-color: #c78a2d;
+}
+
+.manual-result-card.bad {
+  border-left-color: #aa382f;
+}
+
+.manual-result-card h2 {
+  font-size: clamp(1.55rem, 2.2vw, 2.35rem);
+  margin: 0 0 10px;
+}
+
+.manual-result-card p {
+  color: #46574f;
+  line-height: 1.55;
+}
+
+.manual-result-card strong {
+  display: block;
+  margin-top: 10px;
+}
+
+.manual-result-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.operation-kpis {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.chart-panel svg,
+.trend svg {
+  background: #fbfcfb;
+  border: 1px solid #e5ece8;
+  border-radius: 10px;
+  min-height: 300px;
+}
+
+@media (max-width: 1180px) {
+  .twin-layout,
+  .manual-result-card,
+  .regulator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .simulation-control-panel {
+    position: static;
+  }
+
+  .operation-kpis,
+  .form-grid,
+  .manual-result-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-actions {
+    display: none;
+  }
+
+  .content-area {
+    padding: 16px;
+  }
+}

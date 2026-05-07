@@ -1,4 +1,4 @@
-﻿import { Activity, BarChart3, Database, Factory, FileText, Gauge, Menu, RotateCcw, Settings, ShieldAlert, X } from "lucide-react";
+﻿import { Activity, Database, Factory, FileText, Gauge, Menu, RotateCcw, Settings, ShieldAlert, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
@@ -29,13 +29,13 @@ import "./styles.css";
 
 type Section = "Visão Geral" | "Operação" | "Gêmeo Digital" | "Rastreabilidade" | "Relatórios" | "Configurações";
 
-const sections: Array<{ label: Section; icon: ReactNode; group: string; description: string }> = [
-  { label: "Visão Geral", icon: <Gauge size={19} />, group: "Principal", description: "Resumo executivo" },
-  { label: "Operação", icon: <Factory size={19} />, group: "Principal", description: "Configurar e simular ciclo" },
-  { label: "Gêmeo Digital", icon: <Activity size={19} />, group: "Inteligência", description: "Simulações, cenários e diagnóstico" },
-  { label: "Rastreabilidade", icon: <Database size={19} />, group: "Dados", description: "Histórico e eventos" },
-  { label: "Relatórios", icon: <FileText size={19} />, group: "Dados", description: "Indicadores gerenciais" },
-  { label: "Configurações", icon: <Settings size={19} />, group: "Sistema", description: "Tanques, mangueiras e receitas" },
+const sections: Array<{ label: Section; icon: ReactNode; description: string }> = [
+  { label: "Visão Geral", icon: <Gauge size={19} />, description: "Resumo executivo" },
+  { label: "Operação", icon: <Factory size={19} />, description: "Supervisão ao vivo" },
+  { label: "Gêmeo Digital", icon: <Activity size={19} />, description: "Simulações e diagnóstico" },
+  { label: "Rastreabilidade", icon: <Database size={19} />, description: "Histórico e eventos" },
+  { label: "Relatórios", icon: <FileText size={19} />, description: "Indicadores gerenciais" },
+  { label: "Configurações", icon: <Settings size={19} />, description: "Tanques, mangueiras e receitas" },
 ];
 
 export default function App() {
@@ -54,7 +54,7 @@ export default function App() {
   const [cycles, setCycles] = useState<VacuumCycle[]>([]);
   const [whatIfs, setWhatIfs] = useState<SimulationResult[]>([]);
   const [report, setReport] = useState<OperationalReport | null>(null);
-  const [chatText, setChatText] = useState("Qual é o desvio entre real e esperado?");
+  const [chatText, setChatText] = useState("Explique o risco desta operação.");
   const [chat, setChat] = useState<ChatResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,7 +101,6 @@ export default function App() {
   }, []);
 
   const activeAlarms = useMemo(() => alarms.filter((alarm) => !alarm.acknowledged), [alarms]);
-
   const avgPressure = useMemo(() => {
     if (!state?.tank_states.length) return undefined;
     return state.tank_states.reduce((sum, item) => sum + item.pressure_mbar, 0) / state.tank_states.length;
@@ -170,26 +169,15 @@ export default function App() {
 
       <aside className="side-nav">
         <div className="side-nav-head">
-          <div>
-            <span className="brand">TSEA</span>
-            <strong>Menu do sistema</strong>
-          </div>
+          <div><span className="brand">TSEA</span><strong>Menu do sistema</strong></div>
           <button type="button" className="ghost icon-only mobile-close" onClick={() => setMenuOpen(false)}><X size={18} /></button>
         </div>
 
         <nav>
           {sections.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              className={section === item.label ? "active" : ""}
-              onClick={() => goTo(item.label)}
-            >
+            <button key={item.label} type="button" className={section === item.label ? "active" : ""} onClick={() => goTo(item.label)}>
               {item.icon}
-              <span>
-                <strong>{item.label}</strong>
-                <small>{item.description}</small>
-              </span>
+              <span><strong>{item.label}</strong><small>{item.description}</small></span>
             </button>
           ))}
         </nav>
@@ -200,28 +188,19 @@ export default function App() {
       <section className="content-area">
         {error && <div className="error">{error}</div>}
 
-        {section === "Visão Geral" && (
-          <OverviewPage state={state} report={report} cycles={cycles} alarms={alarms} history={history} maxRisk={maxRisk} />
-        )}
-
+        {section === "Visão Geral" && <OverviewPage state={state} report={report} cycles={cycles} alarms={alarms} history={history} maxRisk={maxRisk} />}
         {section === "Operação" && (
           <OperationPage
             state={state}
             history={history}
             tanks={tanks}
-            hoses={hoses}
-            recipes={recipes}
             avgPressure={avgPressure}
             maxRisk={maxRisk}
             activeAlarms={activeAlarms}
             generalLight={generalLight}
             onControl={control}
-            onRefresh={() => refresh(false)}
           />
         )}
-
-        {section === "Rastreabilidade" && <TraceabilityPage cycles={cycles} traces={traces} alarms={alarms} onTrace={addTrace} />}
-
         {section === "Gêmeo Digital" && (
           <DigitalTwinPage
             twin={twin}
@@ -238,9 +217,8 @@ export default function App() {
             onRunWhatIf={runWhatIf}
           />
         )}
-
+        {section === "Rastreabilidade" && <TraceabilityPage cycles={cycles} traces={traces} alarms={alarms} onTrace={addTrace} />}
         {section === "Relatórios" && <ReportsPage report={report} cycles={cycles} alarms={alarms} history={history} state={state} traces={traces} />}
-
         {section === "Configurações" && <SettingsPage tanks={tanks} hoses={hoses} recipes={recipes} />}
       </section>
     </main>

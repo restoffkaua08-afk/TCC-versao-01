@@ -1,4 +1,7 @@
-﻿from fastapi import APIRouter, Depends, HTTPException
+﻿from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlmodel import Session, desc, select
 
 from app.core.database import get_session
@@ -13,16 +16,35 @@ from app.models.domain import (
     TraceEvent,
     VacuumCycle,
 )
-from app.schemas.domain import AIChatRequest, ChatRequest, CycleStartRequest, ScenarioRunRequest, TraceCreate, WhatIfRequest
+from app.schemas.domain import ChatRequest, CycleStartRequest, TraceCreate, WhatIfRequest
 from app.services.alarms import required_alarm_catalog
 from app.services.chatbot import answer
 from app.services.digital_twin import build_twin_state
 from app.services.maintenance import predict_maintenance
-from app.services.openai_assistant import answer_with_ai_or_fallback
-from app.services.scenarios import get_scenario, list_scenarios, run_scenario
+from app.services.manual_operation import config_options, run_manual_operation
 from app.services.simulation import engine
 
 router = APIRouter()
+
+
+class ManualOperationRequest(BaseModel):
+    tank_type: str = "medio"
+    hose_id: int = 1
+    target_pressure_mbar: float = 0.2
+    roots_start_pressure_mbar: float = 0.6
+    stop_pressure_mbar: float = 0.2
+    oil_flow_l_min: float = 2.0
+    oil_delay_seconds: int = 2
+    max_cycle_seconds: int = 1800
+    roots_speed_hz: float = 65
+    vacuum_ramp: str = "suave"
+    hose_correction_enabled: bool = True
+    oil_compensation_enabled: bool = True
+    selected_tank: int = 1
+    deviation_alert_mbar: float = 10
+    simulate_hose_leak: bool = False
+    simulate_sensor_failure: bool = False
+    simulate_plc_loss: bool = False
 
 
 @router.get("/health")
@@ -41,14 +63,14 @@ def start_cycle(payload: CycleStartRequest, session: Session = Depends(get_sessi
 
 @router.post("/operation/tick")
 def operation_tick(session: Session = Depends(get_session)) -> dict:
-    current = engine.state(session)
-    cycle = current.get("cycle")
+    state = engine.state(session)
+    cycle = state.get("cycle")
     if not cycle:
-        return current
-    if current.get("paused") or current.get("emergency"):
-        return current
+        return state
+    if state.get("paused") or state.get("emergency"):
+        return state
     if getattr(cycle, "status", None) not in ("running", "alarm"):
-        return current
+        return state
     return engine.tick(session)
 
 
@@ -80,6 +102,21 @@ def emergency(session: Session = Depends(get_session)) -> dict:
 @router.post("/operation/reset")
 def reset(session: Session = Depends(get_session)) -> dict:
     return engine.reset(session)
+
+
+def _hose_dicts(session: Session) -> list[dict[str, Any]]:
+    hoses = list(session.exec(select(Hose).order_by(Hose.code)).all())
+    return [hose.model_dump() for hose in hoses]
+
+
+@router.get("/operation/config-options")
+def operation_config_options(session: Session = Depends(get_session)) -> dict:
+    return config_options(_hose_dicts(session))
+
+
+@router.post("/operation/manual-simulate")
+def operation_manual_simulate(payload: ManualOperationRequest, session: Session = Depends(get_session)) -> dict:
+    return run_manual_operation(payload.model_dump(), _hose_dicts(session))
 
 
 @router.get("/tanks")
@@ -207,62 +244,6 @@ def what_if_history(session: Session = Depends(get_session)) -> list[SimulationR
     return list(session.exec(select(SimulationResult).order_by(desc(SimulationResult.timestamp)).limit(50)).all())
 
 
-@router.get("/scenarios")
-def scenarios() -> list[dict]:
-    return list_scenarios()
-
-
-@router.get("/scenarios/{scenario_id}")
-def scenario_detail(scenario_id: str) -> dict:
-    try:
-        return get_scenario(scenario_id)
-    except KeyError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-@router.post("/scenarios/{scenario_id}/run")
-def run_demo_scenario(
-    scenario_id: str,
-    payload: ScenarioRunRequest | None = None,
-    session: Session = Depends(get_session),
-) -> dict:
-    recipe = session.exec(select(Recipe)).first()
-    if not recipe:
-        raise HTTPException(status_code=400, detail="Cadastre uma receita antes de executar cenários.")
-
-    custom = {}
-    if payload:
-        custom = {
-            "oil_flow_l_min": payload.override_oil_flow_l_min,
-            "oil_delay_seconds": payload.override_oil_delay_seconds,
-            "roots_start_pressure_mbar": payload.override_roots_start_pressure_mbar,
-            "target_pressure_mbar": payload.override_target_pressure_mbar,
-        }
-
-    try:
-        result = run_scenario(scenario_id, recipe, custom)
-    except KeyError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-    sim = SimulationResult(
-        scenario_name=result["scenario"]["name"],
-        recipe_id=recipe.id or 1,
-        tank_count=3,
-        projected_duration_seconds=result["metricas"]["projected_duration_seconds"],
-        projected_final_pressure_mbar=result["metricas"]["projected_final_pressure_mbar"],
-        max_collapse_risk_pct=result["metricas"]["max_collapse_risk_pct"],
-        roots_started=result["metricas"]["roots_started"],
-        alarms=", ".join(result["alarms"]) if result["alarms"] else "Sem alarmes projetados",
-        summary=result["diagnostico"],
-    )
-    session.add(sim)
-    session.commit()
-    session.refresh(sim)
-
-    result["simulation_id"] = sim.id
-    return result
-
-
 @router.get("/maintenance/prediction")
 def maintenance_prediction(session: Session = Depends(get_session)) -> list[MaintenanceInsight]:
     readings = list(session.exec(select(PressureReading).order_by(desc(PressureReading.timestamp)).limit(120)).all())
@@ -294,32 +275,6 @@ def operational_report(session: Session = Depends(get_session)) -> dict:
     }
 
 
-def _build_ai_context(session: Session) -> dict:
-    state = engine.state(session)
-    cycle = state.get("cycle")
-    readings = engine._latest_readings(session, cycle.id if cycle else None)
-    active_alarms = list(session.exec(select(AlarmEvent).order_by(desc(AlarmEvent.timestamp)).limit(50)).all())
-    recipe = session.exec(select(Recipe)).first()
-
-    twin = {}
-    if recipe:
-        recent = list(session.exec(select(PressureReading).order_by(desc(PressureReading.timestamp)).limit(80)).all())
-        twin = build_twin_state(recent, recipe)
-
-    max_risk = 0
-    for tank in state.get("tank_states", []):
-        max_risk = max(max_risk, tank.get("collapse_risk_pct", 0))
-
-    return {
-        "operation_state": state,
-        "active_alarms": [alarm.model_dump() for alarm in active_alarms],
-        "latest_readings": [reading.model_dump() for reading in readings],
-        "digital_twin": twin,
-        "scenarios_available": list_scenarios(),
-        "max_risk_pct": round(max_risk, 2),
-    }
-
-
 @router.post("/chatbot")
 def chatbot(payload: ChatRequest, session: Session = Depends(get_session)) -> dict:
     state = engine.state(session)
@@ -327,51 +282,3 @@ def chatbot(payload: ChatRequest, session: Session = Depends(get_session)) -> di
     readings = engine._latest_readings(session, cycle.id if cycle else None)
     active_alarms = list(session.exec(select(AlarmEvent).order_by(desc(AlarmEvent.timestamp)).limit(50)).all())
     return answer(payload.message, cycle, readings, active_alarms)
-
-
-@router.post("/ai-chat")
-def ai_chat(payload: AIChatRequest, session: Session = Depends(get_session)) -> dict:
-    context = _build_ai_context(session)
-    return answer_with_ai_or_fallback(payload.message, context)
-
-# ============================================================
-# Endpoints adicionados manualmente: operação configurável
-# ============================================================
-from typing import Any
-from pydantic import BaseModel
-from app.services.manual_operation import config_options, run_manual_operation
-
-
-class ManualOperationRequest(BaseModel):
-    tank_type: str = "medio"
-    hose_id: int = 1
-    target_pressure_mbar: float = 0.2
-    roots_start_pressure_mbar: float = 0.6
-    stop_pressure_mbar: float = 0.2
-    oil_flow_l_min: float = 2.0
-    oil_delay_seconds: int = 2
-    max_cycle_seconds: int = 1800
-    roots_speed_hz: float = 65
-    vacuum_ramp: str = "suave"
-    hose_correction_enabled: bool = True
-    oil_compensation_enabled: bool = True
-    selected_tank: int = 1
-    deviation_alert_mbar: float = 10
-    simulate_hose_leak: bool = False
-    simulate_sensor_failure: bool = False
-    simulate_plc_loss: bool = False
-
-
-def _hose_dicts(session: Session) -> list[dict[str, Any]]:
-    hoses = list(session.exec(select(Hose).order_by(Hose.code)).all())
-    return [hose.model_dump() for hose in hoses]
-
-
-@router.get("/operation/config-options")
-def operation_config_options(session: Session = Depends(get_session)) -> dict:
-    return config_options(_hose_dicts(session))
-
-
-@router.post("/operation/manual-simulate")
-def operation_manual_simulate(payload: ManualOperationRequest, session: Session = Depends(get_session)) -> dict:
-    return run_manual_operation(payload.model_dump(), _hose_dicts(session))

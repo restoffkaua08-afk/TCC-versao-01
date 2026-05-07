@@ -155,64 +155,6 @@ export type OperationalReport = {
   simulated_assets: string[];
 };
 
-export type ScenarioDefinition = {
-  id: string;
-  name: string;
-  description: string;
-  expected_result: string;
-  expected_alarms: string[];
-  operator_story: string;
-  parameters: Record<string, unknown>;
-};
-
-export type ScenarioTankPoint = {
-  tank_id: number;
-  tank_code: string;
-  pressure_mbar: number;
-  expected_pressure_mbar: number;
-  deviation_mbar: number;
-  hose_loss_mbar: number;
-  oil_volume_liters: number;
-  oil_flow_l_min: number;
-  collapse_risk_pct: number;
-};
-
-export type ScenarioTimelinePoint = {
-  t_seconds: number;
-  roots_started: boolean;
-  oil_flow_l_min: number;
-  oil_volume_liters: number;
-  avg_pressure_mbar: number;
-  max_risk_pct: number;
-  tanks: ScenarioTankPoint[];
-};
-
-export type ScenarioRunResult = {
-  simulation_id?: number;
-  scenario: ScenarioDefinition;
-  status_final: "success" | "warning" | "critical" | string;
-  timeline: ScenarioTimelinePoint[];
-  alarms: string[];
-  diagnostico: string;
-  recomendacao: string;
-  metricas: {
-    projected_duration_seconds: number;
-    projected_final_pressure_mbar: number;
-    max_collapse_risk_pct: number;
-    roots_started: boolean;
-    oil_delay_seconds: number;
-    oil_flow_l_min: number;
-  };
-};
-
-export type OperationConfigOptions = {
-  tank_types: Record<string, { label: string; volume_liters: number; structural_limit_mbar: number; description: string }>;
-  ramps: Record<string, { label: string; factor: number }>;
-  presets: Record<string, { name: string; description: string; config: ManualOperationConfig }>;
-  hoses: Hose[];
-  fields: string[];
-};
-
 export type ManualOperationConfig = {
   tank_type: string;
   hose_id: number;
@@ -231,6 +173,14 @@ export type ManualOperationConfig = {
   simulate_hose_leak: boolean;
   simulate_sensor_failure: boolean;
   simulate_plc_loss: boolean;
+};
+
+export type OperationConfigOptions = {
+  tank_types: Record<string, { label: string; volume_liters: number; structural_limit_mbar: number; description: string }>;
+  ramps: Record<string, { label: string; factor: number }>;
+  presets: Record<string, { name: string; description: string; config: ManualOperationConfig }>;
+  hoses: Hose[];
+  fields: string[];
 };
 
 export type ManualOperationResult = {

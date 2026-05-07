@@ -121,3 +121,33 @@ Novos endpoints:
 - `POST /api/operation/manual-simulate`
 
 O objetivo é demonstrar cenários seguros e cenários críticos, mostrando como o Gêmeo Digital calcula curva de pressão, perda de carga, pressão efetiva, risco de colapso e alarmes.
+
+## Correção de UX: Operação x Gêmeo Digital
+
+A tela `Operação` agora é focada em supervisão ao vivo do processo.
+
+A tela `Gêmeo Digital` concentra as simulações hipotéticas, cenários prontos e configuração manual dos parâmetros:
+
+- Tipo do tanque.
+- Mangueira.
+- Pressão final desejada.
+- Pressão para ligar a Roots.
+- Pressão para desligar as bombas.
+- Vazão de óleo.
+- Atraso da injeção de óleo.
+- Tempo máximo.
+- Velocidade da Roots.
+- Rampa de vácuo.
+- Correção da mangueira.
+- Compensação de óleo.
+- Vazamento simulado.
+- Falha de sensor.
+- Perda de comunicação com CLP.
+
+Também foi adicionado um visual do regulador/tanque:
+
+- Azul: ar/gás interno.
+- Vermelho: carga de pressão.
+- Amarelo: óleo.
+
+Esse visual aparece na operação ao vivo e nas simulações do Gêmeo Digital.

@@ -9,25 +9,25 @@ TANK_TYPES = {
         "label": "Pequeno",
         "volume_liters": 80.0,
         "structural_limit_mbar": 18.0,
-        "description": "Tanque compacto, menor volume interno e menor tempo de ciclo.",
+        "description": "Tanque compacto, menor volume e ciclo mais curto.",
     },
     "medio": {
         "label": "Médio",
         "volume_liters": 100.0,
         "structural_limit_mbar": 20.0,
-        "description": "Tanque padrão para demonstração principal.",
+        "description": "Tanque padrão para demonstração do processo.",
     },
     "grande": {
         "label": "Grande",
         "volume_liters": 180.0,
         "structural_limit_mbar": 26.0,
-        "description": "Tanque maior, curva mais lenta e maior exigência de controle.",
+        "description": "Tanque maior, curva mais lenta e maior exigência da bomba.",
     },
     "extra_grande": {
         "label": "Extra grande",
         "volume_liters": 300.0,
         "structural_limit_mbar": 32.0,
-        "description": "Tanque crítico para demonstrar ciclo longo e maior desgaste.",
+        "description": "Tanque crítico para demonstrar ciclo longo e desgaste operacional.",
     },
 }
 
@@ -43,7 +43,7 @@ RAMPS = {
 DEMO_PRESETS = {
     "segura": {
         "name": "Operação segura",
-        "description": "Óleo, Roots, mangueira e rampa em condição segura.",
+        "description": "Óleo, Roots, mangueira e rampa dentro da faixa segura.",
         "config": {
             "tank_type": "medio",
             "hose_id": 1,
@@ -57,16 +57,16 @@ DEMO_PRESETS = {
             "vacuum_ramp": "suave",
             "hose_correction_enabled": True,
             "oil_compensation_enabled": True,
+            "selected_tank": 1,
+            "deviation_alert_mbar": 10,
             "simulate_hose_leak": False,
             "simulate_sensor_failure": False,
             "simulate_plc_loss": False,
-            "selected_tank": 1,
-            "deviation_alert_mbar": 10,
         },
     },
     "oleo_baixo": {
         "name": "Vazão de óleo insuficiente",
-        "description": "Mostra risco de colapso quando o óleo não compensa a queda de pressão.",
+        "description": "Mostra risco quando o óleo não compensa a queda de pressão.",
         "config": {
             "tank_type": "medio",
             "hose_id": 1,
@@ -80,16 +80,16 @@ DEMO_PRESETS = {
             "vacuum_ramp": "rapida",
             "hose_correction_enabled": True,
             "oil_compensation_enabled": True,
+            "selected_tank": 1,
+            "deviation_alert_mbar": 10,
             "simulate_hose_leak": False,
             "simulate_sensor_failure": False,
             "simulate_plc_loss": False,
-            "selected_tank": 1,
-            "deviation_alert_mbar": 10,
         },
     },
     "oleo_atrasado": {
         "name": "Atraso na injeção de óleo",
-        "description": "A vazão é adequada, mas entra tarde demais e causa pico de risco.",
+        "description": "A vazão é aceitável, mas entra tarde demais e gera pico de risco.",
         "config": {
             "tank_type": "medio",
             "hose_id": 1,
@@ -103,16 +103,16 @@ DEMO_PRESETS = {
             "vacuum_ramp": "rapida",
             "hose_correction_enabled": True,
             "oil_compensation_enabled": True,
+            "selected_tank": 1,
+            "deviation_alert_mbar": 10,
             "simulate_hose_leak": False,
             "simulate_sensor_failure": False,
             "simulate_plc_loss": False,
-            "selected_tank": 1,
-            "deviation_alert_mbar": 10,
         },
     },
     "mangueira_longa": {
         "name": "Mangueira longa sem correção",
-        "description": "Demonstra diferença entre pressão no tanque e pressão estimada no sensor.",
+        "description": "Demonstra erro de leitura quando a mangueira interfere na pressão real.",
         "config": {
             "tank_type": "medio",
             "hose_id": 3,
@@ -126,16 +126,16 @@ DEMO_PRESETS = {
             "vacuum_ramp": "normal",
             "hose_correction_enabled": False,
             "oil_compensation_enabled": True,
+            "selected_tank": 1,
+            "deviation_alert_mbar": 8,
             "simulate_hose_leak": False,
             "simulate_sensor_failure": False,
             "simulate_plc_loss": False,
-            "selected_tank": 1,
-            "deviation_alert_mbar": 8,
         },
     },
     "vazamento": {
         "name": "Vazamento na mangueira",
-        "description": "Mostra divergência entre curva esperada e curva real simulada.",
+        "description": "A curva real simulada diverge da esperada por perda de estanqueidade.",
         "config": {
             "tank_type": "medio",
             "hose_id": 2,
@@ -149,16 +149,16 @@ DEMO_PRESETS = {
             "vacuum_ramp": "normal",
             "hose_correction_enabled": True,
             "oil_compensation_enabled": True,
+            "selected_tank": 1,
+            "deviation_alert_mbar": 10,
             "simulate_hose_leak": True,
             "simulate_sensor_failure": False,
             "simulate_plc_loss": False,
-            "selected_tank": 1,
-            "deviation_alert_mbar": 10,
         },
     },
-    "tanque_grande": {
+    "tanque_extra_grande": {
         "name": "Tanque extra grande com pressão muito baixa",
-        "description": "Demonstra ciclo longo e desgaste operacional.",
+        "description": "Demonstra ciclo longo, maior desgaste e necessidade de otimização.",
         "config": {
             "tank_type": "extra_grande",
             "hose_id": 2,
@@ -172,11 +172,11 @@ DEMO_PRESETS = {
             "vacuum_ramp": "suave",
             "hose_correction_enabled": True,
             "oil_compensation_enabled": True,
+            "selected_tank": 1,
+            "deviation_alert_mbar": 10,
             "simulate_hose_leak": False,
             "simulate_sensor_failure": False,
             "simulate_plc_loss": False,
-            "selected_tank": 1,
-            "deviation_alert_mbar": 10,
         },
     },
 }
@@ -284,8 +284,7 @@ def run_manual_operation(config: dict[str, Any], hoses: list[dict[str, Any]]) ->
     max_effective_load = 0.0
     max_deviation = 0.0
 
-    step = 30
-    for t in range(0, max_cycle + step, step):
+    for t in range(0, max_cycle + 30, 30):
         expected_before_roots = _expected_pressure(t, initial, target_pressure, ramp["factor"], tank["volume_liters"], False, roots_speed)
 
         if not roots_started and expected_before_roots <= roots_start_pressure:
@@ -321,92 +320,48 @@ def run_manual_operation(config: dict[str, Any], hoses: list[dict[str, Any]]) ->
         })
 
     if oil_flow < 1.5:
-        alarms.append({
-            "code": "OIL_FLOW_LOW",
-            "severity": "critical",
-            "message": "Vazão de óleo insuficiente para compensar a rampa de vácuo.",
-        })
+        alarms.append({"code": "OIL_FLOW_LOW", "severity": "critical", "message": "Vazão de óleo insuficiente para compensar a rampa de vácuo."})
 
     if oil_delay > 10:
-        alarms.append({
-            "code": "OIL_INJECTION_DELAY",
-            "severity": "critical",
-            "message": "Atraso na injeção de óleo pode gerar pico de carga estrutural.",
-        })
+        alarms.append({"code": "OIL_INJECTION_DELAY", "severity": "critical", "message": "Atraso na injeção de óleo pode gerar pico de carga estrutural."})
 
     if max_risk >= 100:
-        alarms.append({
-            "code": "STRUCTURAL_COLLAPSE_RISK",
-            "severity": "critical",
-            "message": "Risco de colapso: pressão efetiva ultrapassou o limite estrutural do tanque.",
-        })
+        alarms.append({"code": "STRUCTURAL_COLLAPSE_RISK", "severity": "critical", "message": "Risco de colapso: pressão efetiva ultrapassou o limite estrutural do tanque."})
         final_status = "critical"
     elif max_risk >= 75:
-        alarms.append({
-            "code": "STRUCTURAL_RISK_ATTENTION",
-            "severity": "warning",
-            "message": "Risco estrutural elevado. Revisar óleo, rampa e pressão alvo.",
-        })
+        alarms.append({"code": "STRUCTURAL_RISK_ATTENTION", "severity": "warning", "message": "Risco estrutural elevado. Revisar óleo, rampa e pressão alvo."})
         final_status = "warning"
 
     if hose_loss > 0.25:
-        alarms.append({
-            "code": "HOSE_LOSS_HIGH",
-            "severity": "warning",
-            "message": "Perda de carga elevada na mangueira. A leitura do sensor pode não representar a pressão real do tanque.",
-        })
+        alarms.append({"code": "HOSE_LOSS_HIGH", "severity": "warning", "message": "Perda de carga elevada na mangueira. A leitura do sensor pode não representar a pressão real do tanque."})
         if final_status == "success":
             final_status = "warning"
 
     if leak_enabled:
-        alarms.append({
-            "code": "HOSE_LEAK_SUSPECTED",
-            "severity": "warning",
-            "message": "Curva real simulada diverge da esperada. Possível vazamento em mangueira ou conexão.",
-        })
+        alarms.append({"code": "HOSE_LEAK_SUSPECTED", "severity": "warning", "message": "Curva real simulada diverge da esperada. Possível vazamento em mangueira ou conexão."})
         if final_status == "success":
             final_status = "warning"
 
     if sensor_failure:
-        alarms.append({
-            "code": "SENSOR_FAILURE_SIMULATED",
-            "severity": "critical",
-            "message": "Falha simulada de sensor: leitura incoerente detectada.",
-        })
+        alarms.append({"code": "SENSOR_FAILURE_SIMULATED", "severity": "critical", "message": "Falha simulada de sensor: leitura incoerente detectada."})
         final_status = "critical"
 
     if plc_loss:
-        alarms.append({
-            "code": "PLC_COMM_LOSS_SIMULATED",
-            "severity": "critical",
-            "message": "Perda simulada de comunicação com CLP. Processo deve entrar em modo seguro.",
-        })
+        alarms.append({"code": "PLC_COMM_LOSS_SIMULATED", "severity": "critical", "message": "Perda simulada de comunicação com CLP. Processo deve entrar em modo seguro."})
         final_status = "critical"
 
     if not roots_started:
-        alarms.append({
-            "code": "ROOTS_NOT_STARTED",
-            "severity": "warning",
-            "message": "A pressão configurada para ligar a Roots não foi atingida dentro do tempo máximo.",
-        })
+        alarms.append({"code": "ROOTS_NOT_STARTED", "severity": "warning", "message": "A pressão configurada para ligar a Roots não foi atingida dentro do tempo máximo."})
         if final_status == "success":
             final_status = "warning"
 
     if max_deviation > deviation_alert:
-        alarms.append({
-            "code": "REAL_EXPECTED_DEVIATION",
-            "severity": "warning",
-            "message": "Diferença entre curva real simulada e esperada acima do limite configurado.",
-        })
+        alarms.append({"code": "REAL_EXPECTED_DEVIATION", "severity": "warning", "message": "Diferença entre curva real simulada e esperada acima do limite configurado."})
         if final_status == "success":
             final_status = "warning"
 
     if reached_target_at is None:
-        alarms.append({
-            "code": "TARGET_NOT_REACHED",
-            "severity": "warning",
-            "message": "Pressão final desejada não foi atingida dentro do tempo máximo definido.",
-        })
+        alarms.append({"code": "TARGET_NOT_REACHED", "severity": "warning", "message": "Pressão final desejada não foi atingida dentro do tempo máximo definido."})
         if final_status == "success":
             final_status = "warning"
 
