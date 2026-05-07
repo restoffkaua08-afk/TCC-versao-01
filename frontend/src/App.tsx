@@ -32,10 +32,10 @@ type Section = "Visão Geral" | "Operação" | "Gêmeo Digital" | "Rastreabilida
 const sections: Array<{ label: Section; icon: ReactNode; description: string }> = [
  { label: "Visão Geral", icon: <Gauge size={19} />, description: "Resumo executivo" },
  { label: "Operação", icon: <Factory size={19} />, description: "Supervisão ao vivo" },
- { label: "Gêmeo Digital", icon: <Activity size={19} />, description: "Simulações Operacionais e diagnóstico" },
+ { label: "Gêmeo Digital", icon: <Activity size={19} />, description: "Simulações Operacionais Operacionais e diagnóstico" },
  { label: "Rastreabilidade", icon: <Database size={19} />, description: "Histórico e eventos" },
  { label: "Relatórios", icon: <FileText size={19} />, description: "Indicadores gerenciais" },
- { label: "Configurações", icon: <Settings size={19} />, description: "Tanque de Processos, mangueiras e receitas" },
+ { label: "Configurações", icon: <Settings size={19} />, description: "Tanque de Processo de Processos, mangueiras e receitas" },
 ];
 
 export default function App() {
@@ -157,12 +157,12 @@ export default function App() {
  <div className="app-title">
  <span className="brand">TSEA</span>
  <strong>Supervisório de Vácuo Industrial</strong>
- <small>Tanque de Processos de reguladores · SV630B · WSU2001</small>
+ <small>Tanque de Processo de Processos de reguladores · SV630B · WSU2001</small>
  </div>
 
  <div className="topbar-actions">
  <DemoBadge />
- <button type="button" className="secondary" onClick={() => refresh(true)}><RotateCcw size={17} /> Atualizar Dados</button>
+ <button type="button" className="secondary" onClick={() => refresh(true)}><RotateCcw size={17} /> Atualizar Dados Dados</button>
  <button type="button" className="danger" onClick={() => control("emergency")}><ShieldAlert size={17} /> Emergência</button>
  </div>
  </header>

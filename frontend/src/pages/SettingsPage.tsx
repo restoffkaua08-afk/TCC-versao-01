@@ -10,11 +10,11 @@ export function SettingsPage({ tanks, hoses, recipes }: { tanks: Tank[]; hoses: 
  <PageHeader
  eyebrow="Configurações"
  title="Cadastros técnicos do processo"
- subtitle="Tanque de Processos, mangueiras e receitas usados pela simulação do processo TSEA."
+ subtitle="Tanque de Processo de Processos, mangueiras e receitas usados pela simulação do processo TSEA."
  />
 
  <section className="grid">
- <AssetPanel title="Tanque de Processos cadastrados" icon={<Gauge size={18} />} rows={tanks} labels={labels.tank} />
+ <AssetPanel title="Tanque de Processo de Processos cadastrados" icon={<Gauge size={18} />} rows={tanks} labels={labels.tank} />
  <AssetPanel title="Linha de Vácuos cadastradas" icon={<ChartLine size={18} />} rows={hoses} labels={labels.hose} />
  <AssetPanel title="Receitas de processo" icon={<ClipboardList size={18} />} rows={recipes} labels={labels.recipe} />
  </section>

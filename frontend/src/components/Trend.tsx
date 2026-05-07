@@ -17,7 +17,7 @@ export function Trend({ history, title = "Pressão x tempo", subtitle, tanks = [
  const tankIds = Array.from(new Set(points.map((item) => item.tank_id))).slice(0, 3);
 
  function tankLabel(tankId: number) {
- return tanks.find((tank) => tank.id === tankId)?.code ?? `Tanque de Processo ${tankId}`;
+ return tanks.find((tank) => tank.id === tankId)?.code ?? `Tanque de Processo de Processo ${tankId}`;
  }
 
  function lineFor(tankId: number) {

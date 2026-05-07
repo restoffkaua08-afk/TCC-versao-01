@@ -351,11 +351,11 @@ export function DigitalTwinPage({
  </label>
 
  <label>
- Tanque de Processo específico
+ Tanque de Processo de Processo específico
  <select value={config.selected_tank} onChange={(e) => update("selected_tank", Number(e.target.value))}>
- <option value={1}>Tanque de Processo 1</option>
- <option value={2}>Tanque de Processo 2</option>
- <option value={3}>Tanque de Processo 3</option>
+ <option value={1}>Tanque de Processo de Processo 1</option>
+ <option value={2}>Tanque de Processo de Processo 2</option>
+ <option value={3}>Tanque de Processo de Processo 3</option>
  </select>
  </label>
  </div>
@@ -669,7 +669,7 @@ function statusLabel(status: string) {
 
 function translateAlarm(code: string) {
  const map: Record<string, string> = {
- OIL_FLOW_LOW: "Vazão de Injeção de Óleo insuficiente",
+ OIL_FLOW_LOW: "Vazão de Injeção de Baixa Vazão de Óleo",
  OIL_INJECTION_DELAY: "Atraso na injeção de óleo",
  STRUCTURAL_COLLAPSE_RISK: "Risco Estrutural estrutural",
  STRUCTURAL_RISK_ATTENTION: "Atenção ao risco estrutural",
