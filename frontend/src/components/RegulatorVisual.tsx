@@ -104,7 +104,7 @@ export function RegulatorFromTankState({ item }: { item: TankState }) {
 }
 
 export function RegulatorFromManualResult({ result }: { result: ManualOperationResult }) {
-  const last = result.timeline.at(-1);
+  const last = result.timeline[result.timeline.length - 1];
   return (
     <RegulatorVisual
       title={`${result.tank.label} · ${result.hose.code}`}

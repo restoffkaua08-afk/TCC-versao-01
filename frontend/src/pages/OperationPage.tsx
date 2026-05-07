@@ -77,7 +77,7 @@ export function OperationPage({
           <div className="panel-title">
             <div><h2><Gauge size={18} /> Rampa de vácuo</h2><p>Pressão real x pressão esperada durante o ciclo.</p></div>
           </div>
-          <PressureChart history={history} expected />
+          <PressureChart history={history} />
         </section>
 
         <section className="panel">

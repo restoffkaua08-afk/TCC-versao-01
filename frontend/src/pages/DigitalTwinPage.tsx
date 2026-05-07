@@ -567,7 +567,7 @@ export function DigitalTwinPage({
                   <p>Operação real simulada x esperado.</p>
                 </div>
               </div>
-              <TwinComparison state={state} tanks={tanks} />
+              <TwinComparison state={state} />
             </section>
 
             <section className="panel">
