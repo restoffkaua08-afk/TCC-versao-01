@@ -5,7 +5,7 @@
   ClipboardCheck,
   FlaskConical,
   Gauge,
-  Settings2,
+  HelpCircle,
   SlidersHorizontal,
   Wrench,
 } from "lucide-react";
@@ -91,6 +91,8 @@ export function DigitalTwinPage({
   const [loading, setLoading] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<string>("segura");
   const [error, setError] = useState<string | null>(null);
+  const [localQuestion, setLocalQuestion] = useState("Explique essa simulação em linguagem simples para o operador.");
+  const [localAnswer, setLocalAnswer] = useState<string>("");
 
   const latestWhatIf = whatIfs[0];
 
@@ -116,23 +118,6 @@ export function DigitalTwinPage({
         ? "warn"
         : "good";
 
-  const resultHistory = useMemo(() => {
-    if (!result) return history;
-
-    return result.timeline.map((point, index) => ({
-      id: index + 1,
-      cycle_id: 0,
-      timestamp: String(point.t_seconds),
-      tank_id: 1,
-      pressure_mbar: point.real_pressure_mbar,
-      expected_pressure_mbar: point.expected_pressure_mbar,
-      oil_volume_liters: point.oil_volume_liters,
-      oil_flow_l_min: result.config.oil_flow_l_min,
-      hose_loss_mbar: point.hose_loss_mbar,
-      collapse_risk_pct: point.collapse_risk_pct,
-    }));
-  }, [history, result]);
-
   function update<K extends keyof ManualOperationConfig>(
     key: K,
     value: ManualOperationConfig[K],
@@ -147,6 +132,7 @@ export function DigitalTwinPage({
     setSelectedPreset(id);
     setConfig({ ...defaultConfig, ...preset.config });
     setResult(null);
+    setLocalAnswer("");
     setMenu("parametros");
   }
 
@@ -157,6 +143,7 @@ export function DigitalTwinPage({
     try {
       const response = await api.manualSimulate(config);
       setResult(response);
+      setLocalAnswer(buildAssistantAnswer(localQuestion, response));
       setMenu(nextMenu);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao simular operação.");
@@ -165,14 +152,20 @@ export function DigitalTwinPage({
     }
   }
 
+  function askLocalAssistant(event: FormEvent) {
+    event.preventDefault();
+    setLocalAnswer(buildAssistantAnswer(localQuestion, result));
+  }
+
   const selectedPresetData = selectedPreset ? options?.presets?.[selectedPreset] : null;
+  const interpretation = buildInterpretation(result);
 
   return (
     <section className="page-stack twin-console">
       <PageHeader
         eyebrow="Gêmeo Digital"
         title="Bancada de simulação do processo de vácuo"
-        subtitle="Escolha um cenário, ajuste os parâmetros e veja como o sistema prevê risco, falha, pressão, óleo e recomendação antes da operação real."
+        subtitle="Escolha um cenário, ajuste os parâmetros e veja se a operação seria segura, arriscada ou crítica antes de executar na fábrica."
         actions={<DemoBadge />}
       />
 
@@ -180,10 +173,10 @@ export function DigitalTwinPage({
 
       <section className="twin-explain-card">
         <div>
-          <strong>Como usar</strong>
+          <strong>Leitura simples da tela</strong>
           <span>
-            1. Escolha um cenário pronto. 2. Revise os parâmetros. 3. Simule. 4. Veja resultado, gráfico,
-            regulador visual, alarmes e recomendação.
+            Cenários simulam situações hipotéticas. Resultado mostra o que aconteceria. Diagnóstico explica o motivo.
+            Assistente traduz a simulação para linguagem de operador.
           </span>
         </div>
         <StatusBadge tone={tone}>
@@ -218,10 +211,10 @@ export function DigitalTwinPage({
         <section className="twin-section-card">
           <div className="section-intro">
             <span className="eyebrow">Etapa 1</span>
-            <h2>Escolha um cenário pronto</h2>
+            <h2>Escolha um cenário para demonstrar</h2>
             <p>
-              Esses cenários servem para apresentar à TSEA situações reais: operação segura, óleo insuficiente,
-              óleo atrasado, mangueira longa, vazamento e tanque crítico.
+              Use estes cenários para mostrar à TSEA quando a operação é segura e quando o Gêmeo Digital antecipa problemas
+              como óleo insuficiente, atraso, perda de mangueira, vazamento ou ciclo longo.
             </p>
           </div>
 
@@ -266,10 +259,10 @@ export function DigitalTwinPage({
         <section className="twin-section-card">
           <div className="section-intro">
             <span className="eyebrow">Etapa 2</span>
-            <h2>Parâmetros da simulação</h2>
+            <h2>Parâmetros usados na simulação</h2>
             <p>
-              Aqui ficam os campos que o operador ou apresentador define para testar como o processo se comportaria.
-              O Gêmeo Digital usa esses dados para calcular curva, risco, óleo, perda de mangueira e alarmes.
+              Estes campos representam o que influencia o ciclo: tanque, mangueira, pressão final, Roots, óleo, tempo,
+              rampa e possíveis falhas. O Gêmeo Digital usa tudo isso para prever risco.
             </p>
           </div>
 
@@ -307,69 +300,37 @@ export function DigitalTwinPage({
 
               <label>
                 Pressão final desejada (mbar)
-                <input
-                  type="number"
-                  step="0.01"
-                  value={config.target_pressure_mbar}
-                  onChange={(e) => update("target_pressure_mbar", Number(e.target.value))}
-                />
+                <input type="number" step="0.01" value={config.target_pressure_mbar} onChange={(e) => update("target_pressure_mbar", Number(e.target.value))} />
               </label>
 
               <label>
                 Pressão para ligar Roots (mbar)
-                <input
-                  type="number"
-                  step="0.01"
-                  value={config.roots_start_pressure_mbar}
-                  onChange={(e) => update("roots_start_pressure_mbar", Number(e.target.value))}
-                />
+                <input type="number" step="0.01" value={config.roots_start_pressure_mbar} onChange={(e) => update("roots_start_pressure_mbar", Number(e.target.value))} />
               </label>
 
               <label>
                 Pressão para desligar bombas (mbar)
-                <input
-                  type="number"
-                  step="0.01"
-                  value={config.stop_pressure_mbar}
-                  onChange={(e) => update("stop_pressure_mbar", Number(e.target.value))}
-                />
+                <input type="number" step="0.01" value={config.stop_pressure_mbar} onChange={(e) => update("stop_pressure_mbar", Number(e.target.value))} />
               </label>
 
               <label>
                 Vazão de óleo (L/min)
-                <input
-                  type="number"
-                  step="0.1"
-                  value={config.oil_flow_l_min}
-                  onChange={(e) => update("oil_flow_l_min", Number(e.target.value))}
-                />
+                <input type="number" step="0.1" value={config.oil_flow_l_min} onChange={(e) => update("oil_flow_l_min", Number(e.target.value))} />
               </label>
 
               <label>
                 Atraso do óleo (s)
-                <input
-                  type="number"
-                  value={config.oil_delay_seconds}
-                  onChange={(e) => update("oil_delay_seconds", Number(e.target.value))}
-                />
+                <input type="number" value={config.oil_delay_seconds} onChange={(e) => update("oil_delay_seconds", Number(e.target.value))} />
               </label>
 
               <label>
                 Tempo máximo do ciclo (s)
-                <input
-                  type="number"
-                  value={config.max_cycle_seconds}
-                  onChange={(e) => update("max_cycle_seconds", Number(e.target.value))}
-                />
+                <input type="number" value={config.max_cycle_seconds} onChange={(e) => update("max_cycle_seconds", Number(e.target.value))} />
               </label>
 
               <label>
                 Velocidade da Roots (Hz)
-                <input
-                  type="number"
-                  value={config.roots_speed_hz}
-                  onChange={(e) => update("roots_speed_hz", Number(e.target.value))}
-                />
+                <input type="number" value={config.roots_speed_hz} onChange={(e) => update("roots_speed_hz", Number(e.target.value))} />
               </label>
 
               <label>
@@ -386,11 +347,7 @@ export function DigitalTwinPage({
 
               <label>
                 Limite de desvio (mbar)
-                <input
-                  type="number"
-                  value={config.deviation_alert_mbar}
-                  onChange={(e) => update("deviation_alert_mbar", Number(e.target.value))}
-                />
+                <input type="number" value={config.deviation_alert_mbar} onChange={(e) => update("deviation_alert_mbar", Number(e.target.value))} />
               </label>
 
               <label>
@@ -405,44 +362,29 @@ export function DigitalTwinPage({
 
             <div className="simulation-switch-panel">
               <strong>Falhas e correções</strong>
+
               <label>
-                <input
-                  type="checkbox"
-                  checked={config.hose_correction_enabled}
-                  onChange={(e) => update("hose_correction_enabled", e.target.checked)}
-                />
+                <input type="checkbox" checked={config.hose_correction_enabled} onChange={(e) => update("hose_correction_enabled", e.target.checked)} />
                 Aplicar correção da mangueira
               </label>
+
               <label>
-                <input
-                  type="checkbox"
-                  checked={config.oil_compensation_enabled}
-                  onChange={(e) => update("oil_compensation_enabled", e.target.checked)}
-                />
+                <input type="checkbox" checked={config.oil_compensation_enabled} onChange={(e) => update("oil_compensation_enabled", e.target.checked)} />
                 Ativar compensação de óleo
               </label>
+
               <label>
-                <input
-                  type="checkbox"
-                  checked={config.simulate_hose_leak}
-                  onChange={(e) => update("simulate_hose_leak", e.target.checked)}
-                />
+                <input type="checkbox" checked={config.simulate_hose_leak} onChange={(e) => update("simulate_hose_leak", e.target.checked)} />
                 Simular vazamento
               </label>
+
               <label>
-                <input
-                  type="checkbox"
-                  checked={config.simulate_sensor_failure}
-                  onChange={(e) => update("simulate_sensor_failure", e.target.checked)}
-                />
+                <input type="checkbox" checked={config.simulate_sensor_failure} onChange={(e) => update("simulate_sensor_failure", e.target.checked)} />
                 Simular falha de sensor
               </label>
+
               <label>
-                <input
-                  type="checkbox"
-                  checked={config.simulate_plc_loss}
-                  onChange={(e) => update("simulate_plc_loss", e.target.checked)}
-                />
+                <input type="checkbox" checked={config.simulate_plc_loss} onChange={(e) => update("simulate_plc_loss", e.target.checked)} />
                 Simular perda de comunicação com CLP
               </label>
             </div>
@@ -460,13 +402,13 @@ export function DigitalTwinPage({
       )}
 
       {menu === "resultado" && (
-        <section className="twin-section-card">
+        <section className="twin-section-card result-readable-section">
           <div className="section-intro">
             <span className="eyebrow">Etapa 3</span>
-            <h2>Resultado visual da simulação</h2>
+            <h2>Resultado da simulação</h2>
             <p>
-              O regulador mostra o processo em linguagem visual: azul representa ar/gás interno, vermelho representa
-              carga de pressão e amarelo representa óleo.
+              Esta área resume o resultado sem excesso de dados. Primeiro veja o status geral; depois confira o regulador,
+              os indicadores e a curva simplificada.
             </p>
           </div>
 
@@ -480,17 +422,17 @@ export function DigitalTwinPage({
             </div>
           ) : (
             <>
-              <section className={`manual-result-card ${tone}`}>
+              <section className={`result-summary-hero ${tone}`}>
                 <div>
                   <span className="eyebrow">Status final</span>
                   <h2>{statusLabel(result.status)}</h2>
-                  <p>{result.diagnosis}</p>
-                  <strong>{result.recommendation}</strong>
+                  <p>{interpretation.main}</p>
+                  <strong>{interpretation.action}</strong>
                 </div>
 
-                <div className="manual-result-metrics">
-                  <Kpi label="Pressão efetiva" value={fmt(result.metrics.max_effective_pressure_mbar, "mbar")} tone={tone} />
+                <div className="result-summary-kpis">
                   <Kpi label="Risco estrutural" value={fmt(result.metrics.max_collapse_risk_pct, "%")} tone={tone} />
+                  <Kpi label="Pressão efetiva" value={fmt(result.metrics.max_effective_pressure_mbar, "mbar")} tone={tone} />
                   <Kpi label="Desvio máximo" value={fmt(result.metrics.max_deviation_mbar, "mbar")} tone={tone} />
                   <Kpi
                     label="Tempo estimado"
@@ -499,19 +441,42 @@ export function DigitalTwinPage({
                 </div>
               </section>
 
-              <div className="result-grid">
+              <div className="result-grid readable-result-grid">
                 <RegulatorFromManualResult result={result} />
 
                 <section className="panel">
                   <div className="panel-title">
                     <div>
-                      <h2>Rampa simulada</h2>
-                      <p>Pressão real no tanque, pressão esperada e leitura estimada no sensor.</p>
+                      <h2>Rampa simplificada</h2>
+                      <p>
+                        Verde: pressão real no tanque. Cinza: pressão esperada. Vermelho: carga estrutural/risco.
+                      </p>
                     </div>
                   </div>
                   <TwinResultChart result={result} />
                 </section>
               </div>
+
+              <section className="result-explanation-grid">
+                <article>
+                  <strong>O que o gráfico mostra?</strong>
+                  <span>
+                    Se a linha verde fica distante da cinza, o processo real simulado está fugindo do comportamento esperado.
+                  </span>
+                </article>
+                <article>
+                  <strong>Quando fica perigoso?</strong>
+                  <span>
+                    Quando a carga estrutural sobe demais, geralmente por óleo insuficiente, óleo atrasado ou vácuo agressivo.
+                  </span>
+                </article>
+                <article>
+                  <strong>O que o operador deve observar?</strong>
+                  <span>
+                    Risco estrutural, atraso do óleo, partida da Roots e diferença entre pressão real e esperada.
+                  </span>
+                </article>
+              </section>
             </>
           )}
         </section>
@@ -521,8 +486,30 @@ export function DigitalTwinPage({
         <section className="twin-section-card">
           <div className="section-intro">
             <span className="eyebrow">Etapa 4</span>
-            <h2>Diagnóstico e alarmes</h2>
-            <p>Interpretação do cenário, alarmes projetados, manutenção e comparação com o ciclo atual.</p>
+            <h2>Diagnóstico explicado</h2>
+            <p>
+              Esta tela traduz a simulação em causa provável, impacto no processo e ação recomendada.
+            </p>
+          </div>
+
+          <div className="diagnosis-explain-grid">
+            <article className={`diagnosis-card ${tone}`}>
+              <HelpCircle size={22} />
+              <strong>O que aconteceu?</strong>
+              <p>{result ? interpretation.whatHappened : "Execute uma simulação para gerar uma leitura do processo."}</p>
+            </article>
+
+            <article className={`diagnosis-card ${tone}`}>
+              <AlertTriangle size={22} />
+              <strong>Por que isso importa?</strong>
+              <p>{result ? interpretation.whyItMatters : "O diagnóstico depende dos parâmetros escolhidos no Gêmeo Digital."}</p>
+            </article>
+
+            <article className={`diagnosis-card ${tone}`}>
+              <CheckCircle2 size={22} />
+              <strong>O que fazer?</strong>
+              <p>{result ? interpretation.action : "Escolha um cenário e simule para receber recomendação."}</p>
+            </article>
           </div>
 
           <div className="diagnostic-grid">
@@ -530,7 +517,7 @@ export function DigitalTwinPage({
               <div className="panel-title">
                 <div>
                   <h2>Alarmes projetados</h2>
-                  <p>Eventos que ocorreriam com os parâmetros simulados.</p>
+                  <p>Eventos que aconteceriam com os parâmetros simulados.</p>
                 </div>
                 <StatusBadge tone={tone}>{result?.alarms.length ?? 0} alarmes</StatusBadge>
               </div>
@@ -540,7 +527,7 @@ export function DigitalTwinPage({
                   {result.alarms.map((alarm) => (
                     <article key={alarm.code} className={`alarm-item ${alarm.severity}`}>
                       <div>
-                        <strong>{alarm.code}</strong>
+                        <strong>{translateAlarm(alarm.code)}</strong>
                         <span>{alarm.message}</span>
                       </div>
                     </article>
@@ -560,16 +547,8 @@ export function DigitalTwinPage({
                 <StatusBadge>{twin?.bottleneck ?? "Aguardando"}</StatusBadge>
               </div>
 
-              <Meter
-                label="Saúde"
-                value={twin?.health_index ?? 0}
-                tone={(twin?.health_index ?? 0) > 75 ? "good" : "warn"}
-              />
-              <Meter
-                label="Estabilidade"
-                value={twin?.stability_index ?? 0}
-                tone={(twin?.stability_index ?? 0) > 75 ? "good" : "warn"}
-              />
+              <Meter label="Saúde" value={twin?.health_index ?? 0} tone={(twin?.health_index ?? 0) > 75 ? "good" : "warn"} />
+              <Meter label="Estabilidade" value={twin?.stability_index ?? 0} tone={(twin?.stability_index ?? 0) > 75 ? "good" : "warn"} />
 
               <ul className="recommendation-list">
                 {(twin?.recommendations.length
@@ -608,34 +587,70 @@ export function DigitalTwinPage({
         <section className="twin-section-card">
           <div className="section-intro">
             <span className="eyebrow">Etapa 5</span>
-            <h2>Assistente técnico</h2>
-            <p>Pergunte sobre risco, óleo, Roots, pressão, mangueira ou alarmes do cenário.</p>
+            <h2>Assistente da simulação</h2>
+            <p>
+              O assistente abaixo funciona mesmo sem API externa. Ele responde usando o resultado da última simulação.
+            </p>
           </div>
 
-          <section className="panel chat-panel">
-            <form onSubmit={onChat}>
-              <input value={chatText} onChange={(event) => setChatText(event.target.value)} />
+          <section className="panel chat-panel improved-assistant">
+            <form onSubmit={askLocalAssistant}>
+              <input value={localQuestion} onChange={(event) => setLocalQuestion(event.target.value)} />
               <button type="submit">
                 <Bot size={16} />
-                Enviar
+                Analisar simulação
               </button>
             </form>
 
             <p className="assistant-answer">
-              {chat?.answer ??
-                "Exemplo: explique por que o cenário de óleo atrasado é perigoso e qual ação o operador deve tomar."}
+              {localAnswer ||
+                "Execute uma simulação e pergunte algo como: por que esse cenário é perigoso? O que o operador deve fazer?"}
             </p>
 
-            <div className="chips">
-              {(chat?.suggested_actions ?? [
-                "Verificar óleo",
-                "Verificar Roots",
-                "Analisar alarmes",
-                "Comparar curva real x esperada",
-              ]).map((item) => (
-                <span key={item}>{item}</span>
-              ))}
+            <div className="assistant-shortcuts">
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => {
+                  const question = "Explique o risco desta simulação.";
+                  setLocalQuestion(question);
+                  setLocalAnswer(buildAssistantAnswer(question, result));
+                }}
+              >
+                Explicar risco
+              </button>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => {
+                  const question = "O que o operador deve fazer?";
+                  setLocalQuestion(question);
+                  setLocalAnswer(buildAssistantAnswer(question, result));
+                }}
+              >
+                Ação recomendada
+              </button>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => {
+                  const question = "Explique para apresentação da TSEA.";
+                  setLocalQuestion(question);
+                  setLocalAnswer(buildAssistantAnswer(question, result));
+                }}
+              >
+                Fala para apresentação
+              </button>
             </div>
+
+            <details className="legacy-chat-details">
+              <summary>Chat local antigo</summary>
+              <form onSubmit={onChat}>
+                <input value={chatText} onChange={(event) => setChatText(event.target.value)} />
+                <button type="submit">Enviar</button>
+              </form>
+              <p>{chat?.answer ?? "Sem resposta do chat antigo."}</p>
+            </details>
 
             {latestWhatIf && <small>Último what-if legado: {latestWhatIf.summary}</small>}
           </section>
@@ -652,13 +667,119 @@ function statusLabel(status: string) {
   return status;
 }
 
+function translateAlarm(code: string) {
+  const map: Record<string, string> = {
+    OIL_FLOW_LOW: "Vazão de óleo insuficiente",
+    OIL_INJECTION_DELAY: "Atraso na injeção de óleo",
+    STRUCTURAL_COLLAPSE_RISK: "Risco de colapso estrutural",
+    STRUCTURAL_RISK_ATTENTION: "Atenção ao risco estrutural",
+    HOSE_LOSS_HIGH: "Perda elevada na mangueira",
+    HOSE_LEAK_SUSPECTED: "Possível vazamento",
+    SENSOR_FAILURE_SIMULATED: "Falha simulada de sensor",
+    PLC_COMM_LOSS_SIMULATED: "Perda de comunicação com CLP",
+    ROOTS_NOT_STARTED: "Roots não entrou na faixa esperada",
+    REAL_EXPECTED_DEVIATION: "Desvio entre real e esperado",
+    TARGET_NOT_REACHED: "Pressão alvo não atingida",
+  };
+
+  return map[code] ?? code;
+}
+
+function buildInterpretation(result: ManualOperationResult | null) {
+  if (!result) {
+    return {
+      main: "Nenhuma simulação foi executada ainda.",
+      whatHappened: "Aguardando parâmetros e simulação.",
+      whyItMatters: "Sem resultado, ainda não há risco calculado.",
+      action: "Escolha um cenário e clique em simular.",
+    };
+  }
+
+  const alarms = result.alarms.map((alarm) => alarm.code);
+  const risk = result.metrics.max_collapse_risk_pct;
+  const deviation = result.metrics.max_deviation_mbar;
+
+  if (result.status === "success") {
+    return {
+      main: "O ciclo simulado ficou dentro da faixa segura. A pressão caiu conforme esperado e a compensação de óleo foi suficiente.",
+      whatHappened: "O tanque atingiu o comportamento previsto pelo modelo. A diferença entre real e esperado permaneceu controlada.",
+      whyItMatters: "Isso mostra que a receita escolhida, a mangueira e a vazão de óleo estão adequadas para uma operação estável.",
+      action: "Manter os parâmetros, registrar o ciclo e usar este cenário como referência de operação segura.",
+    };
+  }
+
+  if (alarms.includes("STRUCTURAL_COLLAPSE_RISK")) {
+    return {
+      main: "O cenário indica risco crítico de colapso estrutural. A carga efetiva ultrapassou o limite seguro definido para o tanque.",
+      whatHappened: "A queda de pressão gerou uma carga elevada nas paredes do tanque, e o óleo não compensou o esforço a tempo.",
+      whyItMatters: `O risco máximo chegou a ${risk.toFixed(1)}%. Isso representa uma condição que não deveria ser executada em operação real sem revisão técnica.`,
+      action: "Reduzir a rampa de vácuo, aumentar a vazão de óleo, diminuir atraso de injeção e validar a receita com engenharia.",
+    };
+  }
+
+  if (alarms.includes("OIL_FLOW_LOW") || alarms.includes("OIL_INJECTION_DELAY")) {
+    return {
+      main: "O problema principal está na injeção de óleo. O óleo está insuficiente ou atrasado em relação à queda de pressão.",
+      whatHappened: "O vácuo evoluiu mais rápido do que a compensação de óleo, criando uma região de risco no tanque.",
+      whyItMatters: "Esse é um dos pontos mais críticos do processo, porque o óleo ajuda a reduzir a carga efetiva sobre o tanque.",
+      action: "Ajustar vazão de óleo, reduzir atraso de início e usar rampa mais suave antes de liberar o ciclo.",
+    };
+  }
+
+  if (alarms.includes("HOSE_LOSS_HIGH") || alarms.includes("HOSE_LEAK_SUSPECTED")) {
+    return {
+      main: "O cenário indica problema relacionado à mangueira ou conexão.",
+      whatHappened: `A diferença entre curva real e esperada chegou a ${deviation.toFixed(2)} mbar, sugerindo perda de carga ou vazamento.`,
+      whyItMatters: "Se a mangueira distorce a leitura, o operador pode achar que o tanque atingiu o vácuo certo quando ainda não atingiu.",
+      action: "Trocar por mangueira mais curta, aplicar correção, inspecionar conexão e repetir simulação.",
+    };
+  }
+
+  return {
+    main: "O cenário exige atenção. O Gêmeo Digital encontrou desvios que podem afetar segurança, qualidade ou tempo de ciclo.",
+    whatHappened: result.diagnosis,
+    whyItMatters: "Mesmo sem colapso crítico, desvios de pressão e tempo podem indicar perda de eficiência ou risco operacional.",
+    action: result.recommendation,
+  };
+}
+
+function buildAssistantAnswer(question: string, result: ManualOperationResult | null) {
+  if (!result) {
+    return "Ainda não há uma simulação para analisar. Primeiro escolha um cenário, ajuste os parâmetros e clique em simular no Gêmeo Digital.";
+  }
+
+  const text = question.toLowerCase();
+  const info = buildInterpretation(result);
+
+  if (text.includes("apresentação") || text.includes("tsea")) {
+    return `Para apresentar à TSEA: este cenário mostra que o Gêmeo Digital consegue prever o comportamento do processo antes da operação real. Resultado: ${statusLabel(result.status)}. ${info.main} A recomendação é: ${info.action}`;
+  }
+
+  if (text.includes("risco") || text.includes("perigoso") || text.includes("colapso")) {
+    return `${info.whyItMatters} O risco estrutural máximo calculado foi de ${result.metrics.max_collapse_risk_pct.toFixed(1)}%. ${info.action}`;
+  }
+
+  if (text.includes("operador") || text.includes("fazer") || text.includes("ação")) {
+    return `Ação recomendada para o operador: ${info.action}`;
+  }
+
+  if (text.includes("óleo") || text.includes("oleo")) {
+    return `Nesta simulação, a vazão de óleo configurada foi ${result.config.oil_flow_l_min} L/min e o atraso foi ${result.config.oil_delay_seconds}s. ${info.main}`;
+  }
+
+  if (text.includes("mangueira")) {
+    return `A mangueira usada foi ${result.hose.code}, com ${result.hose.length_m}m. A perda simulada contribuiu para um desvio máximo de ${result.metrics.max_deviation_mbar.toFixed(2)} mbar. ${info.action}`;
+  }
+
+  return `${info.main} ${info.whyItMatters} ${info.action}`;
+}
+
 function TwinResultChart({ result }: { result: ManualOperationResult }) {
   const points = result.timeline;
   const max = Math.max(
     ...points.flatMap((item) => [
       item.real_pressure_mbar,
       item.expected_pressure_mbar,
-      item.sensor_pressure_mbar,
       item.effective_pressure_mbar,
     ]),
     10,
@@ -667,7 +788,6 @@ function TwinResultChart({ result }: { result: ManualOperationResult }) {
     ...points.flatMap((item) => [
       item.real_pressure_mbar,
       item.expected_pressure_mbar,
-      item.sensor_pressure_mbar,
       item.effective_pressure_mbar,
     ]),
     0,
@@ -675,11 +795,7 @@ function TwinResultChart({ result }: { result: ManualOperationResult }) {
   const span = Math.max(max - min, 1);
 
   function lineFor(
-    key:
-      | "real_pressure_mbar"
-      | "expected_pressure_mbar"
-      | "sensor_pressure_mbar"
-      | "effective_pressure_mbar",
+    key: "real_pressure_mbar" | "expected_pressure_mbar" | "effective_pressure_mbar",
   ) {
     return points
       .map((item, index) => {
@@ -699,17 +815,15 @@ function TwinResultChart({ result }: { result: ManualOperationResult }) {
           <line key={y} x1="0" x2="100" y1={y} y2={y} className="grid-line" />
         ))}
 
-        <polyline points={lineFor("expected_pressure_mbar")} fill="none" stroke="#475569" strokeDasharray="3 3" strokeWidth="1.8" />
-        <polyline points={lineFor("real_pressure_mbar")} fill="none" stroke="#1e5d4b" strokeWidth="2.7" />
-        <polyline points={lineFor("sensor_pressure_mbar")} fill="none" stroke="#2563eb" strokeWidth="2" />
-        <polyline points={lineFor("effective_pressure_mbar")} fill="none" stroke="#dc2626" strokeWidth="2" />
+        <polyline points={lineFor("expected_pressure_mbar")} fill="none" stroke="#475569" strokeDasharray="4 4" strokeWidth="1.8" />
+        <polyline points={lineFor("real_pressure_mbar")} fill="none" stroke="#1e5d4b" strokeWidth="2.8" />
+        <polyline points={lineFor("effective_pressure_mbar")} fill="none" stroke="#dc2626" strokeWidth="2.1" />
       </svg>
 
-      <div className="legend">
+      <div className="legend readable-legend">
         <span><i style={{ background: "#1e5d4b" }} /> Pressão real no tanque</span>
         <span><i style={{ background: "#475569" }} /> Pressão esperada</span>
-        <span><i style={{ background: "#2563eb" }} /> Leitura estimada no sensor</span>
-        <span><i style={{ background: "#dc2626" }} /> Pressão efetiva / risco</span>
+        <span><i style={{ background: "#dc2626" }} /> Carga estrutural / risco</span>
       </div>
     </div>
   );

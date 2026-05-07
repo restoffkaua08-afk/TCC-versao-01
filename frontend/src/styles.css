@@ -1667,3 +1667,189 @@ main {
     flex-direction: column;
   }
 }
+
+/* ============================================================
+   Refinamento: Resultado, Diagnóstico e Assistente do Gêmeo Digital
+   ============================================================ */
+
+.result-readable-section {
+  gap: 22px;
+}
+
+.result-summary-hero {
+  background: #ffffff;
+  border: 1px solid #d8e0dd;
+  border-left: 7px solid #2e8f5b;
+  border-radius: 16px;
+  box-shadow: 0 14px 38px rgb(18 32 27 / 7%);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.75fr);
+  padding: 22px;
+}
+
+.result-summary-hero.warn {
+  border-left-color: #c78a2d;
+}
+
+.result-summary-hero.bad {
+  border-left-color: #aa382f;
+}
+
+.result-summary-hero h2 {
+  font-size: clamp(1.55rem, 2.3vw, 2.45rem);
+  margin: 0 0 10px;
+}
+
+.result-summary-hero p {
+  color: #46574f;
+  font-size: 1rem;
+  line-height: 1.58;
+  margin: 0 0 10px;
+}
+
+.result-summary-hero strong {
+  color: #14231e;
+  display: block;
+  line-height: 1.5;
+}
+
+.result-summary-kpis {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.readable-result-grid {
+  grid-template-columns: minmax(320px, 0.42fr) minmax(0, 1fr);
+}
+
+.result-explanation-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.result-explanation-grid article {
+  background: #f7faf8;
+  border: 1px solid #dfe8e3;
+  border-radius: 14px;
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+.result-explanation-grid strong {
+  color: #12231d;
+}
+
+.result-explanation-grid span {
+  color: #53645d;
+  line-height: 1.48;
+}
+
+.diagnosis-explain-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.diagnosis-card {
+  background: #ffffff;
+  border: 1px solid #d8e0dd;
+  border-top: 5px solid #2e8f5b;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgb(18 32 27 / 6%);
+  display: grid;
+  gap: 10px;
+  min-height: 220px;
+  padding: 18px;
+}
+
+.diagnosis-card.warn {
+  border-top-color: #c78a2d;
+}
+
+.diagnosis-card.bad {
+  border-top-color: #aa382f;
+}
+
+.diagnosis-card svg {
+  color: #1e5d4b;
+}
+
+.diagnosis-card.warn svg {
+  color: #c78a2d;
+}
+
+.diagnosis-card.bad svg {
+  color: #aa382f;
+}
+
+.diagnosis-card strong {
+  font-size: 1.06rem;
+}
+
+.diagnosis-card p {
+  color: #53645d;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.improved-assistant form {
+  align-items: stretch;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.improved-assistant input {
+  background: #f8faf9;
+  border: 1px solid #ccd8d3;
+  border-radius: 10px;
+  min-height: 46px;
+  padding: 0 12px;
+}
+
+.assistant-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.legacy-chat-details {
+  background: #f7faf8;
+  border: 1px solid #e2eae6;
+  border-radius: 12px;
+  margin-top: 14px;
+  padding: 12px;
+}
+
+.legacy-chat-details summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.legacy-chat-details form {
+  margin-top: 12px;
+}
+
+.readable-legend {
+  margin-top: 14px;
+}
+
+.twin-chart-clean svg {
+  min-height: 360px;
+}
+
+@media (max-width: 1180px) {
+  .result-summary-hero,
+  .readable-result-grid,
+  .result-explanation-grid,
+  .diagnosis-explain-grid,
+  .result-summary-kpis,
+  .improved-assistant form {
+    grid-template-columns: 1fr;
+  }
+}

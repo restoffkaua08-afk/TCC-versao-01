@@ -50,7 +50,6 @@ export const api = {
   reset: () => request<OperationState>("/operation/reset", { method: "POST" }),
 
   configOptions: () => request<OperationConfigOptions>("/operation/config-options"),
-
   manualSimulate: (payload: ManualOperationConfig) =>
     request<ManualOperationResult>("/operation/manual-simulate", {
       method: "POST",
