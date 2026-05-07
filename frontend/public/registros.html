@@ -1,499 +1,540 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
- <meta charset="utf-8" />
- <meta name="viewport" content="width=device-width,initial-scale=1" />
- <title>TSEA · Histórico Operacional</title>
- <style>
- :root {
- --bg: #f3f5f2;
- --card: #ffffff;
- --ink: #17231f;
- --muted: #63736c;
- --line: #d8e0dc;
- --green: #245c4b;
- --green-2: #e7f0ec;
- --red: #a64238;
- --amber: #b7791f;
- --blue: #2864a7;
- --shadow: 0 14px 36px rgba(16, 30, 24, .08);
- }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TSEA · Histórico Operacional</title>
+  <style>
+    :root {
+      --bg: #f3f5f2;
+      --card: #ffffff;
+      --ink: #17231f;
+      --muted: #63736c;
+      --line: #d8e0dc;
+      --green: #245c4b;
+      --green-2: #e7f0ec;
+      --red: #a64238;
+      --amber: #b7791f;
+      --blue: #2864a7;
+      --shadow: 0 14px 36px rgba(16, 30, 24, .08);
+    }
 
- * { box-sizing: border-box; }
+    * { box-sizing: border-box; }
 
- body {
- margin: 0;
- font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
- background: var(--bg);
- color: var(--ink);
- }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
 
- header {
- background: #fff;
- border-bottom: 1px solid var(--line);
- padding: 18px 24px;
- position: sticky;
- top: 0;
- z-index: 20;
- }
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 18px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
 
- .top {
- max-width: 1480px;
- margin: 0 auto;
- display: flex;
- align-items: center;
- justify-content: space-between;
- gap: 16px;
- }
+    .top {
+      max-width: 1480px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
 
- .brand {
- display: grid;
- gap: 2px;
- }
+    .brand {
+      display: grid;
+      gap: 2px;
+    }
 
- .brand b {
- color: #a64238;
- letter-spacing: .12em;
- font-size: .8rem;
- }
+    .brand b {
+      color: #a64238;
+      letter-spacing: .12em;
+      font-size: .8rem;
+    }
 
- .brand strong {
- font-size: 1.15rem;
- }
+    .brand strong {
+      font-size: 1.15rem;
+    }
 
- .brand span {
- color: var(--muted);
- font-size: .9rem;
- }
+    .brand span {
+      color: var(--muted);
+      font-size: .9rem;
+    }
 
- .actions {
- display: flex;
- flex-wrap: wrap;
- gap: 8px;
- }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
 
- button, a.button {
- min-height: 40px;
- border: 0;
- border-radius: 10px;
- background: var(--green);
- color: #fff;
- padding: 0 14px;
- font-weight: 800;
- cursor: pointer;
- display: inline-flex;
- align-items: center;
- gap: 8px;
- text-decoration: none;
- }
+    button, a.button {
+      min-height: 40px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--green);
+      color: #fff;
+      padding: 0 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
 
- button.secondary, a.secondary {
- background: #fff;
- color: var(--ink);
- border: 1px solid var(--line);
- }
+    button.secondary, a.secondary {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
 
- main {
- max-width: 1480px;
- margin: 0 auto;
- padding: 24px;
- display: grid;
- gap: 18px;
- }
+    main {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
 
- .hero, .panel, .drawer {
- background: var(--card);
- border: 1px solid var(--line);
- border-radius: 18px;
- box-shadow: var(--shadow);
- padding: 22px;
- }
+    .hero, .panel, .drawer {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
 
- .hero {
- display: grid;
- grid-template-columns: 1fr auto;
- gap: 18px;
- align-items: start;
- }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: start;
+    }
 
- .eyebrow {
- color: #a64238;
- text-transform: uppercase;
- font-size: .78rem;
- letter-spacing: .12em;
- font-weight: 900;
- }
+    .eyebrow {
+      color: #a64238;
+      text-transform: uppercase;
+      font-size: .78rem;
+      letter-spacing: .12em;
+      font-weight: 900;
+    }
 
- h1, h2, h3 { margin: 0; }
+    h1, h2, h3 { margin: 0; }
 
- h1 {
- font-size: clamp(1.8rem, 3vw, 2.8rem);
- margin-top: 6px;
- }
+    h1 {
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      margin-top: 6px;
+    }
 
- p {
- color: var(--muted);
- line-height: 1.55;
- }
+    p {
+      color: var(--muted);
+      line-height: 1.55;
+    }
 
- .tabs {
- display: flex;
- gap: 8px;
- flex-wrap: wrap;
- background: #fff;
- border: 1px solid var(--line);
- border-radius: 14px;
- padding: 8px;
- }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 8px;
+    }
 
- .tabs button {
- background: transparent;
- color: var(--ink);
- border: 1px solid transparent;
- }
+    .tabs button {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid transparent;
+    }
 
- .tabs button.active {
- background: var(--green);
- color: #fff;
- }
+    .tabs button.active {
+      background: var(--green);
+      color: #fff;
+    }
 
- .filters {
- display: grid;
- grid-template-columns: repeat(6, minmax(0, 1fr));
- gap: 10px;
- }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
 
- label {
- display: grid;
- gap: 6px;
- color: var(--muted);
- font-size: .84rem;
- font-weight: 800;
- }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: .84rem;
+      font-weight: 800;
+    }
 
- select, input {
- width: 100%;
- min-height: 40px;
- border: 1px solid var(--line);
- border-radius: 10px;
- padding: 0 10px;
- background: #fbfcfb;
- color: var(--ink);
- }
+    select, input {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0 10px;
+      background: #fbfcfb;
+      color: var(--ink);
+    }
 
- .table-wrap {
- overflow: auto;
- border: 1px solid var(--line);
- border-radius: 14px;
- }
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
 
- table {
- width: 100%;
- border-collapse: collapse;
- min-width: 980px;
- background: #fff;
- }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+      background: #fff;
+    }
 
- th, td {
- padding: 13px 14px;
- border-bottom: 1px solid #edf1ef;
- text-align: left;
- vertical-align: top;
- }
+    th, td {
+      padding: 13px 14px;
+      border-bottom: 1px solid #edf1ef;
+      text-align: left;
+      vertical-align: top;
+    }
 
- th {
- background: #f7faf8;
- color: #47564f;
- font-size: .82rem;
- text-transform: uppercase;
- letter-spacing: .04em;
- }
+    th {
+      background: #f7faf8;
+      color: #47564f;
+      font-size: .82rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
 
- tr:hover td {
- background: #fafcfb;
- }
+    tr:hover td {
+      background: #fafcfb;
+    }
 
- .pill {
- border-radius: 999px;
- padding: 5px 9px;
- font-weight: 900;
- font-size: .78rem;
- display: inline-flex;
- white-space: nowrap;
- }
+    .pill {
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-weight: 900;
+      font-size: .78rem;
+      display: inline-flex;
+      white-space: nowrap;
+    }
 
- .real { background: #e7f0ec; color: #174f3e; }
- .sim { background: #e8f0fb; color: #1e4f88; }
- .ok { background: #e7f0ec; color: #174f3e; }
- .warn { background: #fff7e6; color: #81560f; }
- .bad { background: #fff0ed; color: #8f2e24; }
+    .real { background: #e7f0ec; color: #174f3e; }
+    .sim { background: #e8f0fb; color: #1e4f88; }
+    .ok { background: #e7f0ec; color: #174f3e; }
+    .warn { background: #fff7e6; color: #81560f; }
+    .bad { background: #fff0ed; color: #8f2e24; }
 
- .split {
- display: grid;
- grid-template-columns: 1fr 1fr;
- gap: 14px;
- }
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
 
- .kv {
- display: grid;
- grid-template-columns: repeat(2, minmax(0, 1fr));
- gap: 10px;
- }
+    .kv {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
 
- .kv div {
- background: #f8faf9;
- border: 1px solid #e2eae6;
- border-radius: 12px;
- padding: 12px;
- }
+    .kv div {
+      background: #f8faf9;
+      border: 1px solid #e2eae6;
+      border-radius: 12px;
+      padding: 12px;
+    }
 
- .kv small {
- color: var(--muted);
- display: block;
- font-weight: 800;
- margin-bottom: 4px;
- }
+    .kv small {
+      color: var(--muted);
+      display: block;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
 
- .chart {
- width: 100%;
- min-height: 320px;
- background: #fbfcfb;
- border: 1px solid #e2eae6;
- border-radius: 14px;
- padding: 12px;
- }
+    .chart {
+      width: 100%;
+      min-height: 320px;
+      background: #fbfcfb;
+      border: 1px solid #e2eae6;
+      border-radius: 14px;
+      padding: 12px;
+    }
 
- .chart svg {
- width: 100%;
- height: 310px;
- }
+    .chart svg {
+      width: 100%;
+      height: 310px;
+    }
 
- .legend {
- display: flex;
- flex-wrap: wrap;
- gap: 8px;
- margin-top: 10px;
- }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
 
- .legend span {
- border: 1px solid var(--line);
- border-radius: 999px;
- padding: 6px 10px;
- color: var(--muted);
- background: #fff;
- font-size: .86rem;
- }
+    .legend span {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: var(--muted);
+      background: #fff;
+      font-size: .86rem;
+    }
 
- .empty {
- padding: 22px;
- text-align: center;
- color: var(--muted);
- }
+    .empty {
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
+    }
 
- .detail {
- display: none;
- }
+    .detail {
+      display: none;
+    }
 
- .detail.visible {
- display: grid;
- gap: 14px;
- }
+    .detail.visible {
+      display: grid;
+      gap: 14px;
+    }
 
- .alert {
- border-left: 5px solid var(--amber);
- background: #fffaf0;
- padding: 12px;
- border-radius: 12px;
- color: #69460f;
- }
+    .alert {
+      border-left: 5px solid var(--amber);
+      background: #fffaf0;
+      padding: 12px;
+      border-radius: 12px;
+      color: #69460f;
+    }
 
- .danger-zone {
- border-left: 5px solid var(--red);
- background: #fff5f3;
- padding: 12px;
- border-radius: 12px;
- color: #7d2e26;
- }
+    .danger-zone {
+      border-left: 5px solid var(--red);
+      background: #fff5f3;
+      padding: 12px;
+      border-radius: 12px;
+      color: #7d2e26;
+    }
 
- @media (max-width: 1100px) {
- .hero, .split, .filters, .kv {
- grid-template-columns: 1fr;
- }
+    @media (max-width: 1100px) {
+      .hero, .split, .filters, .kv {
+        grid-template-columns: 1fr;
+      }
 
- main {
- padding: 14px;
- }
+      main {
+        padding: 14px;
+      }
 
- header {
- padding: 14px;
- }
- }
- </style>
+      header {
+        padding: 14px;
+      }
+    }
+  </style>
 
- <style>
- /* Ajuste final de sobriedade para a página standalone de registros */
- :root {
- --bg: #f4f5f2 !important;
- --card: #ffffff !important;
- --ink: #1d2824 !important;
- --muted: #637069 !important;
- --line: #d9ded9 !important;
- --green: #28584a !important;
- --red: #9b3f35 !important;
- --amber: #9a6a1f !important;
- --shadow: none !important;
- }
+  <style>
+    /* Ajuste final de sobriedade para a página standalone de registros */
+    :root {
+      --bg: #f4f5f2 !important;
+      --card: #ffffff !important;
+      --ink: #1d2824 !important;
+      --muted: #637069 !important;
+      --line: #d9ded9 !important;
+      --green: #28584a !important;
+      --red: #9b3f35 !important;
+      --amber: #9a6a1f !important;
+      --shadow: none !important;
+    }
 
- body {
- background: #f4f5f2 !important;
- }
+    body {
+      background: #f4f5f2 !important;
+    }
 
- .hero,
- .panel,
- .drawer {
- border-radius: 10px !important;
- box-shadow: none !important;
- border: 1px solid #d9ded9 !important;
- }
+    .hero,
+    .panel,
+    .drawer {
+      border-radius: 10px !important;
+      box-shadow: none !important;
+      border: 1px solid #d9ded9 !important;
+    }
 
- button,
- a.button {
- border-radius: 7px !important;
- box-shadow: none !important;
- font-weight: 750 !important;
- }
+    button,
+    a.button {
+      border-radius: 7px !important;
+      box-shadow: none !important;
+      font-weight: 750 !important;
+    }
 
- .pill {
- border-radius: 5px !important;
- font-weight: 760 !important;
- }
+    .pill {
+      border-radius: 5px !important;
+      font-weight: 760 !important;
+    }
 
- .tsea-records-shortcut {
- border-radius: 8px !important;
- background: #fff !important;
- color: #183d34 !important;
- border: 1px solid #c3cbc5 !important;
- box-shadow: 0 6px 18px rgba(16,30,24,.10) !important;
- }
+    .tsea-records-shortcut {
+      border-radius: 8px !important;
+      background: #fff !important;
+      color: #183d34 !important;
+      border: 1px solid #c3cbc5 !important;
+      box-shadow: 0 6px 18px rgba(16,30,24,.10) !important;
+    }
 
- th {
- background: #f1f3f1 !important;
- }
+    th {
+      background: #f1f3f1 !important;
+    }
 
- tr:hover td {
- background: #f8faf8 !important;
- }
+    tr:hover td {
+      background: #f8faf8 !important;
+    }
 
- .chart {
- border-radius: 8px !important;
- }
- </style>
+    .chart {
+      border-radius: 8px !important;
+    }
+  </style>
 
+
+  <style>
+    /* Ajuste visual operacional TSEA */
+    :root {
+      --bg: #f4f5f2 !important;
+      --card: #ffffff !important;
+      --ink: #1d2824 !important;
+      --muted: #637069 !important;
+      --line: #d9ded9 !important;
+      --green: #28584a !important;
+      --red: #9b3f35 !important;
+      --amber: #9a6a1f !important;
+      --shadow: none !important;
+    }
+
+    body { background: #f4f5f2 !important; }
+
+    .hero,
+    .panel,
+    .drawer {
+      border-radius: 10px !important;
+      box-shadow: none !important;
+      border: 1px solid #d9ded9 !important;
+    }
+
+    button,
+    a.button {
+      border-radius: 7px !important;
+      box-shadow: none !important;
+      font-weight: 750 !important;
+    }
+
+    .pill {
+      border-radius: 5px !important;
+      font-weight: 760 !important;
+    }
+
+    th { background: #f1f3f1 !important; }
+    tr:hover td { background: #f8faf8 !important; }
+    .chart { border-radius: 8px !important; }
+  </style>
 </head>
 <body>
 <header>
- <div class="top">
- <div class="brand">
- <b>TSEA</b>
- <strong>Histórico Operacional</strong>
- <span>Ciclos Operacionais, simulações, detalhes, reuso e exportação</span>
- </div>
- <div class="actions">
- <a class="button secondary" href="/">Retornar ao Painel Principal</a>
- <button onclick="loadAll()">Atualizar Dados Dados Dados</button>
- </div>
- </div>
+  <div class="top">
+    <div class="brand">
+      <b>TSEA</b>
+      <strong>Histórico Operacional</strong>
+      <span>Ciclos Operacionais, simulações, detalhes, reuso e exportação</span>
+    </div>
+    <div class="actions">
+      <a class="button secondary" href="/">Painel principal</a>
+      <button onclick="loadAll()">Atualizar</button>
+    </div>
+  </div>
 </header>
 
 <main>
- <section class="hero">
- <div>
- <span class="eyebrow">Histórico Técnico Operacional</span>
- <h1>Ciclos Operacionais e simulações agora ficam separadas</h1>
- <p>Esta tela organiza o histórico de forma auditável: filtros por período, tanque, operador, status, mangueira e tipo de tanque. Também permite re-simular, gerar relatório e exportar CSV.</p>
- </div>
- <div>
- <span id="apiEstado Operacional" class="pill warn">Sincronizando API</span>
- </div>
- </section>
+  <section class="hero">
+    <div>
+      <span class="eyebrow">Histórico operacional</span>
+      <h1>Histórico técnico de ciclos e simulações</h1>
+      <p>Consulta estruturada de ciclos operacionais, simulações, parâmetros, resultados, relatórios e dados exportáveis.</p>
+    </div>
+    <div>
+      <span id="apiStatus" class="pill warn">API verificando</span>
+    </div>
+  </section>
 
- <nav class="tabs">
- <button id="tabOps" class="active" onclick="setTab('operations')">Ciclos Operacionais</button>
- <button id="tabSims" onclick="setTab('simulations')">Simulações Operacionais Operacionais Operacionais</button>
- </nav>
+  <nav class="tabs">
+    <button id="tabOps" class="active" onclick="setTab('operations')">Ciclos Operacionais</button>
+    <button id="tabSims" onclick="setTab('simulations')">Simulações de Processo</button>
+  </nav>
 
- <section class="panel">
- <h2>Filtros</h2>
- <p>Use os filtros para localizar ciclos, simulações e parâmetros operacionais com precisão.</p>
- <div class="filters">
- <label>Período
- <select id="period">
- <option value="all">Todos</option>
- <option value="today">Hoje</option>
- <option value="yesterday">Ontem</option>
- <option value="7d">Últimos 7 dias</option>
- <option value="30d">Últimos 30 dias</option>
- </select>
- </label>
- <label>Tanque de Processo de Processo de Processo
- <select id="tank">
- <option value="all">Todos</option>
- <option value="1">Tanque de Processo de Processo de Processo 1</option>
- <option value="2">Tanque de Processo de Processo de Processo 2</option>
- <option value="3">Tanque de Processo de Processo de Processo 3</option>
- </select>
- </label>
- <label>Responsável Operacional
- <select id="operator">
- <option value="all">Todos</option>
- <option value="Responsável Operacional TSEA">Responsável Operacional TSEA</option>
- </select>
- </label>
- <label>Estado Operacional
- <select id="status">
- <option value="all">Todos</option>
- <option value="concluido">Concluído</option>
- <option value="abortado">Abortado</option>
- <option value="em_andamento">Em andamento</option>
- <option value="success">Simulação Operacional Operacional Operacional segura</option>
- <option value="warning">Simulação Operacional Operacional Operacional atenção</option>
- <option value="critical">Simulação Operacional Operacional Operacional crítica</option>
- </select>
- </label>
- <label>Categoria de tanque
- <select id="tankType">
- <option value="all">Todos</option>
- <option value="medio">Médio</option>
- <option value="grande">Grande</option>
- <option value="extra_grande">Extra grande</option>
- </select>
- </label>
- <label>Linha de Vácuo
- <select id="hose">
- <option value="all">Todas</option>
- <option value="1">Linha de Vácuo 1</option>
- <option value="2">Linha de Vácuo 2</option>
- <option value="3">Linha de Vácuo 3</option>
- </select>
- </label>
- </div>
- <div class="actions" style="margin-top:14px">
- <button onclick="loadAll()">Aplicar filtros</button>
- <button class="secondary" onclick="clearFilters()">Limpar</button>
- </div>
- </section>
+  <section class="panel">
+    <h2>Filtros</h2>
+    <p>Use os filtros para localizar ciclos, simulações e parâmetros técnicos com precisão.</p>
+    <div class="filters">
+      <label>Período
+        <select id="period">
+          <option value="all">Todos</option>
+          <option value="today">Hoje</option>
+          <option value="yesterday">Ontem</option>
+          <option value="7d">Últimos 7 dias</option>
+          <option value="30d">Últimos 30 dias</option>
+        </select>
+      </label>
+      <label>Tanque
+        <select id="tank">
+          <option value="all">Todos</option>
+          <option value="1">Tanque 1</option>
+          <option value="2">Tanque 2</option>
+          <option value="3">Tanque 3</option>
+        </select>
+      </label>
+      <label>Operador
+        <select id="operator">
+          <option value="all">Todos</option>
+          <option value="Operador TSEA">Operador TSEA</option>
+        </select>
+      </label>
+      <label>Status
+        <select id="status">
+          <option value="all">Todos</option>
+          <option value="concluido">Concluído</option>
+          <option value="abortado">Abortado</option>
+          <option value="em_andamento">Em andamento</option>
+          <option value="success">Simulação segura</option>
+          <option value="warning">Simulação atenção</option>
+          <option value="critical">Simulação crítica</option>
+        </select>
+      </label>
+      <label>Tipo de tanque
+        <select id="tankType">
+          <option value="all">Todos</option>
+          <option value="medio">Médio</option>
+          <option value="grande">Grande</option>
+          <option value="extra_grande">Extra grande</option>
+        </select>
+      </label>
+      <label>Mangueira
+        <select id="hose">
+          <option value="all">Todas</option>
+          <option value="1">Mangueira 1</option>
+          <option value="2">Mangueira 2</option>
+          <option value="3">Mangueira 3</option>
+        </select>
+      </label>
+    </div>
+    <div class="actions" style="margin-top:14px">
+      <button onclick="loadAll()">Aplicar filtros</button>
+      <button class="secondary" onclick="clearFilters()">Limpar</button>
+    </div>
+  </section>
 
- <section class="panel">
- <h2 id="tableTitle">Ciclos Operacionais</h2>
- <div class="table-wrap">
- <table>
- <thead id="thead"></thead>
- <tbody id="tbody"></tbody>
- </table>
- </div>
- </section>
+  <section class="panel">
+    <h2 id="tableTitle">Ciclos Operacionais</h2>
+    <div class="table-wrap">
+      <table>
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
 
- <section id="detail" class="drawer detail"></section>
+  <section id="detail" class="drawer detail"></section>
 </main>
 
 <script>
@@ -502,336 +543,336 @@ let currentTab = "operations";
 let lastRows = [];
 
 function fmt(value, suffix = "") {
- if (value === null || value === undefined || Number.isNaN(Number(value))) return "--";
- return Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 2 }) + (suffix ? " " + suffix : "");
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "--";
+  return Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 2 }) + (suffix ? " " + suffix : "");
 }
 
 function badge(value, kind) {
- return `<span class="pill ${kind}">${value}</span>`;
+  return `<span class="pill ${kind}">${value}</span>`;
 }
 
 async function request(path, options = {}) {
- const response = await fetch(API + path, {
- headers: { "Content-Type": "application/json" },
- ...options
- });
- if (!response.ok) throw new Error(await response.text());
- return response.json();
+  const response = await fetch(API + path, {
+    headers: { "Content-Type": "application/json" },
+    ...options
+  });
+  if (!response.ok) throw new Error(await response.text());
+  return response.json();
 }
 
 function getFilters() {
- return {
- period: document.getElementById("period").value,
- tank: document.getElementById("tank").value,
- operator: document.getElementById("operator").value,
- status: document.getElementById("status").value,
- tankType: document.getElementById("tankType").value,
- hose: document.getElementById("hose").value
- };
+  return {
+    period: document.getElementById("period").value,
+    tank: document.getElementById("tank").value,
+    operator: document.getElementById("operator").value,
+    status: document.getElementById("status").value,
+    tankType: document.getElementById("tankType").value,
+    hose: document.getElementById("hose").value
+  };
 }
 
 function clearFilters() {
- ["period", "tank", "operator", "status", "tankType", "hose"].forEach(id => {
- document.getElementById(id).value = "all";
- });
- loadAll();
+  ["period", "tank", "operator", "status", "tankType", "hose"].forEach(id => {
+    document.getElementById(id).value = "all";
+  });
+  loadAll();
 }
 
 function setTab(tab) {
- currentTab = tab;
- document.getElementById("tabOps").classList.toggle("active", tab === "operations");
- document.getElementById("tabSims").classList.toggle("active", tab === "simulations");
- document.getElementById("detail").classList.remove("visible");
- loadAll();
+  currentTab = tab;
+  document.getElementById("tabOps").classList.toggle("active", tab === "operations");
+  document.getElementById("tabSims").classList.toggle("active", tab === "simulations");
+  document.getElementById("detail").classList.remove("visible");
+  loadAll();
 }
 
 async function loadAll() {
- try {
- await request("/health");
- document.getElementById("apiEstado Operacional").outerHTML = '<span id="apiEstado Operacional" class="pill ok">API Ativa</span>';
+  try {
+    await request("/health");
+    document.getElementById("apiStatus").outerHTML = '<span id="apiStatus" class="pill ok">API online</span>';
 
- const f = getFilters();
+    const f = getFilters();
 
- if (currentTab === "operations") {
- document.getElementById("tableTitle").innerText = "Ciclos Operacionais";
- const query = new URLSearchParams({
- period: f.period,
- tank: f.tank,
- operator: f.operator,
- status: f.status
- });
- const data = await request("/records/operations?" + query.toString());
- renderOperations(data.items || []);
- } else {
- document.getElementById("tableTitle").innerText = "Simulações Operacionais Operacionais Operacionais";
- const query = new URLSearchParams({
- period: f.period,
- tank_type: f.tankType,
- hose_id: f.hose,
- status: f.status
- });
- const data = await request("/records/simulations?" + query.toString());
- renderSimulations(data.items || []);
- }
- } catch (error) {
- document.getElementById("apiEstado Operacional").outerHTML = '<span id="apiEstado Operacional" class="pill bad">API Inativa</span>';
- document.getElementById("tbody").innerHTML = `<tr><td colspan="10" class="empty">Erro: ${error.message}</td></tr>`;
- }
+    if (currentTab === "operations") {
+      document.getElementById("tableTitle").innerText = "Ciclos Operacionais";
+      const query = new URLSearchParams({
+        period: f.period,
+        tank: f.tank,
+        operator: f.operator,
+        status: f.status
+      });
+      const data = await request("/records/operations?" + query.toString());
+      renderOperations(data.items || []);
+    } else {
+      document.getElementById("tableTitle").innerText = "Simulações de Processo";
+      const query = new URLSearchParams({
+        period: f.period,
+        tank_type: f.tankType,
+        hose_id: f.hose,
+        status: f.status
+      });
+      const data = await request("/records/simulations?" + query.toString());
+      renderSimulations(data.items || []);
+    }
+  } catch (error) {
+    document.getElementById("apiStatus").outerHTML = '<span id="apiStatus" class="pill bad">API offline</span>';
+    document.getElementById("tbody").innerHTML = `<tr><td colspan="10" class="empty">Erro: ${error.message}</td></tr>`;
+  }
 }
 
 function renderOperations(rows) {
- lastRows = rows;
- document.getElementById("thead").innerHTML = `
- <tr>
- <th>Categoria</th>
- <th>ID</th>
- <th>Data e Hora</th>
- <th>Responsável Operacional</th>
- <th>Estado Operacional</th>
- <th>Tanque de Processo de Processo de Processo</th>
- <th>Linha de Vácuo</th>
- <th>Pressão Final do Processo</th>
- <th>Risco</th>
- <th>Ações</th>
- </tr>
- `;
+  lastRows = rows;
+  document.getElementById("thead").innerHTML = `
+    <tr>
+      <th>Tipo</th>
+      <th>ID</th>
+      <th>Data/Hora</th>
+      <th>Operador</th>
+      <th>Status</th>
+      <th>Tanque</th>
+      <th>Mangueira</th>
+      <th>Pressão final</th>
+      <th>Risco</th>
+      <th>Ações</th>
+    </tr>
+  `;
 
- document.getElementById("tbody").innerHTML = rows.length ? rows.map(row => `
- <tr>
- <td>${badge("Operação real", "real")}</td>
- <td><b>${row.id}</b></td>
- <td>${row.created_at || "--"}</td>
- <td>${row.operator || "--"}</td>
- <td>${badge(row.status || "--", row.status === "concluido" ? "ok" : row.status === "abortado" ? "bad" : "warn")}</td>
- <td>${row.tank_code || "--"}<br><small>${row.tank_type || "--"}</small></td>
- <td>${row.hose_code || "--"}<br><small>${fmt(row.hose_length_m, "m")} · Ø ${row.hose_diameter_in || "--"}</small></td>
- <td>${fmt(row.final_pressure_mbar, "mbar")}</td>
- <td>${row.collapse_risk ? badge("Risco", "bad") : badge("Normal", "ok")}</td>
- <td>
- <button onclick="openOperation('${row.id}')">Abrir Detalhes</button>
- </td>
- </tr>
- `).join("") : `<tr><td colspan="10" class="empty">Nenhuma operação encontrada.</td></tr>`;
+  document.getElementById("tbody").innerHTML = rows.length ? rows.map(row => `
+    <tr>
+      <td>${badge("Operação real", "real")}</td>
+      <td><b>${row.id}</b></td>
+      <td>${row.created_at || "--"}</td>
+      <td>${row.operator || "--"}</td>
+      <td>${badge(row.status || "--", row.status === "concluido" ? "ok" : row.status === "abortado" ? "bad" : "warn")}</td>
+      <td>${row.tank_code || "--"}<br><small>${row.tank_type || "--"}</small></td>
+      <td>${row.hose_code || "--"}<br><small>${fmt(row.hose_length_m, "m")} · Ø ${row.hose_diameter_in || "--"}</small></td>
+      <td>${fmt(row.final_pressure_mbar, "mbar")}</td>
+      <td>${row.collapse_risk ? badge("Risco", "bad") : badge("Normal", "ok")}</td>
+      <td>
+        <button onclick="openOperation('${row.id}')">Detalhes</button>
+      </td>
+    </tr>
+  `).join("") : `<tr><td colspan="10" class="empty">Nenhuma operação encontrada.</td></tr>`;
 }
 
 function renderSimulations(rows) {
- lastRows = rows;
- document.getElementById("thead").innerHTML = `
- <tr>
- <th>Categoria</th>
- <th>ID</th>
- <th>Data e Hora</th>
- <th>Nome</th>
- <th>Estado Operacional</th>
- <th>Tanque de Processo de Processo de Processo</th>
- <th>Linha de Vácuo</th>
- <th>Pressão Final do Processo</th>
- <th>Risco</th>
- <th>Ações</th>
- </tr>
- `;
+  lastRows = rows;
+  document.getElementById("thead").innerHTML = `
+    <tr>
+      <th>Tipo</th>
+      <th>ID</th>
+      <th>Data/Hora</th>
+      <th>Nome</th>
+      <th>Status</th>
+      <th>Tanque</th>
+      <th>Mangueira</th>
+      <th>Pressão final</th>
+      <th>Risco</th>
+      <th>Ações</th>
+    </tr>
+  `;
 
- document.getElementById("tbody").innerHTML = rows.length ? rows.map(row => `
- <tr>
- <td>${badge("Simulação Operacional Operacional Operacional", "sim")}</td>
- <td><b>${row.id}</b></td>
- <td>${row.created_at || "--"}</td>
- <td>${row.name || "--"}</td>
- <td>${badge(row.status || "--", row.status === "success" ? "ok" : row.status === "critical" ? "bad" : "warn")}</td>
- <td>${row.tank_type || "--"}</td>
- <td>${row.hose_id || "--"}</td>
- <td>${fmt(row.final_pressure_mbar, "mbar")}</td>
- <td>${row.collapse_risk ? badge("Risco", "bad") : badge("Normal", "ok")}</td>
- <td>
- <button onclick="openSimulation('${row.id}')">Abrir Detalhes</button>
- </td>
- </tr>
- `).join("") : `<tr><td colspan="10" class="empty">Nenhuma simulação encontrada.</td></tr>`;
+  document.getElementById("tbody").innerHTML = rows.length ? rows.map(row => `
+    <tr>
+      <td>${badge("Simulação", "sim")}</td>
+      <td><b>${row.id}</b></td>
+      <td>${row.created_at || "--"}</td>
+      <td>${row.name || "--"}</td>
+      <td>${badge(row.status || "--", row.status === "success" ? "ok" : row.status === "critical" ? "bad" : "warn")}</td>
+      <td>${row.tank_type || "--"}</td>
+      <td>${row.hose_id || "--"}</td>
+      <td>${fmt(row.final_pressure_mbar, "mbar")}</td>
+      <td>${row.collapse_risk ? badge("Risco", "bad") : badge("Normal", "ok")}</td>
+      <td>
+        <button onclick="openSimulation('${row.id}')">Detalhes</button>
+      </td>
+    </tr>
+  `).join("") : `<tr><td colspan="10" class="empty">Nenhuma simulação encontrada.</td></tr>`;
 }
 
 function drawChart(points) {
- if (!points || !points.length) return `<div class="empty">Sem dados de curva.</div>`;
+  if (!points || !points.length) return `<div class="empty">Sem dados de curva.</div>`;
 
- const values = points.flatMap(p => [
- Number(p.real_pressure_mbar || 0),
- Number(p.expected_pressure_mbar || 0),
- Number(p.effective_pressure_mbar || 0)
- ]);
+  const values = points.flatMap(p => [
+    Number(p.real_pressure_mbar || 0),
+    Number(p.expected_pressure_mbar || 0),
+    Number(p.effective_pressure_mbar || 0)
+  ]);
 
- const max = Math.max(...values, 10);
- const min = Math.min(...values, 0);
- const span = Math.max(max - min, 1);
+  const max = Math.max(...values, 10);
+  const min = Math.min(...values, 0);
+  const span = Math.max(max - min, 1);
 
- function line(key) {
- return points.map((p, i) => {
- const x = (i / Math.max(points.length - 1, 1)) * 100;
- const y = 96 - ((Number(p[key] || 0) - min) / span) * 88;
- return `${x},${y}`;
- }).join(" ");
- }
+  function line(key) {
+    return points.map((p, i) => {
+      const x = (i / Math.max(points.length - 1, 1)) * 100;
+      const y = 96 - ((Number(p[key] || 0) - min) / span) * 88;
+      return `${x},${y}`;
+    }).join(" ");
+  }
 
- return `
- <div class="chart">
- <svg viewBox="0 0 100 100" preserveAspectRatio="none">
- <line x1="0" x2="100" y1="96" y2="96" stroke="#73817a" stroke-width=".7"></line>
- <line x1="0" x2="0" y1="4" y2="96" stroke="#73817a" stroke-width=".7"></line>
- <polyline points="${line("expected_pressure_mbar")}" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4 4"></polyline>
- <polyline points="${line("real_pressure_mbar")}" fill="none" stroke="#245c4b" stroke-width="2.8"></polyline>
- <polyline points="${line("effective_pressure_mbar")}" fill="none" stroke="#a64238" stroke-width="2.1"></polyline>
- </svg>
- <div class="legend">
- <span>Abrir Detalhesde: curva real/simulada</span>
- <span>Cinza: curva esperada</span>
- <span>Abrir Detalhesmelho: carga estrutural</span>
- </div>
- </div>
- `;
+  return `
+    <div class="chart">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <line x1="0" x2="100" y1="96" y2="96" stroke="#73817a" stroke-width=".7"></line>
+        <line x1="0" x2="0" y1="4" y2="96" stroke="#73817a" stroke-width=".7"></line>
+        <polyline points="${line("expected_pressure_mbar")}" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4 4"></polyline>
+        <polyline points="${line("real_pressure_mbar")}" fill="none" stroke="#245c4b" stroke-width="2.8"></polyline>
+        <polyline points="${line("effective_pressure_mbar")}" fill="none" stroke="#a64238" stroke-width="2.1"></polyline>
+      </svg>
+      <div class="legend">
+        <span>Detalhesde: curva real/simulada</span>
+        <span>Cinza: curva esperada</span>
+        <span>Detalhesmelho: carga estrutural</span>
+      </div>
+    </div>
+  `;
 }
 
 async function openOperation(id) {
- const data = await request(`/records/operations/${id}`);
- const record = data.record;
- const sim = data.simulation_reference || {};
- const metrics = sim.metrics || {};
+  const data = await request(`/records/operations/${id}`);
+  const record = data.record;
+  const sim = data.simulation_reference || {};
+  const metrics = sim.metrics || {};
 
- document.getElementById("detail").classList.add("visible");
- document.getElementById("detail").innerHTML = `
- <section>
- <span class="eyebrow">Detalhamento do Ciclo Operacional</span>
- <h2>${record.id} · ${record.status}</h2>
- <p>Responsável Operacional: <b>${record.operator}</b> · Data/hora: ${record.created_at}</p>
- </section>
+  document.getElementById("detail").classList.add("visible");
+  document.getElementById("detail").innerHTML = `
+    <section>
+      <span class="eyebrow">Detalhes da operação real</span>
+      <h2>${record.id} · ${record.status}</h2>
+      <p>Operador: <b>${record.operator}</b> · Data/hora: ${record.created_at}</p>
+    </section>
 
- <section class="split">
- <div class="panel">
- <h3>Parâmetros Operacionais</h3>
- <div class="kv">
- <div><small>Tanque de Processo de Processo de Processo</small><b>${record.tank_code}</b></div>
- <div><small>Categoria</small><b>${record.tank_type}</b></div>
- <div><small>Volume</small><b>${fmt(record.tank_volume_liters, "L")}</b></div>
- <div><small>Limite estrutural</small><b>${fmt(record.structural_limit_mbar, "mbar")}</b></div>
- <div><small>Linha de Vácuo</small><b>${record.hose_code}</b></div>
- <div><small>Comprimento</small><b>${fmt(record.hose_length_m, "m")}</b></div>
- <div><small>Pressão Final do Processo desejada</small><b>${fmt(record.target_pressure_mbar, "mbar")}</b></div>
- <div><small>Pressão de Acionamento da Bomba Roots</small><b>${fmt(record.roots_start_pressure_mbar, "mbar")}</b></div>
- <div><small>Vazão de Injeção de Óleo</small><b>${fmt(record.oil_flow_l_min, "L/min")}</b></div>
- <div><small>Atraso da Injeção de Óleo</small><b>${fmt(record.oil_delay_seconds, "s")}</b></div>
- </div>
- </div>
+    <section class="split">
+      <div class="panel">
+        <h3>Parâmetros da operação</h3>
+        <div class="kv">
+          <div><small>Tanque</small><b>${record.tank_code}</b></div>
+          <div><small>Tipo</small><b>${record.tank_type}</b></div>
+          <div><small>Volume</small><b>${fmt(record.tank_volume_liters, "L")}</b></div>
+          <div><small>Limite estrutural</small><b>${fmt(record.structural_limit_mbar, "mbar")}</b></div>
+          <div><small>Mangueira</small><b>${record.hose_code}</b></div>
+          <div><small>Comprimento</small><b>${fmt(record.hose_length_m, "m")}</b></div>
+          <div><small>Pressão final desejada</small><b>${fmt(record.target_pressure_mbar, "mbar")}</b></div>
+          <div><small>Roots liga em</small><b>${fmt(record.roots_start_pressure_mbar, "mbar")}</b></div>
+          <div><small>Vazão de óleo</small><b>${fmt(record.oil_flow_l_min, "L/min")}</b></div>
+          <div><small>Atraso do óleo</small><b>${fmt(record.oil_delay_seconds, "s")}</b></div>
+        </div>
+      </div>
 
- <div class="panel">
- <h3>Resultados Operacionais Operacionais Operacionais</h3>
- <div class="kv">
- <div><small>Pressão Final do Processo</small><b>${fmt(record.final_pressure_mbar, "mbar")}</b></div>
- <div><small>Duração real</small><b>${fmt(record.duration_seconds, "s")}</b></div>
- <div><small>Tempo estimado</small><b>${fmt(metrics.estimated_time_seconds, "s")}</b></div>
- <div><small>Pressão Efetiva Máxima</small><b>${fmt(metrics.max_effective_pressure_mbar, "mbar")}</b></div>
- <div><small>Índice Máximo de Risco</small><b>${fmt(metrics.max_collapse_risk_pct, "%")}</b></div>
- <div><small>Margem Operacional de Segurança</small><b>${fmt(record.safety_margin_pct, "%")}</b></div>
- </div>
- </div>
- </section>
+      <div class="panel">
+        <h3>Resultados</h3>
+        <div class="kv">
+          <div><small>Pressão final</small><b>${fmt(record.final_pressure_mbar, "mbar")}</b></div>
+          <div><small>Duração real</small><b>${fmt(record.duration_seconds, "s")}</b></div>
+          <div><small>Tempo estimado</small><b>${fmt(metrics.estimated_time_seconds, "s")}</b></div>
+          <div><small>Pressão efetiva máx.</small><b>${fmt(metrics.max_effective_pressure_mbar, "mbar")}</b></div>
+          <div><small>Risco máximo</small><b>${fmt(metrics.max_collapse_risk_pct, "%")}</b></div>
+          <div><small>Margem de segurança</small><b>${fmt(record.safety_margin_pct, "%")}</b></div>
+        </div>
+      </div>
+    </section>
 
- <section class="panel">
- <h3>Curva Operacional Completa</h3>
- ${drawChart(data.chart)}
- </section>
+    <section class="panel">
+      <h3>Gráfico completo</h3>
+      ${drawChart(data.chart)}
+    </section>
 
- <section class="${record.collapse_risk ? "danger-zone" : "alert"}">
- <b>Eventos de Processo e Alarmes</b>
- <p>${(record.events || []).map(e => e.label).join(" · ") || "Sem eventos registrados."}</p>
- <p>${(record.alarms || []).map(a => a.message).join(" · ") || "Sem alarmes."}</p>
- </section>
+    <section class="${record.collapse_risk ? "danger-zone" : "alert"}">
+      <b>Eventos e alarmes</b>
+      <p>${(record.events || []).map(e => e.label).join(" · ") || "Sem eventos registrados."}</p>
+      <p>${(record.alarms || []).map(a => a.message).join(" · ") || "Sem alarmes."}</p>
+    </section>
 
- <section class="actions">
- <button onclick="resimulateOperation('${record.id}')">Reexecutar Simulação Operacional Operacional</button>
- <a class="button secondary" href="${API}/records/operations/${record.id}/report" target="_blank">Gerar Relatório Técnico</a>
- <a class="button secondary" href="${API}/records/operations/${record.id}/csv" target="_blank">Exportar Dados CSV</a>
- </section>
- `;
+    <section class="actions">
+      <button onclick="resimulateOperation('${record.id}')">Reexecutar simulação</button>
+      <a class="button secondary" href="${API}/records/operations/${record.id}/report" target="_blank">Relatório técnico</a>
+      <a class="button secondary" href="${API}/records/operations/${record.id}/csv" target="_blank">Exportar CSV</a>
+    </section>
+  `;
 
- document.getElementById("detail").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("detail").scrollIntoView({ behavior: "smooth" });
 }
 
 async function openSimulation(id) {
- const data = await request(`/records/simulations/${id}`);
- const record = data.record;
- const result = data.result || {};
- const metrics = result.metrics || {};
+  const data = await request(`/records/simulations/${id}`);
+  const record = data.record;
+  const result = data.result || {};
+  const metrics = result.metrics || {};
 
- document.getElementById("detail").classList.add("visible");
- document.getElementById("detail").innerHTML = `
- <section>
- <span class="eyebrow">Detalhamento da Simulação Operacional Operacional Operacional</span>
- <h2>${record.id} · ${record.name}</h2>
- <p>Usuário: <b>${record.user || "--"}</b> · Data/hora: ${record.created_at}</p>
- </section>
+  document.getElementById("detail").classList.add("visible");
+  document.getElementById("detail").innerHTML = `
+    <section>
+      <span class="eyebrow">Detalhes da simulação</span>
+      <h2>${record.id} · ${record.name}</h2>
+      <p>Usuário: <b>${record.user || "--"}</b> · Data/hora: ${record.created_at}</p>
+    </section>
 
- <section class="split">
- <div class="panel">
- <h3>Parâmetros da Simulação Operacional Operacional</h3>
- <div class="kv">
- <div><small>Categoria de tanque</small><b>${record.tank_type || "--"}</b></div>
- <div><small>Linha de Vácuo</small><b>${record.hose_id || "--"}</b></div>
- <div><small>Pressão Final do Processo</small><b>${fmt(record.target_pressure_mbar, "mbar")}</b></div>
- <div><small>Pressão de Acionamento da Bomba Roots</small><b>${fmt(record.roots_start_pressure_mbar, "mbar")}</b></div>
- <div><small>Vazão de Injeção de Óleo</small><b>${fmt(record.oil_flow_l_min, "L/min")}</b></div>
- <div><small>Atraso da Injeção de Óleo</small><b>${fmt(record.oil_delay_seconds, "s")}</b></div>
- <div><small>Velocidade Roots</small><b>${fmt(record.roots_speed_pct, "%")}</b></div>
- <div><small>Índice de Integridade da Bomba</small><b>${fmt(record.pump_health_factor)}</b></div>
- <div><small>Fator de Fator de Fator de Calibração</small><b>${fmt(record.calibration_factor)}</b></div>
- </div>
- </div>
+    <section class="split">
+      <div class="panel">
+        <h3>Parâmetros da simulação</h3>
+        <div class="kv">
+          <div><small>Tipo de tanque</small><b>${record.tank_type || "--"}</b></div>
+          <div><small>Mangueira</small><b>${record.hose_id || "--"}</b></div>
+          <div><small>Pressão final</small><b>${fmt(record.target_pressure_mbar, "mbar")}</b></div>
+          <div><small>Roots liga em</small><b>${fmt(record.roots_start_pressure_mbar, "mbar")}</b></div>
+          <div><small>Vazão de óleo</small><b>${fmt(record.oil_flow_l_min, "L/min")}</b></div>
+          <div><small>Atraso do óleo</small><b>${fmt(record.oil_delay_seconds, "s")}</b></div>
+          <div><small>Velocidade Roots</small><b>${fmt(record.roots_speed_pct, "%")}</b></div>
+          <div><small>Saúde da bomba</small><b>${fmt(record.pump_health_factor)}</b></div>
+          <div><small>Calibração</small><b>${fmt(record.calibration_factor)}</b></div>
+        </div>
+      </div>
 
- <div class="panel">
- <h3>Resultados Operacionais Operacionais Operacionais simulados</h3>
- <div class="kv">
- <div><small>Tempo estimado</small><b>${fmt(metrics.estimated_time_seconds, "s")}</b></div>
- <div><small>Pressão Final do Processo</small><b>${fmt(metrics.final_real_pressure_mbar, "mbar")}</b></div>
- <div><small>Pressão Efetiva Máxima</small><b>${fmt(metrics.max_effective_pressure_mbar, "mbar")}</b></div>
- <div><small>Índice Máximo de Risco</small><b>${fmt(metrics.max_collapse_risk_pct, "%")}</b></div>
- <div><small>Risco Estrutural</small><b>${record.collapse_risk ? "Sim" : "Não"}</b></div>
- <div><small>Estado Operacional</small><b>${record.status}</b></div>
- </div>
- </div>
- </section>
+      <div class="panel">
+        <h3>Resultados simulados</h3>
+        <div class="kv">
+          <div><small>Tempo estimado</small><b>${fmt(metrics.estimated_time_seconds, "s")}</b></div>
+          <div><small>Pressão final</small><b>${fmt(metrics.final_real_pressure_mbar, "mbar")}</b></div>
+          <div><small>Pressão efetiva máx.</small><b>${fmt(metrics.max_effective_pressure_mbar, "mbar")}</b></div>
+          <div><small>Risco máximo</small><b>${fmt(metrics.max_collapse_risk_pct, "%")}</b></div>
+          <div><small>Risco de colapso</small><b>${record.collapse_risk ? "Sim" : "Não"}</b></div>
+          <div><small>Status</small><b>${record.status}</b></div>
+        </div>
+      </div>
+    </section>
 
- <section class="panel">
- <h3>Curva da Simulação Operacional Operacional</h3>
- ${drawChart(data.chart)}
- </section>
+    <section class="panel">
+      <h3>Gráfico da simulação</h3>
+      ${drawChart(data.chart)}
+    </section>
 
- <section class="${record.collapse_risk ? "danger-zone" : "alert"}">
- <b>Alertas Operacionais</b>
- <p>${(record.alerts || []).map(a => a.message).join(" · ") || "Sem alertas."}</p>
- </section>
+    <section class="${record.collapse_risk ? "danger-zone" : "alert"}">
+      <b>Alertas gerados</b>
+      <p>${(record.alerts || []).map(a => a.message).join(" · ") || "Sem alertas."}</p>
+    </section>
 
- <section class="actions">
- <button onclick="resimulateSimulation('${record.id}')">Reexecutar Simulação Operacional Operacional</button>
- <button onclick="convertSimulation('${record.id}')">Enviar para Execução</button>
- <a class="button secondary" href="${API}/records/simulations/${record.id}/csv" target="_blank">Exportar Dados CSV</a>
- </section>
- `;
+    <section class="actions">
+      <button onclick="resimulateSimulation('${record.id}')">Reexecutar</button>
+      <button onclick="convertSimulation('${record.id}')">Enviar para execução</button>
+      <a class="button secondary" href="${API}/records/simulations/${record.id}/csv" target="_blank">Exportar CSV</a>
+    </section>
+  `;
 
- document.getElementById("detail").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("detail").scrollIntoView({ behavior: "smooth" });
 }
 
 async function resimulateOperation(id) {
- const data = await request(`/records/operations/${id}/resimulate`, { method: "POST" });
- alert(`Nova simulação criada: ${data.simulation_id}`);
- setTab("simulations");
+  const data = await request(`/records/operations/${id}/resimulate`, { method: "POST" });
+  alert(`Nova simulação criada: ${data.simulation_id}`);
+  setTab("simulations");
 }
 
 async function resimulateSimulation(id) {
- await request(`/records/simulations/${id}/resimulate`, { method: "POST" });
- alert("Simulação Operacional Operacional Operacional executada novamente.");
- await openSimulation(id);
+  await request(`/records/simulations/${id}/resimulate`, { method: "POST" });
+  alert("Simulação executada novamente.");
+  await openSimulation(id);
 }
 
 async function convertSimulation(id) {
- const data = await request(`/records/simulations/${id}/convert-to-operation`, { method: "POST" });
- alert(`Operação criada: ${data.operation_id}`);
- setTab("operations");
+  const data = await request(`/records/simulations/${id}/convert-to-operation`, { method: "POST" });
+  alert(`Operação criada: ${data.operation_id}`);
+  setTab("operations");
 }
 
 loadAll();
