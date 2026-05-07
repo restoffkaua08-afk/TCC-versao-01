@@ -1,4 +1,4 @@
-import { Activity, Database, Factory, FileText, Gauge, RotateCcw, ShieldAlert } from "lucide-react";
+﻿import { Activity, BarChart3, Database, Factory, FileText, Gauge, Menu, RotateCcw, Settings, ShieldAlert, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
@@ -27,19 +27,21 @@ import type {
 } from "./types/domain";
 import "./styles.css";
 
-type Section = "Visão Geral" | "Operação" | "Rastreabilidade" | "Gêmeo Digital" | "Relatórios" | "Configurações";
+type Section = "Visão Geral" | "Operação" | "Gêmeo Digital" | "Rastreabilidade" | "Relatórios" | "Configurações";
 
-const sections: Array<{ label: Section; icon: ReactNode }> = [
-  { label: "Visão Geral", icon: <Gauge size={18} /> },
-  { label: "Operação", icon: <Factory size={18} /> },
-  { label: "Rastreabilidade", icon: <Database size={18} /> },
-  { label: "Gêmeo Digital", icon: <Activity size={18} /> },
-  { label: "Relatórios", icon: <FileText size={18} /> },
-  { label: "Configurações", icon: <Gauge size={18} /> },
+const sections: Array<{ label: Section; icon: ReactNode; group: string; description: string }> = [
+  { label: "Visão Geral", icon: <Gauge size={19} />, group: "Principal", description: "Resumo executivo" },
+  { label: "Operação", icon: <Factory size={19} />, group: "Principal", description: "Configurar e simular ciclo" },
+  { label: "Gêmeo Digital", icon: <Activity size={19} />, group: "Inteligência", description: "Simulações, cenários e diagnóstico" },
+  { label: "Rastreabilidade", icon: <Database size={19} />, group: "Dados", description: "Histórico e eventos" },
+  { label: "Relatórios", icon: <FileText size={19} />, group: "Dados", description: "Indicadores gerenciais" },
+  { label: "Configurações", icon: <Settings size={19} />, group: "Sistema", description: "Tanques, mangueiras e receitas" },
 ];
 
 export default function App() {
-  const [section, setSection] = useState<Section>("Visão Geral");
+  const [section, setSection] = useState<Section>("Operação");
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const [state, setState] = useState<OperationState | null>(null);
   const [history, setHistory] = useState<PressureReading[]>([]);
   const [alarms, setAlarms] = useState<Alarm[]>([]);
@@ -60,19 +62,21 @@ export default function App() {
     try {
       setError(null);
       const nextState = runTick ? await api.tick() : await api.state();
-      const [historyData, alarmData, twinData, maintenanceData, traceData, tankData, hoseData, recipeData, cycleData, whatIfData, reportData] = await Promise.all([
-        api.history(),
-        api.alarms(),
-        api.twin(),
-        api.maintenance(),
-        api.traces(),
-        api.tanks(),
-        api.hoses(),
-        api.recipes(),
-        api.cycles(),
-        api.whatIfHistory(),
-        api.report(),
-      ]);
+      const [historyData, alarmData, twinData, maintenanceData, traceData, tankData, hoseData, recipeData, cycleData, whatIfData, reportData] =
+        await Promise.all([
+          api.history(),
+          api.alarms(),
+          api.twin(),
+          api.maintenance(),
+          api.traces(),
+          api.tanks(),
+          api.hoses(),
+          api.recipes(),
+          api.cycles(),
+          api.whatIfHistory(),
+          api.report(),
+        ]);
+
       setState(nextState);
       setHistory(historyData);
       setAlarms(alarmData);
@@ -91,18 +95,25 @@ export default function App() {
   }
 
   useEffect(() => {
-    refresh(true);
+    refresh(false);
     const id = window.setInterval(() => refresh(true), 3000);
     return () => window.clearInterval(id);
   }, []);
 
   const activeAlarms = useMemo(() => alarms.filter((alarm) => !alarm.acknowledged), [alarms]);
+
   const avgPressure = useMemo(() => {
     if (!state?.tank_states.length) return undefined;
     return state.tank_states.reduce((sum, item) => sum + item.pressure_mbar, 0) / state.tank_states.length;
   }, [state]);
+
   const maxRisk = Math.max(...(state?.tank_states.map((item) => item.collapse_risk_pct) ?? [0]));
-  const generalLight = activeAlarms.some((alarm) => alarm.severity === "critical") || maxRisk > 82 ? "red" : activeAlarms.length || maxRisk > 65 ? "yellow" : "green";
+  const generalLight =
+    activeAlarms.some((alarm) => alarm.severity === "critical") || maxRisk > 82
+      ? "red"
+      : activeAlarms.length || maxRisk > 65
+        ? "yellow"
+        : "green";
 
   async function control(action: "start" | "pause" | "stop" | "emergency" | "reset") {
     const result = await api[action]();
@@ -132,64 +143,106 @@ export default function App() {
     setChat(await api.chat(chatText));
   }
 
+  function goTo(next: Section) {
+    setSection(next);
+    setMenuOpen(false);
+  }
+
   return (
-    <main>
-      <header className="app-shell-header">
-        <div>
+    <main className={menuOpen ? "menu-is-open" : ""}>
+      <header className="app-topbar">
+        <button type="button" className="hamburger" onClick={() => setMenuOpen(true)} aria-label="Abrir menu">
+          <Menu size={22} />
+        </button>
+
+        <div className="app-title">
           <span className="brand">TSEA</span>
-          <h1>Supervisório de Vácuo Industrial</h1>
-          <p>Tanques de reguladores · Leybold SOGEVAC SV630B · RUVAC WSU2001</p>
+          <strong>Supervisório de Vácuo Industrial</strong>
+          <small>Tanques de reguladores · SV630B · WSU2001</small>
         </div>
-        <div className="header-actions">
+
+        <div className="topbar-actions">
           <DemoBadge />
           <button type="button" className="secondary" onClick={() => refresh(true)}><RotateCcw size={17} /> Atualizar</button>
           <button type="button" className="danger" onClick={() => control("emergency")}><ShieldAlert size={17} /> Emergência</button>
         </div>
       </header>
 
-      <nav className="main-nav" aria-label="Navegação principal">
-        {sections.map((item) => (
-          <button key={item.label} type="button" className={section === item.label ? "active" : ""} onClick={() => setSection(item.label)}>
-            {item.icon}
-            {item.label}
-          </button>
-        ))}
-      </nav>
+      <aside className="side-nav">
+        <div className="side-nav-head">
+          <div>
+            <span className="brand">TSEA</span>
+            <strong>Menu do sistema</strong>
+          </div>
+          <button type="button" className="ghost icon-only mobile-close" onClick={() => setMenuOpen(false)}><X size={18} /></button>
+        </div>
 
-      {error && <div className="error">{error}</div>}
+        <nav>
+          {sections.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              className={section === item.label ? "active" : ""}
+              onClick={() => goTo(item.label)}
+            >
+              {item.icon}
+              <span>
+                <strong>{item.label}</strong>
+                <small>{item.description}</small>
+              </span>
+            </button>
+          ))}
+        </nav>
+      </aside>
 
-      {section === "Visão Geral" && <OverviewPage state={state} report={report} cycles={cycles} alarms={alarms} history={history} maxRisk={maxRisk} />}
-      {section === "Operação" && (
-        <OperationPage
-          state={state}
-          history={history}
-          tanks={tanks}
-          avgPressure={avgPressure}
-          maxRisk={maxRisk}
-          activeAlarms={activeAlarms}
-          generalLight={generalLight}
-          onControl={control}
-        />
-      )}
-      {section === "Rastreabilidade" && <TraceabilityPage cycles={cycles} traces={traces} alarms={alarms} onTrace={addTrace} />}
-      {section === "Gêmeo Digital" && (
-        <DigitalTwinPage
-          twin={twin}
-          state={state}
-          history={history}
-          tanks={tanks}
-          whatIfs={whatIfs}
-          maintenance={maintenance}
-          maxRisk={maxRisk}
-          chatText={chatText}
-          setChatText={setChatText}
-          chat={chat}
-          onChat={sendChat}
-          onRunWhatIf={runWhatIf}
-        />
-      )}
-      {section === "Relatórios" && <ReportsPage report={report} cycles={cycles} alarms={alarms} history={history} state={state} traces={traces} />}
-      {section === "Configurações" && <SettingsPage tanks={tanks} hoses={hoses} recipes={recipes} />}
+      <div className="mobile-overlay" onClick={() => setMenuOpen(false)} />
+
+      <section className="content-area">
+        {error && <div className="error">{error}</div>}
+
+        {section === "Visão Geral" && (
+          <OverviewPage state={state} report={report} cycles={cycles} alarms={alarms} history={history} maxRisk={maxRisk} />
+        )}
+
+        {section === "Operação" && (
+          <OperationPage
+            state={state}
+            history={history}
+            tanks={tanks}
+            hoses={hoses}
+            recipes={recipes}
+            avgPressure={avgPressure}
+            maxRisk={maxRisk}
+            activeAlarms={activeAlarms}
+            generalLight={generalLight}
+            onControl={control}
+            onRefresh={() => refresh(false)}
+          />
+        )}
+
+        {section === "Rastreabilidade" && <TraceabilityPage cycles={cycles} traces={traces} alarms={alarms} onTrace={addTrace} />}
+
+        {section === "Gêmeo Digital" && (
+          <DigitalTwinPage
+            twin={twin}
+            state={state}
+            history={history}
+            tanks={tanks}
+            whatIfs={whatIfs}
+            maintenance={maintenance}
+            maxRisk={maxRisk}
+            chatText={chatText}
+            setChatText={setChatText}
+            chat={chat}
+            onChat={sendChat}
+            onRunWhatIf={runWhatIf}
+          />
+        )}
+
+        {section === "Relatórios" && <ReportsPage report={report} cycles={cycles} alarms={alarms} history={history} state={state} traces={traces} />}
+
+        {section === "Configurações" && <SettingsPage tanks={tanks} hoses={hoses} recipes={recipes} />}
+      </section>
     </main>
   );
 }

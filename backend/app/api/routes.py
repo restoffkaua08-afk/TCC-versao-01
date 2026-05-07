@@ -333,3 +333,45 @@ def chatbot(payload: ChatRequest, session: Session = Depends(get_session)) -> di
 def ai_chat(payload: AIChatRequest, session: Session = Depends(get_session)) -> dict:
     context = _build_ai_context(session)
     return answer_with_ai_or_fallback(payload.message, context)
+
+# ============================================================
+# Endpoints adicionados manualmente: operação configurável
+# ============================================================
+from typing import Any
+from pydantic import BaseModel
+from app.services.manual_operation import config_options, run_manual_operation
+
+
+class ManualOperationRequest(BaseModel):
+    tank_type: str = "medio"
+    hose_id: int = 1
+    target_pressure_mbar: float = 0.2
+    roots_start_pressure_mbar: float = 0.6
+    stop_pressure_mbar: float = 0.2
+    oil_flow_l_min: float = 2.0
+    oil_delay_seconds: int = 2
+    max_cycle_seconds: int = 1800
+    roots_speed_hz: float = 65
+    vacuum_ramp: str = "suave"
+    hose_correction_enabled: bool = True
+    oil_compensation_enabled: bool = True
+    selected_tank: int = 1
+    deviation_alert_mbar: float = 10
+    simulate_hose_leak: bool = False
+    simulate_sensor_failure: bool = False
+    simulate_plc_loss: bool = False
+
+
+def _hose_dicts(session: Session) -> list[dict[str, Any]]:
+    hoses = list(session.exec(select(Hose).order_by(Hose.code)).all())
+    return [hose.model_dump() for hose in hoses]
+
+
+@router.get("/operation/config-options")
+def operation_config_options(session: Session = Depends(get_session)) -> dict:
+    return config_options(_hose_dicts(session))
+
+
+@router.post("/operation/manual-simulate")
+def operation_manual_simulate(payload: ManualOperationRequest, session: Session = Depends(get_session)) -> dict:
+    return run_manual_operation(payload.model_dump(), _hose_dicts(session))

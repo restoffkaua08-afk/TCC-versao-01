@@ -582,3 +582,314 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   Upgrade UX: menu hamburguer + operação configurável
+   ============================================================ */
+
+main {
+  max-width: none;
+  padding: 0;
+}
+
+.app-topbar {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid #dbe4df;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: 14px 22px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(12px);
+}
+
+.hamburger {
+  background: #1f302b;
+  border-radius: 10px;
+  min-width: 44px;
+  padding: 0;
+}
+
+.app-title {
+  display: grid;
+  gap: 2px;
+  margin-right: auto;
+}
+
+.app-title strong {
+  font-size: 1.05rem;
+}
+
+.app-title small {
+  color: #65736d;
+}
+
+.topbar-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.side-nav {
+  background: #10211b;
+  color: #ffffff;
+  height: 100vh;
+  left: 0;
+  padding: 18px;
+  position: fixed;
+  top: 0;
+  transform: translateX(-105%);
+  transition: transform 0.22s ease;
+  width: 330px;
+  z-index: 80;
+  box-shadow: 30px 0 80px rgb(0 0 0 / 24%);
+}
+
+.menu-is-open .side-nav {
+  transform: translateX(0);
+}
+
+.side-nav-head {
+  align-items: center;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+}
+
+.side-nav-head .brand {
+  color: #f4b8aa;
+}
+
+.side-nav nav {
+  display: grid;
+  gap: 8px;
+}
+
+.side-nav nav button {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 12px;
+  color: #eaf2ee;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 22px 1fr;
+  justify-content: start;
+  min-height: 64px;
+  padding: 12px;
+  text-align: left;
+}
+
+.side-nav nav button.active,
+.side-nav nav button:hover {
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 22%);
+}
+
+.side-nav nav button span {
+  display: grid;
+  gap: 3px;
+}
+
+.side-nav nav button small {
+  color: #aab9b3;
+}
+
+.mobile-overlay {
+  background: rgb(10 20 16 / 42%);
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  transition: opacity 0.22s ease;
+  z-index: 70;
+}
+
+.menu-is-open .mobile-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.content-area {
+  margin: 0 auto;
+  max-width: 1520px;
+  padding: 24px;
+}
+
+.icon-only {
+  min-width: 38px;
+  padding: 0;
+}
+
+.operation-clean .page-header {
+  background:
+    radial-gradient(circle at top right, rgb(30 93 75 / 8%), transparent 35%),
+    #ffffff;
+}
+
+.operation-layout {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(330px, 0.42fr) minmax(0, 1fr);
+}
+
+.operation-config-card {
+  background: #ffffff;
+  border: 1px solid #d8e0dd;
+  border-radius: 14px;
+  box-shadow: 0 14px 38px rgb(18 32 27 / 7%);
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  position: sticky;
+  top: 98px;
+}
+
+.operation-result-area {
+  display: grid;
+  gap: 18px;
+}
+
+.preset-row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr;
+}
+
+.preset-button {
+  justify-content: flex-start;
+  min-height: 38px;
+  text-align: left;
+}
+
+.form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid label,
+.switch-grid label {
+  color: #53645d;
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 760;
+  gap: 6px;
+}
+
+.form-grid input,
+.form-grid select {
+  background: #f8faf9;
+  border: 1px solid #ccd8d3;
+  border-radius: 8px;
+  color: #13231d;
+  min-height: 40px;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.switch-grid {
+  background: #f7faf8;
+  border: 1px solid #e2eae6;
+  border-radius: 10px;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.switch-grid label {
+  align-items: center;
+  color: #283832;
+  display: flex;
+  font-size: 0.9rem;
+}
+
+.switch-grid input {
+  accent-color: #1e5d4b;
+  height: 16px;
+  width: 16px;
+}
+
+.simulate-main-button {
+  font-size: 1rem;
+  font-weight: 800;
+  min-height: 48px;
+}
+
+.manual-result-card {
+  background: #ffffff;
+  border: 1px solid #d8e0dd;
+  border-left: 7px solid #2e8f5b;
+  border-radius: 14px;
+  box-shadow: 0 14px 38px rgb(18 32 27 / 7%);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+  padding: 22px;
+}
+
+.manual-result-card.warn {
+  border-left-color: #c78a2d;
+}
+
+.manual-result-card.bad {
+  border-left-color: #aa382f;
+}
+
+.manual-result-card h2 {
+  font-size: clamp(1.55rem, 2.2vw, 2.35rem);
+  margin: 0 0 10px;
+}
+
+.manual-result-card p {
+  color: #46574f;
+  line-height: 1.55;
+}
+
+.manual-result-card strong {
+  display: block;
+  margin-top: 10px;
+}
+
+.manual-result-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.operation-kpis {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1180px) {
+  .operation-layout,
+  .manual-result-card {
+    grid-template-columns: 1fr;
+  }
+
+  .operation-config-card {
+    position: static;
+  }
+
+  .operation-kpis,
+  .form-grid,
+  .manual-result-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-actions {
+    display: none;
+  }
+
+  .content-area {
+    padding: 16px;
+  }
+}

@@ -3,6 +3,9 @@
   ChatResponse,
   Hose,
   Maintenance,
+  ManualOperationConfig,
+  ManualOperationResult,
+  OperationConfigOptions,
   OperationState,
   OperationalReport,
   PressureReading,
@@ -23,20 +26,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,
   });
-
-  if (!response.ok) {
-    throw new Error(`API ${response.status}: ${await response.text()}`);
-  }
-
+  if (!response.ok) throw new Error(`API ${response.status}: ${await response.text()}`);
   return response.json() as Promise<T>;
 }
 
 export const api = {
-  start: () =>
-    request<{ cycle: VacuumCycle; state: OperationState }>("/operation/start", {
-      method: "POST",
-      body: JSON.stringify({ operator: "Operador TSEA" }),
-    }),
+  start: () => request<{ cycle: VacuumCycle; state: OperationState }>("/operation/start", { method: "POST", body: JSON.stringify({ operator: "Operador TSEA" }) }),
   tick: () => request<OperationState>("/operation/tick", { method: "POST" }),
   state: () => request<OperationState>("/operation/state"),
   pause: () => request<OperationState>("/operation/pause", { method: "POST" }),
@@ -48,12 +43,10 @@ export const api = {
   hoses: () => request<Hose[]>("/hoses"),
   recipes: () => request<Recipe[]>("/recipes"),
   cycles: () => request<VacuumCycle[]>("/cycles"),
-  cycleDetail: (id: number) =>
-    request<{ cycle: VacuumCycle; readings: PressureReading[]; traces: TraceEvent[]; alarms: Alarm[] }>(`/cycles/${id}`),
+  cycleDetail: (id: number) => request<{ cycle: VacuumCycle; readings: PressureReading[]; traces: TraceEvent[]; alarms: Alarm[] }>(`/cycles/${id}`),
 
   history: () => request<PressureReading[]>("/process/history?limit=180"),
   alarms: () => request<Alarm[]>("/alarms"),
-  alarmCatalog: () => request<{ code: string; implemented: boolean }[]>("/alarms/catalog"),
   acknowledge: (id: number) => request<Alarm>(`/alarms/${id}/ack`, { method: "POST" }),
 
   twin: () => request<TwinState>("/digital-twin"),
@@ -70,8 +63,11 @@ export const api = {
   runScenario: (scenarioId: string) =>
     request<ScenarioRunResult>(`/scenarios/${scenarioId}/run`, { method: "POST", body: JSON.stringify({}) }),
 
-  report: () => request<OperationalReport>("/reports/operational"),
+  configOptions: () => request<OperationConfigOptions>("/operation/config-options"),
+  manualSimulate: (payload: ManualOperationConfig) =>
+    request<ManualOperationResult>("/operation/manual-simulate", { method: "POST", body: JSON.stringify(payload) }),
 
+  report: () => request<OperationalReport>("/reports/operational"),
   chat: (message: string) => request<ChatResponse>("/chatbot", { method: "POST", body: JSON.stringify({ message }) }),
   aiChat: (message: string) => request<ChatResponse>("/ai-chat", { method: "POST", body: JSON.stringify({ message }) }),
 };

@@ -90,3 +90,34 @@ Para usar IA real:
 3. Reinicie o backend.
 
 Sem chave, o sistema usa fallback local baseado em regras.
+
+## Operação configurável
+
+A tela de Operação agora permite configurar manualmente o ciclo antes de simular.
+
+Campos disponíveis:
+
+- Tipo do tanque.
+- Mangueira.
+- Pressão final desejada.
+- Pressão para ligar a Roots.
+- Pressão para desligar as bombas.
+- Vazão de óleo.
+- Atraso da injeção de óleo.
+- Tempo máximo de ciclo.
+- Velocidade da Roots em Hz.
+- Rampa de vácuo.
+- Correção da mangueira.
+- Compensação de óleo.
+- Tanque específico.
+- Limite de desvio real x esperado.
+- Simular vazamento.
+- Simular falha de sensor.
+- Simular perda de comunicação com CLP.
+
+Novos endpoints:
+
+- `GET /api/operation/config-options`
+- `POST /api/operation/manual-simulate`
+
+O objetivo é demonstrar cenários seguros e cenários críticos, mostrando como o Gêmeo Digital calcula curva de pressão, perda de carga, pressão efetiva, risco de colapso e alarmes.

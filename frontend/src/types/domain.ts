@@ -204,3 +204,62 @@ export type ScenarioRunResult = {
     oil_flow_l_min: number;
   };
 };
+
+export type OperationConfigOptions = {
+  tank_types: Record<string, { label: string; volume_liters: number; structural_limit_mbar: number; description: string }>;
+  ramps: Record<string, { label: string; factor: number }>;
+  presets: Record<string, { name: string; description: string; config: ManualOperationConfig }>;
+  hoses: Hose[];
+  fields: string[];
+};
+
+export type ManualOperationConfig = {
+  tank_type: string;
+  hose_id: number;
+  target_pressure_mbar: number;
+  roots_start_pressure_mbar: number;
+  stop_pressure_mbar: number;
+  oil_flow_l_min: number;
+  oil_delay_seconds: number;
+  max_cycle_seconds: number;
+  roots_speed_hz: number;
+  vacuum_ramp: string;
+  hose_correction_enabled: boolean;
+  oil_compensation_enabled: boolean;
+  selected_tank: number;
+  deviation_alert_mbar: number;
+  simulate_hose_leak: boolean;
+  simulate_sensor_failure: boolean;
+  simulate_plc_loss: boolean;
+};
+
+export type ManualOperationResult = {
+  status: "success" | "warning" | "critical" | string;
+  config: ManualOperationConfig;
+  tank: { label: string; volume_liters: number; structural_limit_mbar: number; description: string };
+  hose: Hose;
+  ramp: { label: string; factor: number };
+  timeline: Array<{
+    t_seconds: number;
+    expected_pressure_mbar: number;
+    real_pressure_mbar: number;
+    sensor_pressure_mbar: number;
+    hose_loss_mbar: number;
+    oil_volume_liters: number;
+    effective_pressure_mbar: number;
+    collapse_risk_pct: number;
+    roots_started: boolean;
+  }>;
+  alarms: Array<{ code: string; severity: string; message: string }>;
+  metrics: {
+    estimated_time_seconds?: number | null;
+    max_effective_pressure_mbar: number;
+    max_collapse_risk_pct: number;
+    max_deviation_mbar: number;
+    final_real_pressure_mbar?: number | null;
+    final_sensor_pressure_mbar?: number | null;
+    roots_started: boolean;
+  };
+  diagnosis: string;
+  recommendation: string;
+};
