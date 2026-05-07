@@ -1,0 +1,417 @@
+﻿from pathlib import Path
+import re
+
+root = Path.cwd()
+src = root / "frontend" / "src"
+public = root / "frontend" / "public"
+
+human_css = src / "humanized-ui.css"
+human_css.write_text(r'''
+/* ============================================================
+   TSEA Humanized Industrial UI
+   Ajuste visual para reduzir aparência genérica/IA.
+   Foco: sobriedade, leitura industrial, menos brilho, menos excesso.
+   ============================================================ */
+
+:root {
+  --tsea-bg: #f4f5f2;
+  --tsea-surface: #ffffff;
+  --tsea-surface-soft: #f8f9f7;
+  --tsea-line: #d9ded9;
+  --tsea-line-strong: #c3cbc5;
+  --tsea-ink: #1d2824;
+  --tsea-muted: #637069;
+  --tsea-muted-2: #7a847e;
+  --tsea-green: #28584a;
+  --tsea-green-dark: #183d34;
+  --tsea-red: #9b3f35;
+  --tsea-amber: #9a6a1f;
+  --tsea-blue: #285a88;
+}
+
+/* Base mais sóbria */
+html,
+body {
+  background: var(--tsea-bg) !important;
+  color: var(--tsea-ink) !important;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+}
+
+/* Remove cara de template brilhante */
+body {
+  background-image: none !important;
+}
+
+body::before,
+body::after {
+  display: none !important;
+}
+
+/* Cabeçalho mais parecido com sistema técnico */
+.topbar,
+.top,
+header,
+.app-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid var(--tsea-line) !important;
+  box-shadow: none !important;
+}
+
+/* Cards com menos arredondamento e menos sombra */
+.panel,
+.card,
+.kpi,
+.page-header,
+.hero,
+.regulator-card,
+.regulator,
+.drawer,
+.modal,
+.chart-card,
+.table-card {
+  border: 1px solid var(--tsea-line) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  background: var(--tsea-surface) !important;
+}
+
+/* Diferenciação por linha lateral/topo, não por brilho */
+.kpi {
+  border-left: 4px solid var(--tsea-line-strong) !important;
+  border-top: 1px solid var(--tsea-line) !important;
+}
+
+.kpi.good {
+  border-left-color: var(--tsea-green) !important;
+}
+
+.kpi.warn {
+  border-left-color: var(--tsea-amber) !important;
+}
+
+.kpi.bad {
+  border-left-color: var(--tsea-red) !important;
+}
+
+/* Tipografia mais humana, menos “landing page” */
+h1,
+h2,
+h3,
+.kpi strong {
+  letter-spacing: -0.025em !important;
+  color: var(--tsea-ink) !important;
+}
+
+h1 {
+  font-size: clamp(1.65rem, 2.4vw, 2.35rem) !important;
+}
+
+h2 {
+  font-size: clamp(1.2rem, 1.7vw, 1.55rem) !important;
+}
+
+p,
+small,
+span,
+label {
+  color: var(--tsea-muted);
+}
+
+/* Eyebrow menos marketing */
+.eyebrow {
+  color: var(--tsea-green) !important;
+  letter-spacing: .08em !important;
+  font-weight: 800 !important;
+}
+
+/* Botões menos chamativos */
+button,
+.button,
+a.button {
+  border-radius: 7px !important;
+  box-shadow: none !important;
+  background: var(--tsea-green) !important;
+  color: #fff !important;
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease !important;
+}
+
+button:hover,
+.button:hover,
+a.button:hover {
+  background: var(--tsea-green-dark) !important;
+  filter: none !important;
+}
+
+button:active,
+.button:active {
+  transform: translateY(1px);
+}
+
+button.secondary,
+button.ghost,
+a.secondary,
+.ghost {
+  background: #fff !important;
+  color: var(--tsea-ink) !important;
+  border: 1px solid var(--tsea-line-strong) !important;
+}
+
+button.danger,
+.danger {
+  background: var(--tsea-red) !important;
+}
+
+/* Pílulas menos “SaaS genérico” */
+.badge,
+.pill {
+  border-radius: 5px !important;
+  padding: 4px 8px !important;
+  font-weight: 760 !important;
+  box-shadow: none !important;
+}
+
+.badge.good,
+.pill.ok,
+.ok {
+  background: #e8eee9 !important;
+  color: #214f40 !important;
+}
+
+.badge.warn,
+.pill.warn,
+.warn {
+  background: #f4ead8 !important;
+  color: #765319 !important;
+}
+
+.badge.bad,
+.pill.bad,
+.bad {
+  background: #f3e2df !important;
+  color: #86372f !important;
+}
+
+/* Tabelas mais industriais */
+table {
+  border-collapse: collapse !important;
+  background: #fff !important;
+}
+
+th {
+  background: #f1f3f1 !important;
+  color: #4d5a54 !important;
+  font-size: .76rem !important;
+  letter-spacing: .035em !important;
+  border-bottom: 1px solid var(--tsea-line-strong) !important;
+}
+
+td {
+  border-bottom: 1px solid #e8ece8 !important;
+}
+
+tr:hover td {
+  background: #f8faf8 !important;
+}
+
+/* Inputs mais limpos */
+input,
+select,
+textarea {
+  border-radius: 7px !important;
+  border: 1px solid var(--tsea-line-strong) !important;
+  background: #fff !important;
+  color: var(--tsea-ink) !important;
+  box-shadow: none !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid rgba(40, 88, 74, .18) !important;
+  border-color: var(--tsea-green) !important;
+}
+
+/* Gráficos com aparência técnica */
+.chart,
+.chart-card svg,
+svg {
+  box-shadow: none !important;
+}
+
+.chart,
+.chart-card {
+  background: #fbfcfb !important;
+  border: 1px solid var(--tsea-line) !important;
+  border-radius: 8px !important;
+}
+
+/* Regulador visual menos “ilustração IA” */
+.regulator-svg,
+.tank {
+  filter: none !important;
+}
+
+.regulator-card,
+.regulator {
+  border-top: 1px solid var(--tsea-line) !important;
+  border-left: 4px solid var(--tsea-green) !important;
+}
+
+.regulator-card.warn,
+.regulator.warn {
+  border-left-color: var(--tsea-amber) !important;
+}
+
+.regulator-card.bad,
+.regulator.bad {
+  border-left-color: var(--tsea-red) !important;
+}
+
+/* Botão flutuante vira atalho discreto */
+.tsea-records-shortcut {
+  right: 22px !important;
+  bottom: 18px !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: var(--tsea-green-dark) !important;
+  border: 1px solid var(--tsea-line-strong) !important;
+  box-shadow: 0 6px 18px rgba(16, 30, 24, .10) !important;
+  padding: 10px 13px !important;
+  font-size: .9rem !important;
+}
+
+/* Mais respiro entre blocos */
+.page,
+main,
+.content {
+  gap: 16px !important;
+}
+
+.hero,
+.page-header {
+  padding: 20px !important;
+}
+
+/* Reduz excesso de grid artificial em telas largas */
+.kpi-grid,
+.status {
+  gap: 10px !important;
+}
+
+.legend span {
+  border-radius: 5px !important;
+  background: #fff !important;
+}
+
+@media (max-width: 900px) {
+  .tsea-records-shortcut {
+    position: static !important;
+    display: inline-flex !important;
+    margin: 12px !important;
+  }
+}
+''', encoding="utf-8")
+
+# Importar CSS no entrypoint principal
+entry_candidates = [
+    src / "main.tsx",
+    src / "main.jsx",
+    src / "main.ts",
+    src / "main.js",
+]
+
+for entry in entry_candidates:
+    if entry.exists():
+        text = entry.read_text(encoding="utf-8")
+        if 'humanized-ui.css' not in text:
+            lines = text.splitlines()
+            insert_at = 0
+            for i, line in enumerate(lines):
+                if line.startswith("import "):
+                    insert_at = i + 1
+            lines.insert(insert_at, 'import "./humanized-ui.css";')
+            entry.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            print(f"OK: importado humanized-ui.css em {entry.name}")
+        else:
+            print(f"INFO: humanized-ui.css já estava importado em {entry.name}")
+        break
+else:
+    print("AVISO: entrypoint React não encontrado. CSS criado, mas não importado.")
+
+# Ajustar registros.html diretamente porque é página standalone em public
+records = public / "registros.html"
+if records.exists():
+    html = records.read_text(encoding="utf-8")
+
+    extra = r'''
+  <style>
+    /* Ajuste final de sobriedade para a página standalone de registros */
+    :root {
+      --bg: #f4f5f2 !important;
+      --card: #ffffff !important;
+      --ink: #1d2824 !important;
+      --muted: #637069 !important;
+      --line: #d9ded9 !important;
+      --green: #28584a !important;
+      --red: #9b3f35 !important;
+      --amber: #9a6a1f !important;
+      --shadow: none !important;
+    }
+
+    body {
+      background: #f4f5f2 !important;
+    }
+
+    .hero,
+    .panel,
+    .drawer {
+      border-radius: 10px !important;
+      box-shadow: none !important;
+      border: 1px solid #d9ded9 !important;
+    }
+
+    button,
+    a.button {
+      border-radius: 7px !important;
+      box-shadow: none !important;
+      font-weight: 750 !important;
+    }
+
+    .pill {
+      border-radius: 5px !important;
+      font-weight: 760 !important;
+    }
+
+    .tsea-records-shortcut {
+      border-radius: 8px !important;
+      background: #fff !important;
+      color: #183d34 !important;
+      border: 1px solid #c3cbc5 !important;
+      box-shadow: 0 6px 18px rgba(16,30,24,.10) !important;
+    }
+
+    th {
+      background: #f1f3f1 !important;
+    }
+
+    tr:hover td {
+      background: #f8faf8 !important;
+    }
+
+    .chart {
+      border-radius: 8px !important;
+    }
+  </style>
+'''
+    if "Ajuste final de sobriedade para a página standalone de registros" not in html:
+        html = html.replace("</head>", extra + "\n</head>")
+        records.write_text(html, encoding="utf-8")
+        print("OK: registros.html recebeu ajuste visual mais sóbrio.")
+    else:
+        print("INFO: registros.html já tinha ajuste visual sóbrio.")
+else:
+    print("INFO: registros.html não encontrado.")
+
+print("Polimento visual concluído.")
