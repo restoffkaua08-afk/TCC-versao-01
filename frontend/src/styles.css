@@ -1853,3 +1853,39 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* TSEA UX polish - registros e histórico */
+:root {
+  --tsea-ink: #17231f;
+  --tsea-muted: #5f7068;
+  --tsea-green: #245c4b;
+  --tsea-soft: #f4f6f3;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(36, 92, 75, .08), transparent 30%),
+    #f3f5f2;
+}
+
+button, .button {
+  letter-spacing: -0.01em;
+}
+
+.panel, .card, .kpi, .page-header, .hero, .regulator-card {
+  box-shadow: 0 12px 30px rgba(18, 32, 27, .07) !important;
+}
+
+.kpi strong, h1, h2, h3 {
+  letter-spacing: -0.035em;
+}
+
+.badge, .pill {
+  letter-spacing: -0.01em;
+}
+
+table, .data-table {
+  font-variant-numeric: tabular-nums;
+}
+

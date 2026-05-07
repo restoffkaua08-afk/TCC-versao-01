@@ -6,6 +6,26 @@
     <title>TSEA Sistema</title>
   </head>
   <body>
+
+<style>
+.tsea-records-shortcut {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9999;
+  background: #245c4b;
+  color: white;
+  border-radius: 999px;
+  padding: 12px 16px;
+  text-decoration: none;
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 800;
+  box-shadow: 0 12px 28px rgba(16,30,24,.22);
+}
+.tsea-records-shortcut:hover { filter: brightness(.96); }
+</style>
+<a class="tsea-records-shortcut" href="/registros.html">Registros e Histórico</a>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

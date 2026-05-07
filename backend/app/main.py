@@ -1,4 +1,5 @@
-﻿from fastapi import FastAPI, Body
+﻿from typing import Any
+from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 import math, time
 
@@ -573,3 +574,457 @@ def what_if(payload: dict | None = Body(default=None)):
 @app.get("/api/what-if")
 def what_if_history():
     return []
+
+
+
+# ============================================================
+# Registros avançados: operações reais, simulações, detalhes e CSV
+# ============================================================
+
+from fastapi.responses import PlainTextResponse
+from datetime import datetime, timedelta
+import csv
+import io
+import uuid
+
+def _records_now_iso():
+    return datetime.now().isoformat(timespec="seconds")
+
+def _safe_get_state():
+    try:
+        return operation_state()
+    except Exception:
+        try:
+            return current_state()
+        except Exception:
+            return {
+                "cycle": None,
+                "tank_states": [],
+                "primary_pump": {},
+                "roots_pump": {},
+                "oil_injection": {},
+            }
+
+def _safe_simulate(config):
+    try:
+        return simulate(config)
+    except Exception:
+        # fallback mínimo, para não derrubar a interface de histórico
+        return {
+            "status": "warning",
+            "config": config,
+            "tank": {"label": config.get("tank_type", "Tanque")},
+            "hose": {"code": str(config.get("hose_id", "Mangueira"))},
+            "timeline": [],
+            "events": [],
+            "alarms": [],
+            "diagnosis": "Simulação registrada, mas a engine principal não retornou resultado completo.",
+            "recommendation": "Revisar engine de simulação.",
+            "metrics": {
+                "estimated_time_seconds": None,
+                "max_effective_pressure_mbar": None,
+                "max_collapse_risk_pct": None,
+                "max_deviation_mbar": None,
+                "final_real_pressure_mbar": None,
+                "roots_started": False,
+            },
+        }
+
+def _ensure_records_store():
+    global OPERATION_RECORDS, SIMULATION_RECORDS
+
+    if "OPERATION_RECORDS" not in globals():
+        OPERATION_RECORDS = []
+
+    if "SIMULATION_RECORDS" not in globals():
+        SIMULATION_RECORDS = []
+
+    if len(OPERATION_RECORDS) == 0:
+        state = _safe_get_state()
+        tanks = state.get("tank_states", [])
+
+        for idx in range(1, 4):
+            tank_state = tanks[idx - 1] if len(tanks) >= idx else {}
+            tank = tank_state.get("tank", {}) if isinstance(tank_state, dict) else {}
+            hose = tank_state.get("hose", {}) if isinstance(tank_state, dict) else {}
+
+            OPERATION_RECORDS.append({
+                "id": f"OP-{idx:04d}",
+                "kind": "real_operation",
+                "created_at": (datetime.now() - timedelta(days=idx - 1)).isoformat(timespec="seconds"),
+                "operator": "Operador TSEA",
+                "status": "concluido" if idx != 2 else "abortado",
+                "tank_id": idx,
+                "tank_type": tank.get("type", "grande"),
+                "tank_code": tank.get("code", f"TQ-REG-0{idx}"),
+                "tank_volume_liters": tank.get("volume_liters", 1250),
+                "structural_limit_mbar": tank.get("structural_limit_mbar", 35),
+                "hose_id": hose.get("id", idx),
+                "hose_code": hose.get("code", f"MG-VAC-{idx}"),
+                "hose_length_m": hose.get("length_m", 10 + idx * 2),
+                "hose_diameter_in": hose.get("diameter_in", 2),
+                "hose_loss_factor": hose.get("loss_factor", 0.7),
+                "target_pressure_mbar": 6.5,
+                "roots_start_pressure_mbar": 50.0,
+                "max_cycle_seconds": 900,
+                "oil_flow_l_min": 2.0 if idx != 2 else 0.9,
+                "oil_delay_seconds": 2 if idx != 2 else 18,
+                "pump_health_factor": 1.0 if idx != 3 else 0.78,
+                "final_pressure_mbar": tank_state.get("pressure_mbar", 6.5 + idx),
+                "duration_seconds": 520 + idx * 70,
+                "estimated_time_seconds": 500 + idx * 60,
+                "max_effective_pressure_mbar": 18 + idx * 2,
+                "safety_margin_pct": 82 - idx * 7,
+                "collapse_risk": idx == 2,
+                "events": [
+                    {"t_seconds": 20, "type": "oil_started", "label": "Óleo iniciado"},
+                    {"t_seconds": 180, "type": "roots_started", "label": "Roots ligada"},
+                    {"t_seconds": 360, "type": "checkpoint", "label": "Pressão dentro da curva"},
+                ],
+                "alarms": [] if idx == 1 else [{"code": "ATTENTION", "severity": "warning", "message": "Operação exige revisão técnica."}],
+                "parameters": {
+                    "tank_type": tank.get("type", "grande"),
+                    "hose_id": hose.get("id", idx),
+                    "target_pressure_mbar": 6.5,
+                    "roots_start_pressure_mbar": 50.0,
+                    "stop_pressure_mbar": 6.5,
+                    "oil_flow_l_min": 2.0 if idx != 2 else 0.9,
+                    "oil_delay_seconds": 2 if idx != 2 else 18,
+                    "max_cycle_seconds": 900,
+                    "roots_speed_pct": 65,
+                    "vacuum_ramp": "suave" if idx == 1 else "normal",
+                    "hose_correction_enabled": True,
+                    "oil_compensation_enabled": True,
+                    "simulate_hose_leak": idx == 2,
+                    "simulate_sensor_failure": False,
+                    "simulate_plc_loss": False,
+                    "pump_health_factor": 1.0 if idx != 3 else 0.78,
+                    "calibration_factor": 0.006,
+                },
+            })
+
+    if len(SIMULATION_RECORDS) == 0:
+        presets = globals().get("PRESETS", {})
+        if isinstance(presets, dict) and presets:
+            for idx, (key, preset) in enumerate(presets.items(), start=1):
+                cfg = dict(preset.get("config", {}))
+                result = _safe_simulate(cfg)
+
+                SIMULATION_RECORDS.append({
+                    "id": f"SIM-{idx:04d}",
+                    "kind": "simulation",
+                    "name": preset.get("name", key),
+                    "created_at": (datetime.now() - timedelta(hours=idx)).isoformat(timespec="seconds"),
+                    "user": "Usuário TSEA",
+                    "status": result.get("status", "success"),
+                    "tank_type": cfg.get("tank_type", "grande"),
+                    "hose_id": cfg.get("hose_id", 1),
+                    "hose_code": str(cfg.get("hose_id", 1)),
+                    "target_pressure_mbar": cfg.get("target_pressure_mbar", 6.5),
+                    "roots_start_pressure_mbar": cfg.get("roots_start_pressure_mbar", 50),
+                    "oil_flow_l_min": cfg.get("oil_flow_l_min", 2.0),
+                    "oil_delay_seconds": cfg.get("oil_delay_seconds", 2),
+                    "roots_speed_pct": cfg.get("roots_speed_pct", cfg.get("roots_speed_hz", 65)),
+                    "pump_health_factor": cfg.get("pump_health_factor", 1.0),
+                    "calibration_factor": cfg.get("calibration_factor", 0.006),
+                    "estimated_time_seconds": result.get("metrics", {}).get("estimated_time_seconds"),
+                    "final_pressure_mbar": result.get("metrics", {}).get("final_real_pressure_mbar"),
+                    "max_effective_pressure_mbar": result.get("metrics", {}).get("max_effective_pressure_mbar"),
+                    "max_collapse_risk_pct": result.get("metrics", {}).get("max_collapse_risk_pct"),
+                    "collapse_risk": (result.get("metrics", {}).get("max_collapse_risk_pct") or 0) >= 75,
+                    "alerts": result.get("alarms", []),
+                    "parameters": cfg,
+                    "result": result,
+                })
+
+def _parse_dt(value):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value))
+    except Exception:
+        return None
+
+def _filter_period(items, period="all", start_date=None, end_date=None):
+    now_dt = datetime.now()
+    start = None
+    end = None
+
+    if period == "today":
+        start = now_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = now_dt
+    elif period == "yesterday":
+        base = now_dt - timedelta(days=1)
+        start = base.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = base.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif period in ("week", "7d", "last7"):
+        start = now_dt - timedelta(days=7)
+        end = now_dt
+    elif period in ("month", "30d", "last30"):
+        start = now_dt - timedelta(days=30)
+        end = now_dt
+    elif period == "custom":
+        start = _parse_dt(start_date)
+        end = _parse_dt(end_date)
+
+    if not start:
+        return items
+
+    filtered = []
+    for item in items:
+        dt = _parse_dt(item.get("created_at"))
+        if not dt:
+            continue
+        if dt >= start and (end is None or dt <= end):
+            filtered.append(item)
+    return filtered
+
+def _csv_response(filename, rows):
+    output = io.StringIO()
+    if not rows:
+        output.write("empty\n")
+    else:
+        keys = sorted({key for row in rows for key in row.keys() if not isinstance(row.get(key), (dict, list))})
+        writer = csv.DictWriter(output, fieldnames=keys)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({key: row.get(key, "") for key in keys})
+
+    return PlainTextResponse(
+        output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+@app.get("/api/records/operations")
+def records_operations(period: str = "all", start_date: str | None = None, end_date: str | None = None, tank: str = "all", operator: str = "all", status: str = "all"):
+    _ensure_records_store()
+    items = list(OPERATION_RECORDS)
+    items = _filter_period(items, period, start_date, end_date)
+
+    if tank != "all":
+        items = [item for item in items if str(item.get("tank_id")) == str(tank) or str(item.get("tank_code")) == str(tank)]
+    if operator != "all":
+        items = [item for item in items if str(item.get("operator", "")).lower() == str(operator).lower()]
+    if status != "all":
+        items = [item for item in items if str(item.get("status")) == str(status)]
+
+    return {"items": items, "count": len(items)}
+
+@app.get("/api/records/operations/{operation_id}")
+def records_operation_detail(operation_id: str):
+    _ensure_records_store()
+    item = next((op for op in OPERATION_RECORDS if str(op.get("id")) == str(operation_id)), None)
+    if not item:
+        return {"error": "Operação não encontrada", "id": operation_id}
+
+    result = _safe_simulate(item.get("parameters", {}))
+
+    return {
+        "record": item,
+        "simulation_reference": result,
+        "chart": result.get("timeline", []),
+        "actions": {
+            "resimulate_url": f"/api/records/operations/{operation_id}/resimulate",
+            "csv_url": f"/api/records/operations/{operation_id}/csv",
+            "report_url": f"/api/records/operations/{operation_id}/report",
+        },
+    }
+
+@app.post("/api/records/operations/{operation_id}/resimulate")
+def records_operation_resimulate(operation_id: str):
+    _ensure_records_store()
+    item = next((op for op in OPERATION_RECORDS if str(op.get("id")) == str(operation_id)), None)
+    if not item:
+        return {"error": "Operação não encontrada", "id": operation_id}
+
+    result = _safe_simulate(item.get("parameters", {}))
+    sim_id = f"SIM-{len(SIMULATION_RECORDS) + 1:04d}"
+
+    SIMULATION_RECORDS.insert(0, {
+        "id": sim_id,
+        "kind": "simulation",
+        "name": f"Re-simulação de {operation_id}",
+        "created_at": _records_now_iso(),
+        "user": "Operador TSEA",
+        "status": result.get("status", "success"),
+        "tank_type": item.get("tank_type"),
+        "hose_id": item.get("hose_id"),
+        "hose_code": item.get("hose_code"),
+        "target_pressure_mbar": item.get("target_pressure_mbar"),
+        "roots_start_pressure_mbar": item.get("roots_start_pressure_mbar"),
+        "oil_flow_l_min": item.get("oil_flow_l_min"),
+        "oil_delay_seconds": item.get("oil_delay_seconds"),
+        "pump_health_factor": item.get("pump_health_factor"),
+        "calibration_factor": item.get("parameters", {}).get("calibration_factor", 0.006),
+        "estimated_time_seconds": result.get("metrics", {}).get("estimated_time_seconds"),
+        "final_pressure_mbar": result.get("metrics", {}).get("final_real_pressure_mbar"),
+        "max_effective_pressure_mbar": result.get("metrics", {}).get("max_effective_pressure_mbar"),
+        "max_collapse_risk_pct": result.get("metrics", {}).get("max_collapse_risk_pct"),
+        "collapse_risk": (result.get("metrics", {}).get("max_collapse_risk_pct") or 0) >= 75,
+        "alerts": result.get("alarms", []),
+        "parameters": item.get("parameters", {}),
+        "result": result,
+    })
+
+    return {"simulation_id": sim_id, "result": result}
+
+@app.get("/api/records/operations/{operation_id}/csv")
+def records_operation_csv(operation_id: str):
+    detail = records_operation_detail(operation_id)
+    timeline = detail.get("chart", [])
+    return _csv_response(f"{operation_id}-rampa.csv", timeline)
+
+@app.get("/api/records/operations/{operation_id}/report")
+def records_operation_report(operation_id: str):
+    detail = records_operation_detail(operation_id)
+    record = detail.get("record", {})
+    sim = detail.get("simulation_reference", {})
+    return {
+        "title": f"Relatório da operação {operation_id}",
+        "generated_at": _records_now_iso(),
+        "operation": record,
+        "simulation_reference": sim,
+        "summary": {
+            "status": record.get("status"),
+            "operator": record.get("operator"),
+            "final_pressure_mbar": record.get("final_pressure_mbar"),
+            "duration_seconds": record.get("duration_seconds"),
+            "max_effective_pressure_mbar": record.get("max_effective_pressure_mbar"),
+            "collapse_risk": record.get("collapse_risk"),
+        },
+    }
+
+@app.get("/api/records/simulations")
+def records_simulations(period: str = "all", start_date: str | None = None, end_date: str | None = None, tank_type: str = "all", hose_id: str = "all", status: str = "all"):
+    _ensure_records_store()
+    items = list(SIMULATION_RECORDS)
+    items = _filter_period(items, period, start_date, end_date)
+
+    if tank_type != "all":
+        items = [item for item in items if str(item.get("tank_type")) == str(tank_type)]
+    if hose_id != "all":
+        items = [item for item in items if str(item.get("hose_id")) == str(hose_id)]
+    if status != "all":
+        items = [item for item in items if str(item.get("status")) == str(status)]
+
+    return {"items": items, "count": len(items)}
+
+@app.get("/api/records/simulations/{simulation_id}")
+def records_simulation_detail(simulation_id: str):
+    _ensure_records_store()
+    item = next((sim for sim in SIMULATION_RECORDS if str(sim.get("id")) == str(simulation_id)), None)
+    if not item:
+        return {"error": "Simulação não encontrada", "id": simulation_id}
+
+    result = item.get("result") or _safe_simulate(item.get("parameters", {}))
+
+    return {
+        "record": item,
+        "result": result,
+        "chart": result.get("timeline", []),
+        "actions": {
+            "resimulate_url": f"/api/records/simulations/{simulation_id}/resimulate",
+            "csv_url": f"/api/records/simulations/{simulation_id}/csv",
+            "convert_url": f"/api/records/simulations/{simulation_id}/convert-to-operation",
+        },
+    }
+
+@app.post("/api/records/simulations/{simulation_id}/resimulate")
+def records_simulation_resimulate(simulation_id: str):
+    _ensure_records_store()
+    item = next((sim for sim in SIMULATION_RECORDS if str(sim.get("id")) == str(simulation_id)), None)
+    if not item:
+        return {"error": "Simulação não encontrada", "id": simulation_id}
+
+    result = _safe_simulate(item.get("parameters", {}))
+    item["created_at"] = _records_now_iso()
+    item["result"] = result
+    item["status"] = result.get("status", "success")
+    item["estimated_time_seconds"] = result.get("metrics", {}).get("estimated_time_seconds")
+    item["final_pressure_mbar"] = result.get("metrics", {}).get("final_real_pressure_mbar")
+    item["max_collapse_risk_pct"] = result.get("metrics", {}).get("max_collapse_risk_pct")
+
+    return {"simulation_id": simulation_id, "result": result}
+
+@app.post("/api/records/simulations/{simulation_id}/convert-to-operation")
+def records_simulation_convert(simulation_id: str):
+    _ensure_records_store()
+    item = next((sim for sim in SIMULATION_RECORDS if str(sim.get("id")) == str(simulation_id)), None)
+    if not item:
+        return {"error": "Simulação não encontrada", "id": simulation_id}
+
+    op_id = f"OP-{len(OPERATION_RECORDS) + 1:04d}"
+    params = item.get("parameters", {})
+
+    operation = {
+        "id": op_id,
+        "kind": "real_operation",
+        "created_at": _records_now_iso(),
+        "operator": "Operador TSEA",
+        "status": "em_andamento",
+        "tank_id": params.get("selected_tank", 1),
+        "tank_type": params.get("tank_type", "grande"),
+        "tank_code": f"TQ-CONV-{len(OPERATION_RECORDS) + 1:02d}",
+        "hose_id": params.get("hose_id", 1),
+        "hose_code": str(params.get("hose_id", 1)),
+        "target_pressure_mbar": params.get("target_pressure_mbar"),
+        "roots_start_pressure_mbar": params.get("roots_start_pressure_mbar"),
+        "max_cycle_seconds": params.get("max_cycle_seconds"),
+        "oil_flow_l_min": params.get("oil_flow_l_min"),
+        "oil_delay_seconds": params.get("oil_delay_seconds"),
+        "pump_health_factor": params.get("pump_health_factor"),
+        "collapse_risk": False,
+        "events": [{"t_seconds": 0, "type": "converted", "label": f"Convertida da simulação {simulation_id}"}],
+        "alarms": [],
+        "parameters": params,
+    }
+
+    OPERATION_RECORDS.insert(0, operation)
+    return {"operation_id": op_id, "operation": operation}
+
+@app.get("/api/records/simulations/{simulation_id}/csv")
+def records_simulation_csv(simulation_id: str):
+    detail = records_simulation_detail(simulation_id)
+    timeline = detail.get("chart", [])
+    return _csv_response(f"{simulation_id}-simulacao.csv", timeline)
+
+@app.post("/api/records/simulations")
+def records_create_simulation(payload: dict[str, Any] | None = Body(default=None)):
+    _ensure_records_store()
+    payload = payload or {}
+    cfg = payload.get("config") or payload
+    result = _safe_simulate(cfg)
+    sim_id = f"SIM-{len(SIMULATION_RECORDS) + 1:04d}"
+
+    item = {
+        "id": sim_id,
+        "kind": "simulation",
+        "name": payload.get("name", f"Simulação {sim_id}"),
+        "created_at": _records_now_iso(),
+        "user": payload.get("user", "Usuário TSEA"),
+        "status": result.get("status", "success"),
+        "tank_type": cfg.get("tank_type"),
+        "hose_id": cfg.get("hose_id"),
+        "target_pressure_mbar": cfg.get("target_pressure_mbar"),
+        "roots_start_pressure_mbar": cfg.get("roots_start_pressure_mbar"),
+        "oil_flow_l_min": cfg.get("oil_flow_l_min"),
+        "oil_delay_seconds": cfg.get("oil_delay_seconds"),
+        "roots_speed_pct": cfg.get("roots_speed_pct", cfg.get("roots_speed_hz")),
+        "pump_health_factor": cfg.get("pump_health_factor"),
+        "calibration_factor": cfg.get("calibration_factor"),
+        "estimated_time_seconds": result.get("metrics", {}).get("estimated_time_seconds"),
+        "final_pressure_mbar": result.get("metrics", {}).get("final_real_pressure_mbar"),
+        "max_effective_pressure_mbar": result.get("metrics", {}).get("max_effective_pressure_mbar"),
+        "max_collapse_risk_pct": result.get("metrics", {}).get("max_collapse_risk_pct"),
+        "collapse_risk": (result.get("metrics", {}).get("max_collapse_risk_pct") or 0) >= 75,
+        "alerts": result.get("alarms", []),
+        "parameters": cfg,
+        "result": result,
+    }
+
+    SIMULATION_RECORDS.insert(0, item)
+    return {"simulation": item, "result": result}
+
+
+

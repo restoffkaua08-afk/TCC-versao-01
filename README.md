@@ -151,3 +151,36 @@ Também foi adicionado um visual do regulador/tanque:
 - Amarelo: óleo.
 
 Esse visual aparece na operação ao vivo e nas simulações do Gêmeo Digital.
+=====================================================================
+$ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+chcp 65001 > $null
+
+$Project = "$env:USERPROFILE\Desktop\TSEA-Sistema"
+
+cd $Project
+
+Write-Host "Parando servidores antigos..." -ForegroundColor Cyan
+Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+
+Write-Host "Abrindo projeto no VS Code..." -ForegroundColor Cyan
+code $Project
+
+Write-Host "Subindo backend na porta 8000..." -ForegroundColor Green
+Start-Process powershell -ArgumentList "-NoExit","-Command","cd `"$Project\backend`"; python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
+
+Start-Sleep -Seconds 4
+
+Write-Host "Subindo frontend na porta 5173..." -ForegroundColor Green
+Start-Process powershell -ArgumentList "-NoExit","-Command","cd `"$Project\frontend`"; npm run dev"
+
+Start-Sleep -Seconds 5
+
+Write-Host "Abrindo sistema no navegador..." -ForegroundColor Green
+Start-Process "http://localhost:5173"
+
+Write-Host "Abrindo documentação da API..." -ForegroundColor Cyan
+Start-Process "http://127.0.0.1:8000/docs"
+
+Write-Host "Sistema iniciado. Deixe as duas janelas do backend e frontend abertas." -ForegroundColor Green
