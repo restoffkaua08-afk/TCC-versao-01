@@ -444,3 +444,141 @@ th {
   .kpi-grid.four, .kpi-grid.six, .operation-kpis, .tank-metrics, .comparison-card dl { grid-template-columns: 1fr; }
   .chat-panel form { flex-direction: column; }
 }
+
+/* ============================================================
+   Upgrade manual: Gêmeo Digital demonstrável
+   ============================================================ */
+
+.scenario-lab {
+  background:
+    radial-gradient(circle at top left, rgba(30, 93, 75, 0.08), transparent 34%),
+    #ffffff;
+}
+
+.scenario-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.scenario-card {
+  border: 1px solid #e1e8e5;
+  border-top: 5px solid #2e8f5b;
+  border-radius: 12px;
+  display: grid;
+  gap: 12px;
+  min-height: 285px;
+  padding: 16px;
+  background: #fbfcfb;
+}
+
+.scenario-card.warn {
+  border-top-color: #c78a2d;
+}
+
+.scenario-card.bad {
+  border-top-color: #aa382f;
+}
+
+.scenario-card-head {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.scenario-card-head strong {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.scenario-card-head span {
+  color: #65736d;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+}
+
+.scenario-card p {
+  color: #34443e;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.scenario-card small {
+  color: #69766f;
+  line-height: 1.45;
+}
+
+.scenario-alarms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.scenario-alarms span {
+  background: #eef4f1;
+  border: 1px solid #dce6e1;
+  border-radius: 999px;
+  color: #34443e;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 5px 8px;
+}
+
+.scenario-result {
+  border: 1px solid #d8e0dd;
+  border-left: 7px solid #2e8f5b;
+  border-radius: 14px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+  padding: 22px;
+  background: #ffffff;
+  box-shadow: 0 16px 42px rgb(18 32 27 / 7%);
+}
+
+.scenario-result.warn {
+  border-left-color: #c78a2d;
+}
+
+.scenario-result.bad {
+  border-left-color: #aa382f;
+}
+
+.scenario-result h2 {
+  font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+  margin: 0 0 10px;
+}
+
+.scenario-result p {
+  color: #44524d;
+  line-height: 1.55;
+}
+
+.scenario-result strong {
+  display: block;
+  margin-top: 10px;
+}
+
+.scenario-result-kpis {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.scenario-chart svg {
+  min-height: 310px;
+}
+
+.legacy-chat-form {
+  margin-top: 12px;
+  opacity: 0.78;
+}
+
+@media (max-width: 1180px) {
+  .scenario-grid,
+  .scenario-result,
+  .scenario-result-kpis {
+    grid-template-columns: 1fr;
+  }
+}

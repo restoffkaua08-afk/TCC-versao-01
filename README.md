@@ -60,3 +60,33 @@ npm.cmd run build
 cd backend
 uv run python -m compileall app
 ```
+
+## Gêmeo Digital com cenários demonstrativos
+
+Esta versão adiciona uma camada de demonstração para o Gêmeo Digital.
+
+Novos endpoints:
+
+- `GET /api/scenarios`: lista cenários.
+- `GET /api/scenarios/{scenario_id}`: detalha cenário.
+- `POST /api/scenarios/{scenario_id}/run`: executa cenário e retorna timeline, alarmes, diagnóstico e recomendação.
+- `POST /api/ai-chat`: assistente contextual com OpenAI quando `OPENAI_API_KEY` estiver configurada.
+
+Cenários disponíveis:
+
+- `safe_cycle`: operação segura.
+- `delayed_oil_collapse`: óleo atrasado com risco estrutural.
+- `early_roots_start`: Roots acionada fora da faixa segura.
+- `hose_loss_high`: mangueira longa com perda elevada.
+- `tank_leak`: vazamento em um tanque.
+- `sensor_failure`: falha de sensor.
+
+O objetivo desses cenários é demonstrar, de forma clara, como o Gêmeo Digital ajuda a prever falhas, justificar alarmes e recomendar ações antes que uma operação real seja comprometida.
+
+Para usar IA real:
+
+1. Crie `backend/.env`.
+2. Adicione `OPENAI_API_KEY=sua_chave`.
+3. Reinicie o backend.
+
+Sem chave, o sistema usa fallback local baseado em regras.

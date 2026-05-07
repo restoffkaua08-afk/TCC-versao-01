@@ -1,13 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException
+﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, desc, select
 
 from app.core.database import get_session
-from app.models.domain import AlarmEvent, Hose, MaintenanceInsight, PressureReading, Recipe, SimulationResult, Tank, TraceEvent, VacuumCycle
-from app.schemas.domain import ChatRequest, CycleStartRequest, TraceCreate, WhatIfRequest
+from app.models.domain import (
+    AlarmEvent,
+    Hose,
+    MaintenanceInsight,
+    PressureReading,
+    Recipe,
+    SimulationResult,
+    Tank,
+    TraceEvent,
+    VacuumCycle,
+)
+from app.schemas.domain import AIChatRequest, ChatRequest, CycleStartRequest, ScenarioRunRequest, TraceCreate, WhatIfRequest
 from app.services.alarms import required_alarm_catalog
 from app.services.chatbot import answer
 from app.services.digital_twin import build_twin_state
 from app.services.maintenance import predict_maintenance
+from app.services.openai_assistant import answer_with_ai_or_fallback
+from app.services.scenarios import get_scenario, list_scenarios, run_scenario
 from app.services.simulation import engine
 
 router = APIRouter()
@@ -29,12 +41,20 @@ def start_cycle(payload: CycleStartRequest, session: Session = Depends(get_sessi
 
 @router.post("/operation/tick")
 def operation_tick(session: Session = Depends(get_session)) -> dict:
+    current = engine.state(session)
+    cycle = current.get("cycle")
+    if not cycle:
+        return current
+    if current.get("paused") or current.get("emergency"):
+        return current
+    if getattr(cycle, "status", None) not in ("running", "alarm"):
+        return current
     return engine.tick(session)
 
 
 @router.post("/simulation/tick")
 def simulation_tick(session: Session = Depends(get_session)) -> dict:
-    return engine.tick(session)
+    return operation_tick(session)
 
 
 @router.get("/operation/state")
@@ -110,18 +130,21 @@ def cycles(session: Session = Depends(get_session)) -> list[VacuumCycle]:
 def cycle_detail(cycle_id: int, session: Session = Depends(get_session)) -> dict:
     cycle = session.get(VacuumCycle, cycle_id)
     if not cycle:
-        raise HTTPException(status_code=404, detail="Ciclo nao encontrado")
+        raise HTTPException(status_code=404, detail="Ciclo não encontrado")
+
     readings = list(session.exec(select(PressureReading).where(PressureReading.cycle_id == cycle_id).order_by(PressureReading.timestamp)).all())
     traces = list(session.exec(select(TraceEvent).where(TraceEvent.cycle_id == cycle_id).order_by(TraceEvent.timestamp)).all())
     alarms = list(session.exec(select(AlarmEvent).where(AlarmEvent.cycle_id == cycle_id).order_by(AlarmEvent.timestamp)).all())
+
     return {"cycle": cycle, "readings": readings, "traces": traces, "alarms": alarms}
 
 
 @router.get("/process/history")
 def pressure_history(limit: int = 120, cycle_id: int | None = None, session: Session = Depends(get_session)) -> list[PressureReading]:
-    statement = select(PressureReading).order_by(desc(PressureReading.timestamp)).limit(limit)
     if cycle_id:
         statement = select(PressureReading).where(PressureReading.cycle_id == cycle_id).order_by(desc(PressureReading.timestamp)).limit(limit)
+    else:
+        statement = select(PressureReading).order_by(desc(PressureReading.timestamp)).limit(limit)
     return list(session.exec(statement).all())
 
 
@@ -139,7 +162,7 @@ def alarm_catalog() -> list[dict]:
 def acknowledge_alarm(alarm_id: int, session: Session = Depends(get_session)) -> AlarmEvent:
     alarm = session.get(AlarmEvent, alarm_id)
     if not alarm:
-        raise HTTPException(status_code=404, detail="Alarme nao encontrado")
+        raise HTTPException(status_code=404, detail="Alarme não encontrado")
     alarm.acknowledged = True
     session.add(alarm)
     session.commit()
@@ -158,9 +181,10 @@ def create_trace(payload: TraceCreate, session: Session = Depends(get_session)) 
 
 @router.get("/traceability")
 def traceability(cycle_id: int | None = None, session: Session = Depends(get_session)) -> list[TraceEvent]:
-    statement = select(TraceEvent).order_by(desc(TraceEvent.timestamp)).limit(100)
     if cycle_id:
         statement = select(TraceEvent).where(TraceEvent.cycle_id == cycle_id).order_by(desc(TraceEvent.timestamp)).limit(100)
+    else:
+        statement = select(TraceEvent).order_by(desc(TraceEvent.timestamp)).limit(100)
     return list(session.exec(statement).all())
 
 
@@ -183,6 +207,62 @@ def what_if_history(session: Session = Depends(get_session)) -> list[SimulationR
     return list(session.exec(select(SimulationResult).order_by(desc(SimulationResult.timestamp)).limit(50)).all())
 
 
+@router.get("/scenarios")
+def scenarios() -> list[dict]:
+    return list_scenarios()
+
+
+@router.get("/scenarios/{scenario_id}")
+def scenario_detail(scenario_id: str) -> dict:
+    try:
+        return get_scenario(scenario_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/scenarios/{scenario_id}/run")
+def run_demo_scenario(
+    scenario_id: str,
+    payload: ScenarioRunRequest | None = None,
+    session: Session = Depends(get_session),
+) -> dict:
+    recipe = session.exec(select(Recipe)).first()
+    if not recipe:
+        raise HTTPException(status_code=400, detail="Cadastre uma receita antes de executar cenários.")
+
+    custom = {}
+    if payload:
+        custom = {
+            "oil_flow_l_min": payload.override_oil_flow_l_min,
+            "oil_delay_seconds": payload.override_oil_delay_seconds,
+            "roots_start_pressure_mbar": payload.override_roots_start_pressure_mbar,
+            "target_pressure_mbar": payload.override_target_pressure_mbar,
+        }
+
+    try:
+        result = run_scenario(scenario_id, recipe, custom)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    sim = SimulationResult(
+        scenario_name=result["scenario"]["name"],
+        recipe_id=recipe.id or 1,
+        tank_count=3,
+        projected_duration_seconds=result["metricas"]["projected_duration_seconds"],
+        projected_final_pressure_mbar=result["metricas"]["projected_final_pressure_mbar"],
+        max_collapse_risk_pct=result["metricas"]["max_collapse_risk_pct"],
+        roots_started=result["metricas"]["roots_started"],
+        alarms=", ".join(result["alarms"]) if result["alarms"] else "Sem alarmes projetados",
+        summary=result["diagnostico"],
+    )
+    session.add(sim)
+    session.commit()
+    session.refresh(sim)
+
+    result["simulation_id"] = sim.id
+    return result
+
+
 @router.get("/maintenance/prediction")
 def maintenance_prediction(session: Session = Depends(get_session)) -> list[MaintenanceInsight]:
     readings = list(session.exec(select(PressureReading).order_by(desc(PressureReading.timestamp)).limit(120)).all())
@@ -203,6 +283,7 @@ def operational_report(session: Session = Depends(get_session)) -> dict:
     readings = list(session.exec(select(PressureReading).order_by(desc(PressureReading.timestamp)).limit(200)).all())
     avg_final = sum(item.pressure_mbar for item in readings) / max(len(readings), 1)
     max_risk = max([item.collapse_risk_pct for item in readings], default=0)
+
     return {
         "title": "Relatório operacional TSEA - Vácuo em tanques de reguladores",
         "cycles_count": cycles_count,
@@ -213,6 +294,32 @@ def operational_report(session: Session = Depends(get_session)) -> dict:
     }
 
 
+def _build_ai_context(session: Session) -> dict:
+    state = engine.state(session)
+    cycle = state.get("cycle")
+    readings = engine._latest_readings(session, cycle.id if cycle else None)
+    active_alarms = list(session.exec(select(AlarmEvent).order_by(desc(AlarmEvent.timestamp)).limit(50)).all())
+    recipe = session.exec(select(Recipe)).first()
+
+    twin = {}
+    if recipe:
+        recent = list(session.exec(select(PressureReading).order_by(desc(PressureReading.timestamp)).limit(80)).all())
+        twin = build_twin_state(recent, recipe)
+
+    max_risk = 0
+    for tank in state.get("tank_states", []):
+        max_risk = max(max_risk, tank.get("collapse_risk_pct", 0))
+
+    return {
+        "operation_state": state,
+        "active_alarms": [alarm.model_dump() for alarm in active_alarms],
+        "latest_readings": [reading.model_dump() for reading in readings],
+        "digital_twin": twin,
+        "scenarios_available": list_scenarios(),
+        "max_risk_pct": round(max_risk, 2),
+    }
+
+
 @router.post("/chatbot")
 def chatbot(payload: ChatRequest, session: Session = Depends(get_session)) -> dict:
     state = engine.state(session)
@@ -220,3 +327,9 @@ def chatbot(payload: ChatRequest, session: Session = Depends(get_session)) -> di
     readings = engine._latest_readings(session, cycle.id if cycle else None)
     active_alarms = list(session.exec(select(AlarmEvent).order_by(desc(AlarmEvent.timestamp)).limit(50)).all())
     return answer(payload.message, cycle, readings, active_alarms)
+
+
+@router.post("/ai-chat")
+def ai_chat(payload: AIChatRequest, session: Session = Depends(get_session)) -> dict:
+    context = _build_ai_context(session)
+    return answer_with_ai_or_fallback(payload.message, context)
