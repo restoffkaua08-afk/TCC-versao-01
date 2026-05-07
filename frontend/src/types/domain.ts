@@ -130,9 +130,22 @@ export type OperationState = {
   cycle?: VacuumCycle | null;
   recipe: Recipe;
   tank_states: TankState[];
-  primary_pump: { model: string; running: boolean; speed_m3_h: number };
-  roots_pump: { model: string; running: boolean; speed_pct: number; safe_start_pressure_mbar: number };
-  oil_injection: { enabled: boolean; fault: boolean; target_flow_l_min: number };
+  primary_pump: {
+    model: string;
+    running: boolean;
+    speed_m3_h: number;
+  };
+  roots_pump: {
+    model: string;
+    running: boolean;
+    speed_pct: number;
+    safe_start_pressure_mbar: number;
+  };
+  oil_injection: {
+    enabled: boolean;
+    fault: boolean;
+    target_flow_l_min: number;
+  };
   plc_comm_ok: boolean;
   paused: boolean;
   emergency: boolean;
@@ -176,9 +189,30 @@ export type ManualOperationConfig = {
 };
 
 export type OperationConfigOptions = {
-  tank_types: Record<string, { label: string; volume_liters: number; structural_limit_mbar: number; description: string }>;
-  ramps: Record<string, { label: string; factor: number }>;
-  presets: Record<string, { name: string; description: string; config: ManualOperationConfig }>;
+  tank_types: Record<
+    string,
+    {
+      label: string;
+      volume_liters: number;
+      structural_limit_mbar: number;
+      description: string;
+    }
+  >;
+  ramps: Record<
+    string,
+    {
+      label: string;
+      factor: number;
+    }
+  >;
+  presets: Record<
+    string,
+    {
+      name: string;
+      description: string;
+      config: ManualOperationConfig;
+    }
+  >;
   hoses: Hose[];
   fields: string[];
 };
@@ -186,9 +220,17 @@ export type OperationConfigOptions = {
 export type ManualOperationResult = {
   status: "success" | "warning" | "critical" | string;
   config: ManualOperationConfig;
-  tank: { label: string; volume_liters: number; structural_limit_mbar: number; description: string };
+  tank: {
+    label: string;
+    volume_liters: number;
+    structural_limit_mbar: number;
+    description: string;
+  };
   hose: Hose;
-  ramp: { label: string; factor: number };
+  ramp: {
+    label: string;
+    factor: number;
+  };
   timeline: Array<{
     t_seconds: number;
     expected_pressure_mbar: number;
@@ -200,7 +242,11 @@ export type ManualOperationResult = {
     collapse_risk_pct: number;
     roots_started: boolean;
   }>;
-  alarms: Array<{ code: string; severity: string; message: string }>;
+  alarms: Array<{
+    code: string;
+    severity: string;
+    message: string;
+  }>;
   metrics: {
     estimated_time_seconds?: number | null;
     max_effective_pressure_mbar: number;

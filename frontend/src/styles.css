@@ -1421,3 +1421,249 @@ main {
     padding: 16px;
   }
 }
+
+/* ============================================================
+   Gêmeo Digital v2 - menu interno guiado
+   ============================================================ */
+
+.twin-console .page-header {
+  background:
+    radial-gradient(circle at top right, rgb(30 93 75 / 10%), transparent 34%),
+    #ffffff;
+}
+
+.twin-explain-card {
+  align-items: center;
+  background: #f5f9f7;
+  border: 1px solid #dce8e2;
+  border-left: 5px solid #1e5d4b;
+  border-radius: 14px;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  padding: 16px 18px;
+}
+
+.twin-explain-card div {
+  display: grid;
+  gap: 5px;
+}
+
+.twin-explain-card strong {
+  color: #12231d;
+}
+
+.twin-explain-card span {
+  color: #53645d;
+  line-height: 1.45;
+}
+
+.twin-step-nav {
+  background: #ffffff;
+  border: 1px solid #d8e0dd;
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgb(18 32 27 / 6%);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 8px;
+}
+
+.twin-step-nav button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #34443e;
+  display: flex;
+  gap: 8px;
+  min-height: 48px;
+}
+
+.twin-step-nav button.active {
+  background: #1f302b;
+  color: #ffffff;
+}
+
+.twin-section-card {
+  background: #ffffff;
+  border: 1px solid #d8e0dd;
+  border-radius: 16px;
+  box-shadow: 0 14px 38px rgb(18 32 27 / 7%);
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.section-intro {
+  border-bottom: 1px solid #e4ece8;
+  display: grid;
+  gap: 7px;
+  padding-bottom: 16px;
+}
+
+.section-intro h2 {
+  font-size: clamp(1.45rem, 2vw, 2.1rem);
+  margin: 0;
+}
+
+.section-intro p {
+  color: #5c6b64;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 980px;
+}
+
+.scenario-menu-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.scenario-tile {
+  align-items: start;
+  background: #f8faf9;
+  border: 1px solid #dfe8e3;
+  border-top: 5px solid #2e8f5b;
+  border-radius: 14px;
+  color: #14231e;
+  display: grid;
+  gap: 9px;
+  justify-content: stretch;
+  min-height: 160px;
+  padding: 16px;
+  text-align: left;
+}
+
+.scenario-tile.warn {
+  border-top-color: #c78a2d;
+}
+
+.scenario-tile.bad {
+  border-top-color: #aa382f;
+}
+
+.scenario-tile.active {
+  background: #edf7f2;
+  border-color: #9ccbb8;
+  box-shadow: 0 12px 30px rgb(30 93 75 / 13%);
+}
+
+.scenario-tile strong {
+  font-size: 1.08rem;
+}
+
+.scenario-tile span {
+  color: #5d6d66;
+  line-height: 1.4;
+}
+
+.scenario-tile small {
+  color: #1e5d4b;
+  font-weight: 800;
+  margin-top: auto;
+}
+
+.selected-preset-note {
+  background: #eef7f2;
+  border: 1px solid #cfe5d9;
+  border-radius: 12px;
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+}
+
+.selected-preset-note span {
+  color: #53645d;
+}
+
+.parameter-layout {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.32fr);
+}
+
+.simulation-switch-panel {
+  background: #f7faf8;
+  border: 1px solid #e2eae6;
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.simulation-switch-panel strong {
+  color: #12231d;
+}
+
+.simulation-switch-panel label {
+  align-items: center;
+  color: #2b3b35;
+  display: flex;
+  gap: 9px;
+  line-height: 1.35;
+}
+
+.simulation-switch-panel input {
+  accent-color: #1e5d4b;
+  height: 16px;
+  width: 16px;
+}
+
+.next-action-row {
+  border-top: 1px solid #e4ece8;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 16px;
+}
+
+.empty-twin-result {
+  align-items: center;
+  background: #f7faf8;
+  border: 1px dashed #cbd9d2;
+  border-radius: 14px;
+  color: #53645d;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  min-height: 260px;
+  padding: 28px;
+  text-align: center;
+}
+
+.empty-twin-result strong {
+  color: #12231d;
+  font-size: 1.2rem;
+}
+
+.result-grid {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(320px, 0.42fr) minmax(0, 1fr);
+}
+
+.diagnostic-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.twin-chart-clean svg {
+  min-height: 360px;
+}
+
+@media (max-width: 1180px) {
+  .twin-step-nav,
+  .scenario-menu-grid,
+  .parameter-layout,
+  .result-grid,
+  .diagnostic-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .twin-explain-card {
+    align-items: start;
+    flex-direction: column;
+  }
+}
