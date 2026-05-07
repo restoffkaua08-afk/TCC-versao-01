@@ -1,5 +1,5 @@
 import type { Alarm } from "../types/domain";
-import { Estado OperacionalBadge } from "./ui";
+import { StatusBadge } from "./ui";
 
 export function AlarmList({ alarms, limit = 6 }: { alarms: Alarm[]; limit?: number }) {
  const visible = alarms.slice(0, limit);
@@ -12,7 +12,7 @@ export function AlarmList({ alarms, limit = 6 }: { alarms: Alarm[]; limit?: numb
  <strong>{alarm.code}</strong>
  <span>{alarm.message}</span>
  </div>
- <Estado OperacionalBadge tone={alarm.severity === "critical" ? "bad" : "warn"}>{alarm.acknowledged ? "Reconhecido" : "Pendente"}</Estado OperacionalBadge>
+ <StatusBadge tone={alarm.severity === "critical" ? "bad" : "warn"}>{alarm.acknowledged ? "Reconhecido" : "Pendente"}</StatusBadge>
  </article>
  ))}
  </div>

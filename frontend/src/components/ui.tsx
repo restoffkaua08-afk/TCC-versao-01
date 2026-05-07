@@ -43,7 +43,7 @@ export function Kpi({ label, value, hint, tone = "neutral" }: { label: string; v
  );
 }
 
-export function Estado OperacionalBadge({ tone = "neutral", children }: { tone?: Tone | string; children: ReactNode }) {
+export function StatusBadge({ tone = "neutral", children }: { tone?: Tone | string; children: ReactNode }) {
  return <span className={`status-badge ${tone}`}>{children}</span>;
 }
 

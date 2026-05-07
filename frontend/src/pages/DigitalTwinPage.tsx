@@ -21,7 +21,7 @@ import {
  Kpi,
  Meter,
  PageHeader,
- Estado OperacionalBadge,
+ StatusBadge,
 } from "../components/ui";
 import type {
  ChatResponse,
@@ -179,9 +179,9 @@ export function DigitalTwinPage({
  Assistente traduz a simulação para linguagem de operador.
  </span>
  </div>
- <Estado OperacionalBadge tone={tone}>
+ <StatusBadge tone={tone}>
  {result ? statusLabel(result.status) : "Aguardando simulação"}
- </Estado OperacionalBadge>
+ </StatusBadge>
  </section>
 
  <nav className="twin-step-nav">
@@ -519,7 +519,7 @@ export function DigitalTwinPage({
  <h2>Alarmes projetados</h2>
  <p>Eventos que aconteceriam com os parâmetros simulados.</p>
  </div>
- <Estado OperacionalBadge tone={tone}>{result?.alarms.length ?? 0} alarmes</Estado OperacionalBadge>
+ <StatusBadge tone={tone}>{result?.alarms.length ?? 0} alarmes</StatusBadge>
  </div>
 
  {result?.alarms.length ? (
@@ -544,7 +544,7 @@ export function DigitalTwinPage({
  <h2>Gêmeo atual</h2>
  <p>Indicadores baseados no ciclo em tempo real, quando houver dados.</p>
  </div>
- <Estado OperacionalBadge>{twin?.bottleneck ?? "Aguardando"}</Estado OperacionalBadge>
+ <StatusBadge>{twin?.bottleneck ?? "Aguardando"}</StatusBadge>
  </div>
 
  <Meter label="Saúde" value={twin?.health_index ?? 0} tone={(twin?.health_index ?? 0) > 75 ? "good" : "warn"} />

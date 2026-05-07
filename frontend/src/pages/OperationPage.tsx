@@ -3,7 +3,7 @@
 import { AlarmList } from "../components/AlarmList";
 import { PressureChart } from "../components/PressureChart";
 import { RegulatorFromTankState } from "../components/RegulatorVisual";
-import { fmt, Kpi, PageHeader, Estado OperacionalBadge, statusText } from "../components/ui";
+import { fmt, Kpi, PageHeader, StatusBadge, statusText } from "../components/ui";
 import type { Alarm, OperationState, PressureReading, Tank } from "../types/domain";
 
 export function OperationPage({
@@ -83,7 +83,7 @@ export function OperationPage({
  <section className="panel">
  <div className="panel-title">
  <div><h2>Comandos do ciclo</h2><p>Controle da operação simulada em tempo real.</p></div>
- <Estado OperacionalBadge>{state?.plc_comm_ok ? "CLP comunicando" : "Sem comunicação"}</Estado OperacionalBadge>
+ <StatusBadge>{state?.plc_comm_ok ? "CLP comunicando" : "Sem comunicação"}</StatusBadge>
  </div>
  <div className="command-row vertical">
  <button type="button" onClick={() => onControl("start")}><Play size={16} /> Iniciar ciclo</button>
@@ -97,7 +97,7 @@ export function OperationPage({
  <section className="panel">
  <div className="panel-title">
  <div><h2>Alarmes recentes</h2><p>Eventos críticos e pendências.</p></div>
- <Estado OperacionalBadge tone={criticalAlarms.length ? "bad" : "good"}>{criticalAlarms.length} críticos</Estado OperacionalBadge>
+ <StatusBadge tone={criticalAlarms.length ? "bad" : "good"}>{criticalAlarms.length} críticos</StatusBadge>
  </div>
  <AlarmList alarms={activeAlarms.slice(0, 5)} />
  </section>

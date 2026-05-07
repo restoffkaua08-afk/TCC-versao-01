@@ -1,0 +1,5 @@
+INFO:     127.0.0.1:62487 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60918 - "OPTIONS /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60918 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60918 - "OPTIONS /api/records/operations?period=all&tank=all&operator=all&status=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60918 - "GET /api/records/operations?period=all&tank=all&operator=all&status=all HTTP/1.1" 200 OK

@@ -1,5 +1,5 @@
 import type { OperationState } from "../types/domain";
-import { fmt, Estado OperacionalBadge } from "./ui";
+import { fmt, StatusBadge } from "./ui";
 
 export function TwinComparison({ state }: { state: OperationState | null }) {
  const rows = state?.tank_states.map((item) => {
@@ -24,7 +24,7 @@ export function TwinComparison({ state }: { state: OperationState | null }) {
  <article key={row.tank} className={`comparison-card ${row.tone}`}>
  <div>
  <strong>{row.tank}</strong>
- <Estado OperacionalBadge tone={row.tone}>{row.tone === "good" ? "Aderente" : row.tone === "warn" ? "Atenção" : "Crítico"}</Estado OperacionalBadge>
+ <StatusBadge tone={row.tone}>{row.tone === "good" ? "Aderente" : row.tone === "warn" ? "Atenção" : "Crítico"}</StatusBadge>
  </div>
  <dl>
  <div><dt>Real</dt><dd>{fmt(row.real, "mbar")}</dd></div>
