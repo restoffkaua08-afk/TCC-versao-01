@@ -1115,3 +1115,44 @@ html[data-theme="dark"] .twinScenarioTop small {
   }
 }
 /* TSEA_GEMEO_DIGITAL_10_CSS_END */
+
+
+/* TSEA_WORD_REPORTS_CSS_START */
+.wordReportActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.operationWordDetail {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.wordRampPreview {
+  width: 100%;
+  overflow: auto;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.wordRampPreview svg {
+  width: 100%;
+  max-width: 920px;
+  height: auto;
+  display: block;
+}
+
+html[data-theme="dark"] .wordRampPreview {
+  background: #050505;
+  border-color: #1b211f;
+}
+
+html[data-theme="dark"] .operationWordDetail {
+  color: #f7f7f7;
+}
+/* TSEA_WORD_REPORTS_CSS_END */

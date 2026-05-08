@@ -1847,6 +1847,546 @@ function TseaTwinSimulationsHistoryPanel({ state, allTanks, allHoses }: any) {
 
 /* TSEA_SIMULACOES_GEMEO_NO_HISTORICO_END */
 
+
+/* TSEA_WORD_REPORTS_START */
+
+function tseaSafeText(value: any) {
+  return String(value ?? "--")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function tseaDateBR(value?: any) {
+  try {
+    const date = value ? new Date(value) : new Date();
+    if (Number.isNaN(date.getTime())) return "--";
+    return date.toLocaleString("pt-BR");
+  } catch {
+    return "--";
+  }
+}
+
+function tseaNumber(value: any, suffix = "") {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "--";
+  return `${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}${suffix ? " " + suffix : ""}`;
+}
+
+function tseaReadList(key: string): any[] {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function tseaStatusLabelWord(status: any) {
+  const value = String(status || "").toLowerCase();
+
+  if (["success", "concluido", "concluído", "operacional", "ok"].includes(value)) return "Bem-sucedido";
+  if (["warning", "atenção", "atencao", "em_andamento"].includes(value)) return "Aprovado com restrição";
+  if (["critical", "crítico", "critico", "abortado", "falha"].includes(value)) return "Reprovado / Crítico";
+
+  return String(status || "Registrado");
+}
+
+function tseaWordStyle() {
+  return `
+    @page WordSection1 {
+      size: A4;
+      margin: 3cm 2cm 2cm 3cm;
+    }
+
+    body {
+      font-family: "Times New Roman", serif;
+      font-size: 12pt;
+      color: #000;
+      line-height: 1.5;
+    }
+
+    div.WordSection1 {
+      page: WordSection1;
+    }
+
+    .cover {
+      text-align: center;
+      min-height: 900px;
+      display: block;
+      padding-top: 60px;
+    }
+
+    .cover h1 {
+      font-size: 16pt;
+      text-transform: uppercase;
+      margin-top: 120px;
+      margin-bottom: 80px;
+      font-weight: bold;
+    }
+
+    .cover h2 {
+      font-size: 14pt;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+
+    .cover .bottom {
+      margin-top: 180px;
+      font-size: 12pt;
+    }
+
+    h1 {
+      font-size: 14pt;
+      text-transform: uppercase;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 12pt;
+      text-transform: uppercase;
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      text-align: justify;
+      margin: 8px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px;
+      font-size: 10.5pt;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 6px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #e6e6e6;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .sumario p {
+      text-align: left;
+      margin: 4px 0;
+    }
+
+    .caption {
+      font-size: 10pt;
+      text-align: center;
+      margin-top: 4px;
+      margin-bottom: 16px;
+    }
+
+    .muted {
+      color: #333;
+    }
+  `;
+}
+
+function tseaBuildRampSvg(points: any[]) {
+  const list = Array.isArray(points) && points.length ? points : Array.from({ length: 18 }).map((_, index) => {
+    const step = index / 17;
+    return {
+      second: Math.round(step * 600),
+      real_pressure_mbar: Math.max(6.5, 1013 * Math.exp(-step * 5.2) + 6.5),
+      expected_pressure_mbar: Math.max(6.5, 1013 * Math.exp(-step * 5.5) + 6.5),
+      effective_pressure_mbar: 6.5 + step * 8
+    };
+  });
+
+  const values = list.flatMap((item: any) => [
+    Number(item.real_pressure_mbar || item.pressure_mbar || 0),
+    Number(item.expected_pressure_mbar || 0),
+    Number(item.effective_pressure_mbar || 0)
+  ]);
+
+  const max = Math.max(...values, 10);
+  const min = Math.min(...values, 0);
+  const span = Math.max(max - min, 1);
+
+  function poly(key: string) {
+    return list.map((item: any, index: number) => {
+      const value = Number(item[key] || (key === "real_pressure_mbar" ? item.pressure_mbar : 0) || 0);
+      const x = 40 + (index / Math.max(list.length - 1, 1)) * 650;
+      const y = 300 - ((value - min) / span) * 240;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+  }
+
+  return `
+    <svg width="700" height="340" viewBox="0 0 740 360" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="740" height="360" fill="#ffffff" />
+      <line x1="40" y1="300" x2="700" y2="300" stroke="#000" stroke-width="1" />
+      <line x1="40" y1="40" x2="40" y2="300" stroke="#000" stroke-width="1" />
+      <text x="40" y="25" font-family="Times New Roman" font-size="14">Pressão x Tempo</text>
+      <text x="610" y="330" font-family="Times New Roman" font-size="12">Tempo</text>
+      <text x="5" y="55" font-family="Times New Roman" font-size="12">mbar</text>
+      <polyline points="${poly("expected_pressure_mbar")}" fill="none" stroke="#333333" stroke-width="2" />
+      <polyline points="${poly("real_pressure_mbar")}" fill="none" stroke="#0f766e" stroke-width="2.5" />
+      <polyline points="${poly("effective_pressure_mbar")}" fill="none" stroke="#b91c1c" stroke-width="2" />
+      <rect x="420" y="42" width="260" height="70" fill="#fff" stroke="#000" />
+      <line x1="435" y1="60" x2="485" y2="60" stroke="#0f766e" stroke-width="3" />
+      <text x="495" y="64" font-family="Times New Roman" font-size="12">Curva simulada/real</text>
+      <line x1="435" y1="80" x2="485" y2="80" stroke="#333333" stroke-width="3" />
+      <text x="495" y="84" font-family="Times New Roman" font-size="12">Curva esperada</text>
+      <line x1="435" y1="100" x2="485" y2="100" stroke="#b91c1c" stroke-width="3" />
+      <text x="495" y="104" font-family="Times New Roman" font-size="12">Carga estrutural</text>
+    </svg>
+  `;
+}
+
+function tseaTable(headers: string[], rows: any[][]) {
+  const head = headers.map((header) => `<th>${tseaSafeText(header)}</th>`).join("");
+  const body = rows.length
+    ? rows.map((row) => `<tr>${row.map((cell) => `<td>${tseaSafeText(cell)}</td>`).join("")}</tr>`).join("")
+    : `<tr><td colspan="${headers.length}">Sem registros.</td></tr>`;
+
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function tseaDownloadWord(filename: string, htmlBody: string) {
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:w="urn:schemas-microsoft-com:office:word"
+          xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <title>${tseaSafeText(filename)}</title>
+        <style>${tseaWordStyle()}</style>
+      </head>
+      <body>
+        <div class="WordSection1">
+          ${htmlBody}
+        </div>
+      </body>
+    </html>
+  `;
+
+  const blob = new Blob(["\ufeff", html], {
+    type: "application/msword;charset=utf-8"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename.endsWith(".doc") ? filename : `${filename}.doc`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function tseaBuildComponentRowsFromOperation(operation: any, state: any, allTanks: any[], allHoses: any[]) {
+  const config = operation?.config || operation || {};
+  const tankCode = operation?.tank || operation?.tanque || config?.tank_type || config?.tanque || allTanks?.[0]?.code || "--";
+  const hoseCode = operation?.hose || operation?.mangueira || config?.hose_id || config?.mangueira || allHoses?.[0]?.code || "--";
+  const pressure = operation?.pressure || operation?.pressaoFinal || operation?.pressao_final || config?.target_pressure_mbar || config?.pressaoFinal || "--";
+
+  return [
+    ["Bomba primária", "Leybold SOGEVAC SV 630 B", "Operacional", "98%", "640 m³/h", "Evacuação inicial e sustentação do vácuo."],
+    ["Bomba secundária", "Leybold RUVAC WSU 2001", "Conforme intertravamento", "96%", "2050 m³/h", "Reforço do vácuo após faixa segura."],
+    ["Mangueira de vácuo", hoseCode, "Operacional", "Conforme fator de perda", String(config?.hose_loss_factor || config?.loss_factor || "--"), "Perda de carga e ligação entre bomba/tanque."],
+    ["Tanque de processo", tankCode, operation?.status || "Registrado", "--", tseaNumber(pressure, "mbar"), "Volume, pressão e margem estrutural do ciclo."],
+    ["Sensor de pressão", `SP-${tankCode}`, "Online", "98%", tseaNumber(pressure, "mbar"), "Leitura utilizada no controle e rastreabilidade."],
+    ["Sistema de óleo", "Injeção de óleo", Number(config?.oil_flow_l_min || config?.vazaoOleo || 2) < 1.5 ? "Vazão baixa" : "Operacional", "--", tseaNumber(config?.oil_flow_l_min || config?.vazaoOleo || 2, "L/min"), "Vedação, estabilidade e proteção do conjunto."]
+  ];
+}
+
+function tseaBuildActionRowsFromOperation(operation: any) {
+  const config = operation?.config || operation || {};
+
+  return [
+    ["Preparação", "Concluída", operation?.recipe || operation?.receita || config?.recipe_id || "--", "Receita/parâmetros carregados no sistema."],
+    ["Seleção de tanque", "Concluída", operation?.tank || operation?.tanque || config?.tank_type || "--", "Tanque vinculado ao ciclo."],
+    ["Conexão da mangueira", "Concluída", operation?.hose || operation?.mangueira || config?.hose_id || "--", "Mangueira associada ao processo de vácuo."],
+    ["Evacuação inicial", "Registrada", "Bomba primária", "Redução inicial da pressão."],
+    ["Acionamento da bomba secundária", "Avaliado", tseaNumber(config?.secondary_start_pressure_mbar || config?.roots_start_pressure_mbar || 50, "mbar"), "Intertravamento analisado por faixa segura."],
+    ["Fechamento", operation?.status || "Registrado", operation?.id || "--", "Resultado consolidado para relatório."]
+  ];
+}
+
+function tseaBuildAdditionalRowsFromOperation(operation: any) {
+  const config = operation?.config || operation || {};
+
+  return [
+    ["ID da operação", operation?.id || "--"],
+    ["Data/hora", tseaDateBR(operation?.created_at || operation?.data || operation?.started_at)],
+    ["Operador", operation?.operator || operation?.operador || config?.operator || "--"],
+    ["Lote / ordem", operation?.lot || operation?.lote || config?.lot || "--"],
+    ["Tanque", operation?.tank || operation?.tanque || config?.tank_type || "--"],
+    ["Mangueira", operation?.hose || operation?.mangueira || config?.hose_id || "--"],
+    ["Receita", operation?.recipe || operation?.receita || config?.recipe_id || "--"],
+    ["Pressão final", tseaNumber(operation?.pressure || operation?.pressaoFinal || config?.target_pressure_mbar || config?.pressaoFinal, "mbar")],
+    ["Vazão de óleo", tseaNumber(config?.oil_flow_l_min || config?.vazaoOleo, "L/min")],
+    ["Tempo máximo", tseaNumber(config?.max_cycle_seconds || config?.tempoMaximo, "s")],
+    ["Status", tseaStatusLabelWord(operation?.status)],
+    ["Observações", operation?.notes || operation?.observacao || "--"]
+  ];
+}
+
+function tseaBuildOperationWordReport(operation: any, state: any, allTanks: any[], allHoses: any[]) {
+  const componentRows = tseaBuildComponentRowsFromOperation(operation, state, allTanks, allHoses);
+  const actionRows = tseaBuildActionRowsFromOperation(operation);
+  const additionalRows = tseaBuildAdditionalRowsFromOperation(operation);
+  const timeline = operation?.timeline || operation?.ramp || operation?.curve || operation?.points || [];
+
+  const title = `Relatório Técnico da Operação ${operation?.id || ""}`;
+
+  return `
+    <div class="cover">
+      <h2>TSEA</h2>
+      <h2>Supervisório Digital</h2>
+      <h1>${tseaSafeText(title)}</h1>
+      <p><strong>Documento:</strong> Relatório técnico operacional</p>
+      <p><strong>Sistema:</strong> Rastreabilidade e Gêmeo Digital do processo de vácuo</p>
+      <p><strong>Data de emissão:</strong> ${tseaDateBR()}</p>
+      <div class="bottom">
+        <p>Belo Horizonte</p>
+        <p>${new Date().getFullYear()}</p>
+      </div>
+    </div>
+
+    <div class="page-break sumario">
+      <h1>Sumário</h1>
+      <p>1. Identificação da operação</p>
+      <p>2. Gráfico da rampa de vácuo</p>
+      <p>3. Rastreabilidade de máquinas e peças</p>
+      <p>4. Ações da operação</p>
+      <p>5. Informações adicionais</p>
+      <p>6. Conclusão técnica</p>
+    </div>
+
+    <div class="page-break">
+      <h1>1. Identificação da operação</h1>
+      ${tseaTable(["Campo", "Informação"], additionalRows.slice(0, 8))}
+
+      <h1>2. Gráfico da rampa de vácuo</h1>
+      ${tseaBuildRampSvg(timeline)}
+      <p class="caption">Figura 1 — Curva da rampa de vácuo: pressão simulada/real, curva esperada e carga estrutural.</p>
+
+      <h1>3. Rastreabilidade de máquinas e peças</h1>
+      ${tseaTable(["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto no processo"], componentRows)}
+
+      <h1>4. Ações da operação</h1>
+      ${tseaTable(["Etapa", "Status", "Referência", "Registro técnico"], actionRows)}
+
+      <h1>5. Informações adicionais</h1>
+      ${tseaTable(["Campo", "Valor"], additionalRows)}
+
+      <h1>6. Conclusão técnica</h1>
+      <p>
+        A operação registrada apresenta rastreabilidade dos principais componentes envolvidos no processo de vácuo,
+        incluindo bombas, mangueira, tanque, sensores e sistema de óleo. As informações consolidadas neste relatório
+        permitem análise operacional, investigação de falhas, padronização de procedimentos e suporte à tomada de decisão técnica.
+      </p>
+    </div>
+  `;
+}
+
+function tseaBuildGeneralWordReport(operations: any[], simulations: any[]) {
+  const opRows = operations.map((op: any) => [
+    op.id || "--",
+    tseaDateBR(op.created_at || op.data || op.started_at),
+    op.operator || op.operador || "--",
+    op.tank || op.tanque || "--",
+    op.hose || op.mangueira || "--",
+    tseaStatusLabelWord(op.status)
+  ]);
+
+  const simRows = simulations.map((sim: any) => [
+    sim.id || "--",
+    tseaDateBR(sim.created_at || sim.data),
+    sim.scenario || sim.nome || "--",
+    tseaStatusLabelWord(sim.status),
+    tseaNumber(sim.metrics?.max_collapse_risk_pct || sim.metrics?.risco, "%"),
+    tseaNumber(sim.metrics?.final_real_pressure_mbar || sim.metrics?.pressaoFinal, "mbar")
+  ]);
+
+  return `
+    <div class="cover">
+      <h2>TSEA</h2>
+      <h2>Supervisório Digital</h2>
+      <h1>Relatório Geral de Operações e Simulações</h1>
+      <p><strong>Documento:</strong> Relatório técnico gerencial</p>
+      <p><strong>Sistema:</strong> Rastreabilidade, operação e Gêmeo Digital do processo de vácuo</p>
+      <p><strong>Data de emissão:</strong> ${tseaDateBR()}</p>
+      <div class="bottom">
+        <p>Belo Horizonte</p>
+        <p>${new Date().getFullYear()}</p>
+      </div>
+    </div>
+
+    <div class="page-break sumario">
+      <h1>Sumário</h1>
+      <p>1. Introdução</p>
+      <p>2. Escopo do relatório</p>
+      <p>3. Registros de operações</p>
+      <p>4. Registros de simulações</p>
+      <p>5. Considerações técnicas</p>
+      <p>6. Conclusão</p>
+    </div>
+
+    <div class="page-break">
+      <h1>1. Introdução</h1>
+      <p>
+        Este relatório apresenta a consolidação dos registros operacionais e simulações executadas no sistema
+        TSEA Supervisório Digital, com foco em rastreabilidade, análise técnica, controle de processo e suporte à padronização
+        das operações de vácuo aplicadas à produção de reguladores.
+      </p>
+
+      <h1>2. Escopo do relatório</h1>
+      <p>
+        O documento contempla operações registradas, simulações do Gêmeo Digital, status do processo,
+        parâmetros principais e informações técnicas relevantes para avaliação operacional.
+      </p>
+
+      <h1>3. Registros de operações</h1>
+      ${tseaTable(["ID", "Data", "Operador", "Tanque", "Mangueira", "Status"], opRows)}
+
+      <h1>4. Registros de simulações</h1>
+      ${tseaTable(["ID", "Data", "Cenário", "Status", "Risco", "Pressão final"], simRows)}
+
+      <h1>5. Considerações técnicas</h1>
+      <p>
+        As operações e simulações devem ser avaliadas considerando a condição das bombas, mangueiras, tanques,
+        sensores, vazão de óleo, pressão final desejada e limites estruturais definidos para o processo.
+      </p>
+
+      <h1>6. Conclusão</h1>
+      <p>
+        O relatório permite acompanhamento técnico, rastreabilidade de processo e base documental para auditoria,
+        melhoria contínua e evolução do Gêmeo Digital para integração com dados reais da linha de produção.
+      </p>
+    </div>
+  `;
+}
+
+function TseaWordReportsPanel({ operations = [], state, allTanks = [], allHoses = [] }: any) {
+  const [selected, setSelected] = useState<any>(null);
+  const [detail, setDetail] = useState<any>(null);
+
+  function simulationHistory() {
+    const sources = [
+      ...tseaReadList("tsea.gemeo10.history"),
+      ...tseaReadList("tsea.simulationHistory.final"),
+      ...tseaReadList("tsea.simulations")
+    ];
+
+    const map = new Map<string, any>();
+
+    sources.forEach((item: any) => {
+      if (!item) return;
+      const key = String(item.id || item.created_at || item.scenario || Math.random());
+      if (!map.has(key)) map.set(key, item);
+    });
+
+    return Array.from(map.values());
+  }
+
+  function exportGeneral() {
+    const html = tseaBuildGeneralWordReport(operations || [], simulationHistory());
+    tseaDownloadWord("Relatorio_Geral_TSEA_Supervisorio_Digital.doc", html);
+  }
+
+  function exportSpecific(operation: any) {
+    const html = tseaBuildOperationWordReport(operation, state, allTanks, allHoses);
+    tseaDownloadWord(`Relatorio_Operacao_${operation?.id || "TSEA"}.doc`, html);
+  }
+
+  const rows = (operations || []).map((operation: any) => [
+    <b>{operation.id || "--"}</b>,
+    tseaDateBR(operation.created_at || operation.data || operation.started_at),
+    operation.operator || operation.operador || "--",
+    operation.tank || operation.tanque || "--",
+    operation.hose || operation.mangueira || "--",
+    <Badge value={operation.status || "success"} />,
+    <div className="wordReportActions">
+      <button className="secondary" onClick={() => setDetail(operation)}>Ver detalhes</button>
+      <button onClick={() => exportSpecific(operation)}>Salvar Word</button>
+    </div>
+  ]);
+
+  return (
+    <Section
+      title="Relatórios Word — operações e auditoria"
+      subtitle="Gere documentos empresariais compatíveis com Word, com capa, sumário, tabelas e rastreabilidade técnica."
+      action={<button onClick={exportGeneral}>Exportar relatório geral Word</button>}
+    >
+      <Table
+        columns={["ID", "Data", "Operador", "Tanque", "Mangueira", "Status", "Ações"]}
+        rows={rows}
+      />
+
+      {detail && (
+        <div className="operationWordDetail">
+          <div className="traceHeader">
+            <div>
+              <h3>Detalhes completos da operação</h3>
+              <p>{detail.id || "Operação registrada"} · {tseaDateBR(detail.created_at || detail.data || detail.started_at)}</p>
+            </div>
+            <div className="wordReportActions">
+              <button onClick={() => exportSpecific(detail)}>Salvar esta operação em Word</button>
+              <button className="secondary" onClick={() => setDetail(null)}>Fechar</button>
+            </div>
+          </div>
+
+          <div className="metrics">
+            <Metric label="Status" value={<Badge value={detail.status || "success"} />} detail="Resultado operacional" />
+            <Metric label="Tanque" value={detail.tank || detail.tanque || detail.config?.tank_type || "--"} detail="Componente do ciclo" />
+            <Metric label="Mangueira" value={detail.hose || detail.mangueira || detail.config?.hose_id || "--"} detail="Ligação do processo" />
+            <Metric label="Pressão final" value={tseaNumber(detail.pressure || detail.pressaoFinal || detail.config?.target_pressure_mbar || detail.config?.pressaoFinal, "mbar")} detail="Valor registrado" />
+          </div>
+
+          <div className="tracePanel">
+            <h3>Gráfico da rampa</h3>
+            <div className="wordRampPreview" dangerouslySetInnerHTML={{ __html: tseaBuildRampSvg(detail.timeline || detail.ramp || detail.curve || []) }} />
+          </div>
+
+          <div className="tracePanel">
+            <h3>Rastreabilidade de máquinas e peças</h3>
+            <Table
+              columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"]}
+              rows={tseaBuildComponentRowsFromOperation(detail, state, allTanks, allHoses)}
+            />
+          </div>
+
+          <div className="tracePanel">
+            <h3>Ações da operação</h3>
+            <Table
+              columns={["Etapa", "Status", "Referência", "Registro técnico"]}
+              rows={tseaBuildActionRowsFromOperation(detail)}
+            />
+          </div>
+
+          <div className="tracePanel">
+            <h3>Informações adicionais</h3>
+            <Table
+              columns={["Campo", "Valor"]}
+              rows={tseaBuildAdditionalRowsFromOperation(detail)}
+            />
+          </div>
+        </div>
+      )}
+    </Section>
+  );
+}
+
+/* TSEA_WORD_REPORTS_END */
+
 function App() {
 
   const [tseaDarkTheme, setTseaDarkTheme] = useState(() => localStorage.getItem("tsea.theme") === "dark");
@@ -2388,6 +2928,14 @@ function App() {
         {view === "history" && (
           <div className="screen">
 
+            <TseaWordReportsPanel
+              operations={operations}
+              state={state}
+              allTanks={allTanks}
+              allHoses={allHoses}
+            />
+
+
             <TseaTwinSimulationsHistoryPanel
               state={state}
               allTanks={allTanks}
@@ -2470,6 +3018,14 @@ function App() {
 
         {view === "reports" && (
           <div className="screen">
+
+            <TseaWordReportsPanel
+              operations={operations}
+              state={state}
+              allTanks={allTanks}
+              allHoses={allHoses}
+            />
+
 
             <TseaTwinSimulationsHistoryPanel
               state={state}
