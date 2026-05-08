@@ -501,7 +501,7 @@ const TSEA_EQUIPMENT_SPECS = {
   secondaryPump: {
     label: "Bomba secundária",
     model: "Leybold RUVAC WSU 2001",
-    technology: "Bomba secundária tipo Roots com motor blindado refrigerado a ar",
+    technology: "Bomba secundária tipo bomba secundária com motor blindado refrigerado a ar",
     nominalSpeed50Hz: "2050 m³/h",
     nominalSpeed60Hz: "2460 m³/h",
     effectiveSpeedWithSogevac50Hz: "1850 m³/h",
@@ -985,6 +985,697 @@ function TseaHistoryDetailsPanel({ state, allTanks, allHoses }: any) {
 
 /* TSEA_PATCH_GEMEO_RASTREABILIDADE_FINAL_END */
 
+
+
+/* TSEA_GEMEO_DIGITAL_10_START */
+
+function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
+  const baseScenarios = [
+    {
+      id: "base-seguro",
+      name: "Ciclo seguro padrão",
+      description: "Validação conservadora para operação com margem ampliada.",
+      tag: "Conservador",
+      config: {
+        tank_type: "grande",
+        hose_id: allHoses?.[0]?.id || 1,
+        target_pressure_mbar: 8,
+        secondary_start_pressure_mbar: 55,
+        oil_flow_l_min: 2,
+        oil_delay_seconds: 0,
+        max_cycle_seconds: 780,
+        primary_pump_health: 1,
+        secondary_pump_health: 1,
+        calibration_factor: 1,
+        simulate_hose_leak: false,
+        simulate_sensor_failure: false,
+        simulate_plc_loss: false
+      }
+    },
+    {
+      id: "base-produtivo",
+      name: "Reguladores TSEA com óleo",
+      description: "Ciclo operacional padrão para reguladores com injeção de óleo.",
+      tag: "Produção",
+      config: {
+        tank_type: "grande",
+        hose_id: allHoses?.[0]?.id || 1,
+        target_pressure_mbar: 6.5,
+        secondary_start_pressure_mbar: 50,
+        oil_flow_l_min: 2,
+        oil_delay_seconds: 0,
+        max_cycle_seconds: 900,
+        primary_pump_health: 1,
+        secondary_pump_health: 1,
+        calibration_factor: 1,
+        simulate_hose_leak: false,
+        simulate_sensor_failure: false,
+        simulate_plc_loss: false
+      }
+    },
+    {
+      id: "base-mangueira",
+      name: "Teste de perda na mangueira",
+      description: "Cenário para avaliar perda de carga, vazão baixa e impacto no tempo de ciclo.",
+      tag: "Risco",
+      config: {
+        tank_type: "extra_grande",
+        hose_id: allHoses?.[2]?.id || allHoses?.[0]?.id || 1,
+        target_pressure_mbar: 7.5,
+        secondary_start_pressure_mbar: 60,
+        oil_flow_l_min: 1.3,
+        oil_delay_seconds: 25,
+        max_cycle_seconds: 1100,
+        primary_pump_health: 0.88,
+        secondary_pump_health: 0.9,
+        calibration_factor: 1,
+        simulate_hose_leak: true,
+        simulate_sensor_failure: false,
+        simulate_plc_loss: false
+      }
+    },
+    {
+      id: "base-sensor",
+      name: "Falha de sensor de pressão",
+      description: "Teste para verificar impacto de leitura instável no diagnóstico do ciclo.",
+      tag: "Falha",
+      config: {
+        tank_type: "grande",
+        hose_id: allHoses?.[1]?.id || allHoses?.[0]?.id || 1,
+        target_pressure_mbar: 7,
+        secondary_start_pressure_mbar: 50,
+        oil_flow_l_min: 2,
+        oil_delay_seconds: 5,
+        max_cycle_seconds: 920,
+        primary_pump_health: 0.96,
+        secondary_pump_health: 0.94,
+        calibration_factor: 1,
+        simulate_hose_leak: false,
+        simulate_sensor_failure: true,
+        simulate_plc_loss: false
+      }
+    }
+  ];
+
+  function loadLocal<T>(key: string, fallback: T): T {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  function saveLocal(key: string, value: unknown) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  const [tab, setTab] = useState<"base" | "custom" | "create" | "manual" | "result" | "history" | "technical">("base");
+  const [customScenarios, setCustomScenarios] = useState<any[]>(() => loadLocal("tsea.gemeo10.customScenarios", []));
+  const [history, setHistory] = useState<any[]>(() => loadLocal("tsea.gemeo10.history", []));
+  const [result, setResult] = useState<any>(() => loadLocal("tsea.gemeo10.lastResult", null));
+  const [selectedDetail, setSelectedDetail] = useState<any>(null);
+
+  const defaultForm = {
+    name: "Novo cenário de teste",
+    description: "Cenário personalizado para validação operacional.",
+    tank_type: "grande",
+    tank_id: allTanks?.[0]?.id || 1,
+    hose_id: allHoses?.[0]?.id || 1,
+    target_pressure_mbar: 6.5,
+    secondary_start_pressure_mbar: 50,
+    oil_flow_l_min: 2,
+    oil_delay_seconds: 0,
+    max_cycle_seconds: 900,
+    primary_pump_health: 1,
+    secondary_pump_health: 1,
+    calibration_factor: 1,
+    simulate_hose_leak: false,
+    simulate_sensor_failure: false,
+    simulate_plc_loss: false
+  };
+
+  const [form, setForm] = useState<any>(() => loadLocal("tsea.gemeo10.form", defaultForm));
+  const [manual, setManual] = useState<any>(() => loadLocal("tsea.gemeo10.manual", defaultForm));
+
+  useEffect(() => saveLocal("tsea.gemeo10.customScenarios", customScenarios), [customScenarios]);
+  useEffect(() => saveLocal("tsea.gemeo10.history", history), [history]);
+  useEffect(() => saveLocal("tsea.gemeo10.lastResult", result), [result]);
+  useEffect(() => saveLocal("tsea.gemeo10.form", form), [form]);
+  useEffect(() => saveLocal("tsea.gemeo10.manual", manual), [manual]);
+
+  function findHose(config: any) {
+    return allHoses?.find((hose: any) => String(hose.id) === String(config?.hose_id) || String(hose.code) === String(config?.hose_id)) || allHoses?.[0] || {};
+  }
+
+  function findTank(config: any) {
+    return allTanks?.find((tank: any) => String(tank.id) === String(config?.tank_id) || String(tank.type) === String(config?.tank_type)) || allTanks?.[0] || {};
+  }
+
+  function buildSimulation(config: any, scenarioName: string, scenarioDescription = "") {
+    const hose = findHose(config);
+    const tank = findTank(config);
+
+    const tankVolume = Number(tank?.volume_liters || tank?.volume || 1250);
+    const structuralLimit = Number(tank?.structural_limit_mbar || tank?.limiteEstrutural || 35);
+    const hoseLoss = Number(hose?.loss_factor || hose?.fatorPerda || 0.8);
+    const targetPressure = Number(config?.target_pressure_mbar || 6.5);
+    const secondaryStart = Number(config?.secondary_start_pressure_mbar || 50);
+    const oilFlow = Number(config?.oil_flow_l_min || 2);
+    const oilDelay = Number(config?.oil_delay_seconds || 0);
+    const maxCycle = Number(config?.max_cycle_seconds || 900);
+    const primaryHealth = Number(config?.primary_pump_health || 1);
+    const secondaryHealth = Number(config?.secondary_pump_health || 1);
+    const calibration = Number(config?.calibration_factor || 1);
+
+    const hoseRisk = hoseLoss * 13;
+    const oilRisk = Math.max(0, 2 - oilFlow) * 18;
+    const delayRisk = oilDelay * 0.2;
+    const pumpRisk = (1 - primaryHealth) * 34 + (1 - secondaryHealth) * 28;
+    const failureRisk = (config?.simulate_hose_leak ? 22 : 0) + (config?.simulate_sensor_failure ? 18 : 0) + (config?.simulate_plc_loss ? 14 : 0);
+
+    const risk = Math.max(4, Math.min(98, 16 + hoseRisk + oilRisk + delayRisk + pumpRisk + failureRisk));
+    const estimatedTime = Math.round(Math.min(maxCycle, ((tankVolume / 640) * 225 + hoseLoss * 44 + oilDelay * 1.7 + pumpRisk * 3) * calibration));
+    const finalPressure = Math.max(targetPressure, targetPressure + hoseLoss * 0.7 + oilRisk * 0.08 + (config?.simulate_hose_leak ? 8 : 0));
+    const safetyMargin = structuralLimit - finalPressure;
+    const secondaryReleased = finalPressure <= secondaryStart;
+    const status = risk >= 82 || safetyMargin < 0 ? "critical" : risk >= 65 ? "warning" : "success";
+
+    const diagnosis = status === "success"
+      ? "Simulação aprovada. O ciclo mantém margem operacional aceitável."
+      : status === "warning"
+        ? "Simulação aprovada com restrição. Existe tendência de perda, atraso de óleo, falha simulada ou redução de margem."
+        : "Simulação reprovada. O ciclo apresenta risco elevado e não deve ser liberado sem revisão.";
+
+    const probableCause = status === "success"
+      ? "Nenhum componente crítico identificado."
+      : risk >= 82 && config?.simulate_hose_leak
+        ? "Perda simulada na mangueira elevou o risco e prejudicou a estabilidade do ciclo."
+        : oilFlow < 1.5
+          ? "Vazão de óleo insuficiente reduziu a estabilidade e aumentou risco operacional."
+          : !secondaryReleased
+            ? "Bomba secundária permaneceu bloqueada pela pressão fora da faixa segura."
+            : config?.simulate_sensor_failure
+              ? "Falha simulada no sensor comprometeu a confiabilidade da leitura."
+              : "Conjunto de perdas e degradação de desempenho elevou o risco.";
+
+    const recommendation = status === "success"
+      ? "Manter parâmetros e registrar o cenário como referência operacional."
+      : status === "warning"
+        ? "Revisar mangueira, vazão de óleo, sensores e saúde das bombas antes da execução real."
+        : "Bloquear execução, revisar vedação, mangueira, sensores, bomba primária e bomba secundária.";
+
+    const timeline = Array.from({ length: 22 }).map((_, index) => {
+      const step = index / 21;
+      const ideal = Math.max(finalPressure, 1013 * Math.exp(-step * 5.4) + targetPressure);
+      const simulated = ideal + hoseLoss * step * 3 + (config?.simulate_hose_leak ? step * 12 : 0);
+      const effective = finalPressure + risk * step * 0.18;
+
+      return {
+        second: Math.round(step * estimatedTime),
+        expected_pressure_mbar: ideal,
+        real_pressure_mbar: simulated,
+        pressure_mbar: simulated,
+        effective_pressure_mbar: effective,
+        collapse_risk_pct: Math.round(risk * step),
+        hose_loss_mbar: hoseLoss,
+        event: step === 0 ? "Início" : step > 0.32 && step < 0.38 ? "Bomba secundária" : step > 0.46 && step < 0.52 ? "Óleo" : ""
+      };
+    });
+
+    const components = [
+      {
+        type: "Bomba primária",
+        id: "Leybold SOGEVAC SV 630 B",
+        status: "Operacional",
+        performance: fmt(primaryHealth * 100, "%"),
+        reading: "640 m³/h",
+        impact: "Evacuação inicial e sustentação do vácuo."
+      },
+      {
+        type: "Bomba secundária",
+        id: "Leybold RUVAC WSU 2001",
+        status: secondaryReleased ? "Liberada" : "Bloqueada",
+        performance: secondaryReleased ? fmt(secondaryHealth * 100, "%") : "Aguardando faixa",
+        reading: `${fmt(secondaryStart, "mbar")} liberação`,
+        impact: "Reforço do vácuo após entrada em faixa segura."
+      },
+      {
+        type: "Mangueira de vácuo",
+        id: hose?.code || hose?.codigo || `MG-${config?.hose_id || "--"}`,
+        status: hoseLoss > 1 || config?.simulate_hose_leak ? "Atenção" : "Operacional",
+        performance: fmt(Math.max(45, 100 - hoseLoss * 18 - (config?.simulate_hose_leak ? 25 : 0)), "%"),
+        reading: `Fator ${fmt(hoseLoss)}`,
+        impact: "Perda de carga, restrição de fluxo e tempo de ciclo."
+      },
+      {
+        type: "Tanque de processo",
+        id: tank?.code || tank?.codigo || config?.tank_type || "Tanque simulado",
+        status: risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional",
+        performance: fmt(Math.max(45, 100 - risk * 0.42), "%"),
+        reading: `${fmt(finalPressure, "mbar")} final`,
+        impact: `Margem estrutural: ${fmt(safetyMargin, "mbar")}`
+      },
+      {
+        type: "Sensor de pressão",
+        id: `SP-${tank?.code || tank?.codigo || "SIM"}`,
+        status: config?.simulate_sensor_failure ? "Falha simulada" : "Online",
+        performance: config?.simulate_sensor_failure ? "35%" : "98%",
+        reading: fmt(finalPressure, "mbar"),
+        impact: "Leitura usada no diagnóstico e no histórico."
+      },
+      {
+        type: "Sistema de óleo",
+        id: "Injeção de óleo",
+        status: oilFlow < 1.5 ? "Vazão baixa" : "Operacional",
+        performance: fmt(Math.max(40, Math.min(100, oilFlow * 45)), "%"),
+        reading: `${fmt(oilFlow, "L/min")} · atraso ${fmt(oilDelay, "s")}`,
+        impact: "Vedação, estabilidade e proteção do conjunto."
+      }
+    ];
+
+    const actions = [
+      { step: "Preparação", status: "Concluída", ref: scenarioName, log: "Parâmetros carregados e componentes vinculados." },
+      { step: "Evacuação inicial", status: "Concluída", ref: "Bomba primária", log: "Redução inicial da pressão no tanque." },
+      { step: "Acionamento da bomba secundária", status: secondaryReleased ? "Liberado" : "Bloqueado", ref: `${fmt(secondaryStart, "mbar")}`, log: "Intertravamento avaliado pela pressão segura." },
+      { step: "Injeção de óleo", status: oilFlow < 1.5 ? "Restrição" : "Normal", ref: `${fmt(oilFlow, "L/min")}`, log: "Condição aplicada ao cálculo de estabilidade." },
+      { step: "Diagnóstico final", status: status === "success" ? "Aprovado" : status === "warning" ? "Atenção" : "Reprovado", ref: `${fmt(risk, "%")}`, log: recommendation }
+    ];
+
+    return {
+      id: `SIM-${Date.now().toString(36).toUpperCase()}`,
+      created_at: new Date().toISOString(),
+      scenario: scenarioName,
+      description: scenarioDescription,
+      status,
+      diagnosis,
+      probableCause,
+      recommendation,
+      config,
+      metrics: {
+        estimated_time_seconds: estimatedTime,
+        final_real_pressure_mbar: finalPressure,
+        max_collapse_risk_pct: risk,
+        safety_margin_mbar: safetyMargin,
+        secondary_start_pressure_mbar: secondaryStart,
+        secondary_released: secondaryReleased,
+        oil_flow_l_min: oilFlow,
+        hose_loss_factor: hoseLoss
+      },
+      timeline,
+      components,
+      actions
+    };
+  }
+
+  function persistResult(next: any) {
+    setResult(next);
+    const nextHistory = [next, ...history].slice(0, 80);
+    setHistory(nextHistory);
+    saveLocal("tsea.gemeo10.history", nextHistory);
+    saveLocal("tsea.gemeo10.lastResult", next);
+    setSelectedDetail(next);
+    setTab("result");
+  }
+
+  function runScenario(scenario: any) {
+    persistResult(buildSimulation(scenario.config || scenario, scenario.name || "Cenário manual", scenario.description || ""));
+  }
+
+  function saveScenario() {
+    const scenario = {
+      id: `CUSTOM-${Date.now().toString(36).toUpperCase()}`,
+      name: form.name || "Cenário personalizado",
+      description: form.description || "Cenário criado pelo usuário.",
+      tag: "Personalizado",
+      config: { ...form }
+    };
+
+    setCustomScenarios([scenario, ...customScenarios]);
+    setTab("custom");
+  }
+
+  function deleteScenario(id: string) {
+    setCustomScenarios(customScenarios.filter((item) => item.id !== id));
+  }
+
+  function useAsBase(scenario: any) {
+    const config = scenario.config || scenario;
+    setForm({ ...form, ...config, name: `${scenario.name} - cópia`, description: scenario.description || "" });
+    setTab("create");
+  }
+
+  function renderScenarioCard(scenario: any, custom = false) {
+    const config = scenario.config || {};
+
+    return (
+      <article className="twinScenarioCard" key={scenario.id}>
+        <div className="twinScenarioTop">
+          <div>
+            <strong>{scenario.name}</strong>
+            <span>{scenario.description}</span>
+          </div>
+          <small>{scenario.tag || (custom ? "Personalizado" : "Base")}</small>
+        </div>
+
+        <div className="twinScenarioMeta">
+          <span>Tanque: {config.tank_type || "--"}</span>
+          <span>Mangueira: {config.hose_id || "--"}</span>
+          <span>Pressão: {fmt(config.target_pressure_mbar, "mbar")}</span>
+          <span>Óleo: {fmt(config.oil_flow_l_min, "L/min")}</span>
+        </div>
+
+        <div className="twinScenarioActions">
+          <button onClick={() => runScenario(scenario)}>Simular</button>
+          <button className="secondary" onClick={() => useAsBase(scenario)}>Usar como base</button>
+          {custom && <button className="secondary" onClick={() => deleteScenario(scenario.id)}>Excluir</button>}
+        </div>
+      </article>
+    );
+  }
+
+  function renderConfigForm(data: any, setData: any, showIdentity = true) {
+    return (
+      <div className="twinForm">
+        {showIdentity && (
+          <>
+            <Field label="Nome do cenário">
+              <input value={data.name || ""} onChange={(e) => setData({ ...data, name: e.target.value })} />
+            </Field>
+
+            <Field label="Descrição">
+              <input value={data.description || ""} onChange={(e) => setData({ ...data, description: e.target.value })} />
+            </Field>
+          </>
+        )}
+
+        <Field label="Tipo de tanque">
+          <select value={data.tank_type || "grande"} onChange={(e) => setData({ ...data, tank_type: e.target.value })}>
+            <option value="pequeno">Pequeno</option>
+            <option value="medio">Médio</option>
+            <option value="grande">Grande</option>
+            <option value="extra_grande">Extra grande</option>
+          </select>
+        </Field>
+
+        <Field label="Tanque">
+          <select value={data.tank_id || allTanks?.[0]?.id || 1} onChange={(e) => setData({ ...data, tank_id: e.target.value })}>
+            {(allTanks || []).map((tank: any, index: number) => (
+              <option key={tank.id || index} value={tank.id || index + 1}>{tank.code || tank.codigo || `TQ-${index + 1}`}</option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Mangueira">
+          <select value={data.hose_id || allHoses?.[0]?.id || 1} onChange={(e) => setData({ ...data, hose_id: e.target.value })}>
+            {(allHoses || []).map((hose: any, index: number) => (
+              <option key={hose.id || index} value={hose.id || index + 1}>{hose.code || hose.codigo || `MG-${index + 1}`}</option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Pressão final desejada">
+          <input type="number" value={data.target_pressure_mbar ?? 6.5} onChange={(e) => setData({ ...data, target_pressure_mbar: Number(e.target.value) })} />
+        </Field>
+
+        <Field label="Pressão da bomba secundária">
+          <input type="number" value={data.secondary_start_pressure_mbar ?? 50} onChange={(e) => setData({ ...data, secondary_start_pressure_mbar: Number(e.target.value) })} />
+        </Field>
+
+        <Field label="Vazão de óleo">
+          <input type="number" value={data.oil_flow_l_min ?? 2} onChange={(e) => setData({ ...data, oil_flow_l_min: Number(e.target.value) })} />
+        </Field>
+
+        <Field label="Atraso do óleo">
+          <input type="number" value={data.oil_delay_seconds ?? 0} onChange={(e) => setData({ ...data, oil_delay_seconds: Number(e.target.value) })} />
+        </Field>
+
+        <Field label="Tempo máximo">
+          <input type="number" value={data.max_cycle_seconds ?? 900} onChange={(e) => setData({ ...data, max_cycle_seconds: Number(e.target.value) })} />
+        </Field>
+
+        <Field label="Saúde bomba primária">
+          <input type="number" step="0.01" value={data.primary_pump_health ?? 1} onChange={(e) => setData({ ...data, primary_pump_health: Number(e.target.value) })} />
+        </Field>
+
+        <Field label="Saúde bomba secundária">
+          <input type="number" step="0.01" value={data.secondary_pump_health ?? 1} onChange={(e) => setData({ ...data, secondary_pump_health: Number(e.target.value) })} />
+        </Field>
+
+        <Field label="Fator de calibração">
+          <input type="number" step="0.01" value={data.calibration_factor ?? 1} onChange={(e) => setData({ ...data, calibration_factor: Number(e.target.value) })} />
+        </Field>
+      </div>
+    );
+  }
+
+  function renderChecks(data: any, setData: any) {
+    return (
+      <div className="twinChecks">
+        <label><input type="checkbox" checked={!!data.simulate_hose_leak} onChange={(e) => setData({ ...data, simulate_hose_leak: e.target.checked })} /> Perda na mangueira</label>
+        <label><input type="checkbox" checked={!!data.simulate_sensor_failure} onChange={(e) => setData({ ...data, simulate_sensor_failure: e.target.checked })} /> Falha de sensor</label>
+        <label><input type="checkbox" checked={!!data.simulate_plc_loss} onChange={(e) => setData({ ...data, simulate_plc_loss: e.target.checked })} /> Falha de comunicação</label>
+      </div>
+    );
+  }
+
+  function MiniChart({ points }: any) {
+    const list = Array.isArray(points) ? points : [];
+    if (!list.length) return <Empty text="Execute uma simulação para gerar a curva." />;
+
+    const values = list.flatMap((p: any) => [
+      Number(p.real_pressure_mbar || 0),
+      Number(p.expected_pressure_mbar || 0),
+      Number(p.effective_pressure_mbar || 0)
+    ]);
+
+    const max = Math.max(...values, 10);
+    const min = Math.min(...values, 0);
+    const span = Math.max(max - min, 1);
+
+    function poly(key: string) {
+      return list.map((p: any, index: number) => {
+        const value = Number(p[key] || 0);
+        const x = (index / Math.max(list.length - 1, 1)) * 100;
+        const y = 94 - ((value - min) / span) * 84;
+        return `${x},${y}`;
+      }).join(" ");
+    }
+
+    return (
+      <div className="twinChart">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          <line x1="0" y1="94" x2="100" y2="94" className="axis" />
+          <line x1="0" y1="10" x2="0" y2="94" className="axis" />
+          <polyline points={poly("expected_pressure_mbar")} className="expectedLine" />
+          <polyline points={poly("real_pressure_mbar")} className="realLine" />
+          <polyline points={poly("effective_pressure_mbar")} className="riskLine" />
+        </svg>
+
+        <div className="chartLegend">
+          <span><i className="realDot" />Simulada</span>
+          <span><i className="expectedDot" />Esperada</span>
+          <span><i className="riskDot" />Carga estrutural</span>
+        </div>
+      </div>
+    );
+  }
+
+  function renderTraceability(target: any) {
+    if (!target) return <Empty text="Nenhuma simulação selecionada." />;
+
+    return (
+      <div className="twinTraceability">
+        <div className="traceHeader">
+          <div>
+            <h3>Rastreabilidade da simulação</h3>
+            <p>Registro por máquina, peça, sensor, mangueira, óleo e ação simulada.</p>
+          </div>
+          <Badge value={target.status} />
+        </div>
+
+        <div className="tracePanel">
+          <h3>Máquinas, peças e sensores</h3>
+          <Table
+            columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"]}
+            rows={(target.components || []).map((item: any) => [
+              <b>{item.type}</b>,
+              item.id,
+              item.status,
+              item.performance,
+              item.reading,
+              item.impact
+            ])}
+          />
+        </div>
+
+        <div className="tracePanel">
+          <h3>Ações da operação simulada</h3>
+          <Table
+            columns={["Etapa", "Status", "Referência", "Registro técnico"]}
+            rows={(target.actions || []).map((item: any) => [
+              <b>{item.step}</b>,
+              item.status,
+              item.ref,
+              item.log
+            ])}
+          />
+        </div>
+
+        <div className="tracePanel">
+          <h3>Relatório técnico da simulação</h3>
+          <Table
+            columns={["Item", "Valor", "Interpretação"]}
+            rows={[
+              [<b>Status final</b>, <Badge value={target.status} />, target.status === "success" ? "Bem-sucedida" : target.status === "warning" ? "Aprovada com restrição" : "Reprovada"],
+              [<b>Pressão final</b>, fmt(target.metrics?.final_real_pressure_mbar, "mbar"), "Valor final previsto pelo modelo."],
+              [<b>Tempo estimado</b>, fmt(target.metrics?.estimated_time_seconds, "s"), "Duração prevista do ciclo."],
+              [<b>Risco máximo</b>, fmt(target.metrics?.max_collapse_risk_pct, "%"), target.metrics?.max_collapse_risk_pct >= 82 ? "Risco crítico" : target.metrics?.max_collapse_risk_pct >= 65 ? "Atenção" : "Seguro"],
+              [<b>Margem de segurança</b>, fmt(target.metrics?.safety_margin_mbar, "mbar"), "Distância estimada até o limite do tanque."],
+              [<b>Motivo principal</b>, target.probableCause || "--", target.recommendation || "--"]
+            ]}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Section title="Gêmeo Digital do processo de vácuo" subtitle="Simulação operacional com cenários, criação de testes, diagnóstico, rastreabilidade e histórico técnico.">
+      <div className="twin10Tabs">
+        <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>Cenários base</button>
+        <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>Personalizados</button>
+        <button className={tab === "create" ? "" : "secondary"} onClick={() => setTab("create")}>Criar cenário</button>
+        <button className={tab === "manual" ? "" : "secondary"} onClick={() => setTab("manual")}>Manual</button>
+        <button className={tab === "result" ? "" : "secondary"} onClick={() => setTab("result")}>Resultado</button>
+        <button className={tab === "history" ? "" : "secondary"} onClick={() => setTab("history")}>Histórico</button>
+        <button className={tab === "technical" ? "" : "secondary"} onClick={() => setTab("technical")}>Dados técnicos</button>
+      </div>
+
+      {tab === "base" && (
+        <div className="twin10Grid">
+          {baseScenarios.map((scenario) => renderScenarioCard(scenario))}
+        </div>
+      )}
+
+      {tab === "custom" && (
+        customScenarios.length ? (
+          <div className="twin10Grid">
+            {customScenarios.map((scenario) => renderScenarioCard(scenario, true))}
+          </div>
+        ) : (
+          <Empty text="Nenhum cenário personalizado salvo. Use a aba Criar cenário." />
+        )
+      )}
+
+      {tab === "create" && (
+        <div className="twin10Panel">
+          <h3>Criar cenário de teste</h3>
+          <p>Monte um cenário com tanque, mangueira, pressão, óleo, saúde das bombas e falhas simuladas.</p>
+
+          {renderConfigForm(form, setForm, true)}
+          {renderChecks(form, setForm)}
+
+          <div className="actions">
+            <button onClick={saveScenario}>Salvar cenário</button>
+            <button className="secondary" onClick={() => runScenario({ name: form.name, description: form.description, config: form })}>Simular agora</button>
+          </div>
+        </div>
+      )}
+
+      {tab === "manual" && (
+        <div className="twin10Panel">
+          <h3>Simulação manual</h3>
+          <p>Ajuste parâmetros rapidamente sem salvar como cenário.</p>
+
+          {renderConfigForm(manual, setManual, false)}
+          {renderChecks(manual, setManual)}
+
+          <div className="actions">
+            <button onClick={() => runScenario({ name: "Simulação manual", description: "Teste manual de parâmetros", config: manual })}>Executar simulação</button>
+          </div>
+        </div>
+      )}
+
+      {tab === "result" && (
+        result ? (
+          <div className="twin10Result">
+            <div className="metrics">
+              <Metric label="Status" value={<Badge value={result.status} />} detail={result.scenario} />
+              <Metric label="Pressão final" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Resultado previsto" />
+              <Metric label="Tempo estimado" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="Duração do ciclo" />
+              <Metric label="Risco máximo" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="Avaliação estrutural" />
+            </div>
+
+            <div className="diagnosticBox">
+              <strong>{result.diagnosis}</strong>
+              <span>{result.probableCause}</span>
+              <small>{result.recommendation}</small>
+            </div>
+
+            <MiniChart points={result.timeline} />
+
+            {renderTraceability(result)}
+          </div>
+        ) : (
+          <Empty text="Execute uma simulação para gerar o resultado." />
+        )
+      )}
+
+      {tab === "history" && (
+        history.length ? (
+          <div className="twin10History">
+            <Table
+              columns={["ID", "Data", "Cenário", "Status", "Risco", "Pressão", "Detalhes"]}
+              rows={history.map((item) => [
+                <b>{item.id}</b>,
+                new Date(item.created_at).toLocaleString("pt-BR"),
+                item.scenario,
+                <Badge value={item.status} />,
+                fmt(item.metrics?.max_collapse_risk_pct, "%"),
+                fmt(item.metrics?.final_real_pressure_mbar, "mbar"),
+                <button className="secondary" onClick={() => setSelectedDetail(item)}>Ver detalhes</button>
+              ])}
+            />
+
+            {selectedDetail && (
+              <div className="detailPanel">
+                <div className="traceHeader">
+                  <div>
+                    <h3>{selectedDetail.scenario}</h3>
+                    <p>{selectedDetail.diagnosis}</p>
+                  </div>
+                  <button className="secondary" onClick={() => setSelectedDetail(null)}>Fechar</button>
+                </div>
+
+                {renderTraceability(selectedDetail)}
+              </div>
+            )}
+          </div>
+        ) : (
+          <Empty text="Nenhuma simulação registrada ainda." />
+        )
+      )}
+
+      {tab === "technical" && (
+        <div className="twin10Panel">
+          <Table
+            columns={["Sistema", "Modelo", "Dado técnico", "Função"]}
+            rows={[
+              ["Bomba primária", "Leybold SOGEVAC SV 630 B", "640 m³/h · ≤ 0,08 mbar · 20 L óleo · 15 kW", "Evacuação inicial e sustentação do vácuo."],
+              ["Bomba secundária", "Leybold RUVAC WSU 2001", "2050 m³/h · < 4 × 10⁻² mbar · ΔP 50 mbar", "Reforço após faixa segura de pressão."],
+              ["Mangueira", "MG-VAC", "Comprimento, diâmetro e fator de perda", "Impacta perda de carga e tempo de ciclo."],
+              ["Tanque", "TQ-REG", "Volume, pressão final e limite estrutural", "Base para cálculo de risco e margem."],
+              ["Sensor", "SP-TQ", "Pressão, status e confiabilidade", "Alimenta diagnóstico e rastreabilidade."]
+            ]}
+          />
+        </div>
+      )}
+    </Section>
+  );
+}
+
+/* TSEA_GEMEO_DIGITAL_10_END */
 
 function App() {
 
@@ -1516,148 +2207,11 @@ function App() {
 
         {view === "twin" && (
           <div className="screen">
-
-            <TseaTwinRecoveryPanel
+            <TseaDigitalTwin10
               state={state}
               allTanks={allTanks}
               allHoses={allHoses}
             />
-
-            <Section title="Gêmeo Digital" subtitle="Cenários, configuração manual, resultado e diagnóstico.">
-              <div className="subtabs">
-                <button className={twinTab === "scenarios" ? "" : "secondary"} onClick={() => setTwinTab("scenarios")}>Cenários</button>
-                <button className={twinTab === "manual" ? "" : "secondary"} onClick={() => setTwinTab("manual")}>Configuração</button>
-                <button className={twinTab === "result" ? "" : "secondary"} onClick={() => setTwinTab("result")}>Resultado</button>
-                <button className={twinTab === "assistant" ? "" : "secondary"} onClick={() => setTwinTab("assistant")}>Assistente</button>
-                <button className={twinTab === "technical" ? "" : "secondary"} onClick={() => setTwinTab("technical")}>Dados Técnicos</button>
-              </div>
-
-              {twinTab === "scenarios" && (
-                <div className="scenarioGrid">
-                  {Object.entries(options?.presets || {}).map(([key, preset]: [string, any]) => (
-                    <button
-                      key={key}
-                      className={`scenarioCard ${selectedScenario === key ? "selected" : ""}`}
-                      onClick={() => runScenario(key)}
-                    >
-                      <strong>{preset.name || key}</strong>
-                      <span>{preset.description || "Cenário de processo"}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {twinTab === "manual" && (
-                <div>
-                  <div className="formGrid">
-                    <Field label="Tipo de tanque">
-                      <select value={twinManual.tank_type} onChange={(e) => setTwin("tank_type", e.target.value)}>
-                        <option value="medio">Médio</option>
-                        <option value="grande">Grande</option>
-                        <option value="extra_grande">Extra grande</option>
-                      </select>
-                    </Field>
-
-                    <Field label="Mangueira de vácuo">
-                      <select value={twinManual.hose_id} onChange={(e) => setTwin("hose_id", Number(e.target.value))}>
-                        {allHoses.map((hose: any) => (
-                          <option key={hose.id || hose.code} value={hose.id || hose.code}>{hose.code} · {fmt(hose.length_m, "m")}</option>
-                        ))}
-                      </select>
-                    </Field>
-
-                    <Field label="Pressão final">
-                      <input type="number" value={twinManual.target_pressure_mbar} onChange={(e) => setTwin("target_pressure_mbar", Number(e.target.value))} />
-                    </Field>
-
-                    <Field label="Acionamento da bomba secundária">
-                      <input type="number" value={twinManual.roots_start_pressure_mbar} onChange={(e) => setTwin("roots_start_pressure_mbar", Number(e.target.value))} />
-                    </Field>
-
-                    <Field label="Vazão de óleo">
-                      <input type="number" value={twinManual.oil_flow_l_min} onChange={(e) => setTwin("oil_flow_l_min", Number(e.target.value))} />
-                    </Field>
-
-                    <Field label="Atraso do óleo">
-                      <input type="number" value={twinManual.oil_delay_seconds} onChange={(e) => setTwin("oil_delay_seconds", Number(e.target.value))} />
-                    </Field>
-
-                    <Field label="Índice da bomba">
-                      <input type="number" step="0.01" value={twinManual.pump_health_factor} onChange={(e) => setTwin("pump_health_factor", Number(e.target.value))} />
-                    </Field>
-
-                    <Field label="Fator de calibração">
-                      <input type="number" step="0.001" value={twinManual.calibration_factor} onChange={(e) => setTwin("calibration_factor", Number(e.target.value))} />
-                    </Field>
-                  </div>
-
-                  <div className="checkGrid">
-                    <label><input type="checkbox" checked={!!twinManual.hose_correction_enabled} onChange={(e) => setTwin("hose_correction_enabled", e.target.checked)} /> Correção da mangueira</label>
-                    <label><input type="checkbox" checked={!!twinManual.oil_compensation_enabled} onChange={(e) => setTwin("oil_compensation_enabled", e.target.checked)} /> Compensação de óleo</label>
-                    <label><input type="checkbox" checked={!!twinManual.simulate_hose_leak} onChange={(e) => setTwin("simulate_hose_leak", e.target.checked)} /> Perda de vedação</label>
-                    <label><input type="checkbox" checked={!!twinManual.simulate_sensor_failure} onChange={(e) => setTwin("simulate_sensor_failure", e.target.checked)} /> Falha de sensor</label>
-                    <label><input type="checkbox" checked={!!twinManual.simulate_plc_loss} onChange={(e) => setTwin("simulate_plc_loss", e.target.checked)} /> Falha de CLP</label>
-                  </div>
-
-                  <div className="commandBar">
-                    <button onClick={runManualSimulation}>Executar simulação manual</button>
-                    <button className="secondary" onClick={() => download("configuracao-gemeo-digital.json", twinManual)}>Exportar configuração</button>
-                  </div>
-                </div>
-              )}
-
-              {twinTab === "result" && (
-                !simulationResult ? (
-                  <Empty text="Nenhuma simulação executada." />
-                ) : (
-                  <div className="resultStack">
-                    <div className="metricsGrid compact">
-                      <Metric label="Estado" value={statusLabel(simulationResult.status)} status={simulationResult.status} />
-                      <Metric label="Tempo Estimado" value={fmt(simulationResult.metrics?.estimated_time_seconds, "s")} />
-                      <Metric label="Pressão Final" value={fmt(simulationResult.metrics?.final_real_pressure_mbar, "mbar")} />
-                      <Metric label="Risco Máximo" value={fmt(simulationResult.metrics?.max_collapse_risk_pct, "%")} status={simulationResult.status} />
-                    </div>
-
-                    <Chart points={simulationResult.timeline || []} />
-
-                    <div className="diagnosticBox">
-                      <strong>{simulationResult.diagnosis || "Diagnóstico não informado."}</strong>
-                      <span>{simulationResult.recommendation || "Sem recomendação adicional."}</span>
-                    </div>
-
-                    <SimulationTraceability
-                      result={simulationResult}
-                      state={state}
-                      selectedScenario={selectedScenario}
-                      hoses={allHoses}
-                      tanks={allTanks}
-                      config={selectedScenario === "manual" ? twinManual : (allScenarios.find((scenario: any) => scenario.key === selectedScenario)?.config || twinManual)}
-                    />
-                  </div>
-                )
-              )}
-
-              {twinTab === "assistant" && (
-                <div className="assistantBox">
-                  <Field label="Consulta técnica">
-                    <input value={assistantQuestion} onChange={(e) => setAssistantQuestion(e.target.value)} placeholder="Ex.: por que o risco aumentou?" />
-                  </Field>
-                  <button onClick={askAssistant}>Analisar</button>
-                  {assistantAnswer && <div className="diagnosticBox"><strong>Resposta técnica</strong><span>{assistantAnswer}</span></div>}
-                </div>
-              )}
-
-              {twinTab === "technical" && (
-                <div className="infoGridLarge">
-                  <div><span>Modelo de pressão</span><b>dP/dt = -(S/V)P</b></div>
-                  <div><span>Bomba primária</span><b>{state?.primary_pump?.model || "SV 630 B"}</b></div>
-                  <div><span>Bomba secundária</span><b>{state?.roots_pump?.model || "WSU 2001"}</b></div>
-                  <div><span>Pressão segura bomba secundária</span><b>{fmt(state?.roots_pump?.safe_start_pressure_mbar, "mbar")}</b></div>
-                  <div><span>Mangueiras cadastradas</span><b>{allHoses.length}</b></div>
-                  <div><span>Receitas cadastradas</span><b>{allRecipes.length}</b></div>
-                </div>
-              )}
-            </Section>
           </div>
         )}
 
