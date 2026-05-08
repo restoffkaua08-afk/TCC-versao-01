@@ -716,3 +716,248 @@ th {
     grid-column: 1 / -1;
   }
 }
+
+
+/* Tema escuro TSEA - preto, branco, vermelho e verde esmeralda */
+html[data-theme="dark"] {
+  --bg: #000000;
+  --surface: #050505;
+  --surfaceSoft: #0b0f0d;
+  --line: #1b211f;
+  --lineStrong: #2f3a35;
+  --ink: #f7f7f7;
+  --muted: #a7b0ac;
+  --green: #10b981;
+  --greenDark: #059669;
+  --red: #ef4444;
+  --amber: #d1d5db;
+  --blue: #e5e7eb;
+}
+
+html[data-theme="dark"] body {
+  background: #000000 !important;
+  color: #f7f7f7;
+}
+
+html[data-theme="dark"] .layout,
+html[data-theme="dark"] main,
+html[data-theme="dark"] .content {
+  background: #000000 !important;
+  color: #f7f7f7;
+}
+
+html[data-theme="dark"] .drawer,
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .section,
+html[data-theme="dark"] .tankCard,
+html[data-theme="dark"] .metric,
+html[data-theme="dark"] .scenarioCard,
+html[data-theme="dark"] .chartBox,
+html[data-theme="dark"] .tableWrap,
+html[data-theme="dark"] table,
+html[data-theme="dark"] .machineCard,
+html[data-theme="dark"] .infoCard,
+html[data-theme="dark"] .diagnosticBox,
+html[data-theme="dark"] .tracePanel,
+html[data-theme="dark"] .traceHeader,
+html[data-theme="dark"] .scenarioColumn,
+html[data-theme="dark"] .scenarioEmpty,
+html[data-theme="dark"] .reportBox,
+html[data-theme="dark"] .errorPanel {
+  background: #050505 !important;
+  border-color: #1b211f !important;
+  color: #f7f7f7 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] strong,
+html[data-theme="dark"] b {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] p,
+html[data-theme="dark"] small,
+html[data-theme="dark"] .brandBlock small,
+html[data-theme="dark"] .drawerFooter small,
+html[data-theme="dark"] .navList button small,
+html[data-theme="dark"] .field span,
+html[data-theme="dark"] .metric span,
+html[data-theme="dark"] .tankReadings span,
+html[data-theme="dark"] .infoGrid span,
+html[data-theme="dark"] .infoGridLarge span,
+html[data-theme="dark"] .scenarioColumnHead span,
+html[data-theme="dark"] .scenarioCard span,
+html[data-theme="dark"] .empty,
+html[data-theme="dark"] .chartLegend span,
+html[data-theme="dark"] .legend span {
+  color: #a7b0ac !important;
+}
+
+html[data-theme="dark"] .brandBlock span,
+html[data-theme="dark"] .moduleLabel {
+  color: #10b981 !important;
+}
+
+html[data-theme="dark"] .navList button {
+  background: transparent !important;
+  color: #f7f7f7 !important;
+  border-color: transparent !important;
+}
+
+html[data-theme="dark"] .navList button:hover {
+  background: #0b0f0d !important;
+  border-color: #2f3a35 !important;
+}
+
+html[data-theme="dark"] .navList button.active,
+html[data-theme="dark"] .scenarioCard.selected {
+  background: rgba(16, 185, 129, .13) !important;
+  border-color: rgba(16, 185, 129, .65) !important;
+}
+
+html[data-theme="dark"] button {
+  background: #10b981;
+  color: #00130d;
+}
+
+html[data-theme="dark"] button:hover {
+  background: #059669;
+}
+
+html[data-theme="dark"] button.secondary,
+html[data-theme="dark"] .button.secondary,
+html[data-theme="dark"] .hamburger,
+html[data-theme="dark"] .themeToggle {
+  background: #050505 !important;
+  color: #f7f7f7 !important;
+  border: 1px solid #2f3a35 !important;
+}
+
+html[data-theme="dark"] button.danger {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select {
+  background: #000000 !important;
+  color: #f7f7f7 !important;
+  border-color: #2f3a35 !important;
+}
+
+html[data-theme="dark"] th {
+  background: #0b0f0d !important;
+  color: #d1d5db !important;
+  border-color: #1b211f !important;
+}
+
+html[data-theme="dark"] td {
+  background: #050505 !important;
+  border-color: #171d1a !important;
+  color: #f7f7f7 !important;
+}
+
+html[data-theme="dark"] .tankShell {
+  background: #000000 !important;
+  border-color: #d1d5db !important;
+}
+
+html[data-theme="dark"] .tankFill.gas {
+  background: rgba(229, 231, 235, .52) !important;
+}
+
+html[data-theme="dark"] .tankFill.pressure {
+  background: rgba(239, 68, 68, .72) !important;
+}
+
+html[data-theme="dark"] .tankFill.oil {
+  background: rgba(16, 185, 129, .78) !important;
+}
+
+html[data-theme="dark"] .pressureDot,
+html[data-theme="dark"] .riskDot,
+html[data-theme="dark"] .dot.off {
+  background: #ef4444 !important;
+}
+
+html[data-theme="dark"] .oilDot,
+html[data-theme="dark"] .realDot,
+html[data-theme="dark"] .dot.on {
+  background: #10b981 !important;
+}
+
+html[data-theme="dark"] .gasDot,
+html[data-theme="dark"] .expectedDot {
+  background: #e5e7eb !important;
+}
+
+#tsea-theme-toggle-fixed {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9999;
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 800;
+  border: 1px solid var(--lineStrong, #2f3a35);
+  background: #050505;
+  color: #f7f7f7;
+  cursor: pointer;
+}
+
+#tsea-theme-toggle-fixed:hover {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.componentTraceStack,
+.traceabilityStack {
+  display: grid;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.traceHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--surfaceSoft);
+}
+
+.tracePanel {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--surface);
+  display: grid;
+  gap: 10px;
+}
+
+.scenarioBoard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.scenarioColumn {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--surfaceSoft);
+}
+
+@media (max-width: 900px) {
+  .scenarioBoard {
+    grid-template-columns: 1fr;
+  }
+}
+

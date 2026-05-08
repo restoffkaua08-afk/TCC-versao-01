@@ -62,7 +62,7 @@ function statusLabel(status: unknown) {
   const value = String(status || "").toLowerCase();
 
   const map: Record<string, string> = {
-    success: "Conforme",
+    success: "Operacional",
     warning: "Atenção",
     critical: "Crítico",
     running: "Em execução",
@@ -82,7 +82,7 @@ function statusLabel(status: unknown) {
 function tone(status: unknown) {
   const value = String(status || "").toLowerCase();
 
-  if (["success", "concluido", "running", "ok", "conforme", "available"].includes(value)) return "ok";
+  if (["success", "concluido", "running", "ok", "operacional", "available"].includes(value)) return "ok";
   if (["warning", "paused", "em_andamento", "atenção", "atencao", "attention"].includes(value)) return "warn";
   if (["critical", "abortado", "emergency", "falha", "fault"].includes(value)) return "bad";
 
@@ -199,7 +199,7 @@ function TankCard({ item }: { item: any }) {
       <div className="tankTop">
         <div>
           <strong>{item?.tank?.code || "Tanque de Processo"}</strong>
-          <span>{item?.hose?.code || "Linha de Vácuo"}</span>
+          <span>{item?.hose?.code || "Mangueira de Vácuo"}</span>
         </div>
         <Badge value={risk >= 82 ? "critical" : risk >= 65 ? "warning" : "success"} />
       </div>
@@ -216,7 +216,7 @@ function TankCard({ item }: { item: any }) {
           <div><span>Curva Esperada</span><b>{fmt(item?.expected_pressure_mbar, "mbar")}</b></div>
           <div><span>Volume de Óleo</span><b>{fmt(item?.oil_volume_liters, "L")}</b></div>
           <div><span>Risco Estrutural</span><b>{fmt(risk, "%")}</b></div>
-          <div><span>Perda na Linha</span><b>{fmt(item?.hose_loss_mbar, "mbar")}</b></div>
+          <div><span>Perda na Mangueira</span><b>{fmt(item?.hose_loss_mbar, "mbar")}</b></div>
           <div><span>Sinal</span><b>{item?.status_light || "green"}</b></div>
         </div>
       </div>
@@ -273,7 +273,227 @@ function Chart({ points }: { points: any[] }) {
   );
 }
 
+
+const EQUIPMENT_SPECS = {
+  primaryPump: {
+    model: "Leybold SOGEVAC SV 630 B",
+    technology: "Bomba rotativa de palhetas lubrificada a óleo",
+    nominalSpeed50Hz: "640 m³/h",
+    nominalSpeed60Hz: "755 m³/h",
+    ultimatePressureNoGasBallast: "≤ 0,08 mbar",
+    ultimatePressureGasBallast: "≤ 0,7 mbar",
+    oilFilling: "20 L",
+    motorPower50Hz: "15 kW",
+    nominalRpm50Hz: "820 rpm",
+    inlet: "DN 100 PN 10 / DN 100 ISO-K",
+    role: "Bomba de apoio responsável pela evacuação inicial e sustentação do conjunto Roots."
+  },
+  rootsPump: {
+    model: "Leybold RUVAC WSU 2001",
+    technology: "Bomba Roots com motor blindado refrigerado a ar",
+    nominalSpeed50Hz: "2050 m³/h",
+    nominalSpeed60Hz: "2460 m³/h",
+    effectiveSpeedWithSogevac50Hz: "1850 m³/h",
+    effectiveSpeedWithSogevac60Hz: "2100 m³/h",
+    ultimatePressure: "< 4 × 10⁻² mbar",
+    maxDifferentialPressure: "50 mbar",
+    leakRate: "< 1 × 10⁻⁴ mbar·l/s",
+    role: "Estágio de reforço usado após a pressão entrar na faixa segura de acionamento."
+  }
+};
+
+
+
+function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
+  const tankStates = Array.isArray(state?.tank_states) ? state.tank_states : [];
+  const firstTank = tankStates[0] || {};
+  const avgPressure = tankStates.length
+    ? tankStates.reduce((sum: number, item: any) => sum + Number(item.pressure_mbar || 0), 0) / tankStates.length
+    : Number(firstTank.pressure_mbar || 0);
+
+  const pumpRows = [
+    [
+      <b>Bomba primária</b>,
+      EQUIPMENT_SPECS.primaryPump.model,
+      state?.primary_pump?.running ? "Ligada" : "Pronta",
+      "98%",
+      EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz,
+      EQUIPMENT_SPECS.primaryPump.role
+    ],
+    [
+      <b>Bomba Roots</b>,
+      EQUIPMENT_SPECS.rootsPump.model,
+      state?.roots_pump?.running ? "Ligada" : "Intertravada",
+      state?.roots_pump?.running ? "96%" : "Aguardando faixa",
+      EQUIPMENT_SPECS.rootsPump.nominalSpeed50Hz,
+      EQUIPMENT_SPECS.rootsPump.role
+    ]
+  ];
+
+  const tankRows = (tankStates.length ? tankStates : allTanks).map((item: any, index: number) => {
+    const tank = item?.tank || item;
+    const pressure = Number(item?.pressure_mbar ?? item?.expected_pressure_mbar ?? 0);
+    const oil = Number(item?.oil_volume_liters ?? 0);
+    const risk = Number(item?.collapse_risk_pct ?? 0);
+
+    return [
+      <b>{tank?.code || item?.code || `TQ-${index + 1}`}</b>,
+      tank?.type || item?.type || "Tanque de processo",
+      fmt(pressure, "mbar"),
+      fmt(oil, "L"),
+      fmt(risk, "%"),
+      risk >= 82 ? <Badge value="critical" /> : risk >= 65 ? <Badge value="warning" /> : <Badge value="success" />
+    ];
+  });
+
+  const hoseRows = allHoses.map((hose: any) => [
+    <b>{hose.code || `MG-${hose.id}`}</b>,
+    fmt(hose.length_m, "m"),
+    fmt(hose.diameter_in, "pol"),
+    fmt(hose.loss_factor),
+    Number(hose.loss_factor || 0) > 1 ? <Badge value="warning" /> : <Badge value="success" />,
+    "Conexão entre bomba, tanque e processo de vácuo."
+  ]);
+
+  const sensorRows = (tankStates.length ? tankStates : [{ tank: { code: "TQ-SIM" }, pressure_mbar: avgPressure }]).map((item: any, index: number) => {
+    const tank = item?.tank || {};
+    const pressure = Number(item?.pressure_mbar ?? item?.expected_pressure_mbar ?? 0);
+    const risk = Number(item?.collapse_risk_pct ?? 0);
+
+    return [
+      <b>{`SP-${tank.code || index + 1}`}</b>,
+      tank.code || `Tanque ${index + 1}`,
+      "Pressão",
+      fmt(pressure, "mbar"),
+      risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional",
+      fmt(risk >= 82 ? 62 : risk >= 65 ? 82 : 98, "%")
+    ];
+  });
+
+  return (
+    <div className="componentTraceStack">
+      <Section title="Rastreabilidade de máquinas e peças" subtitle="Status, desempenho e leitura dos principais componentes do processo.">
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura técnica", "Função no processo"]} rows={pumpRows} />
+      </Section>
+
+      <Section title="Tanques do processo" subtitle="Leituras numéricas dos tanques usados no ciclo.">
+        <Table columns={["Tanque", "Tipo", "Pressão", "Óleo", "Risco", "Status"]} rows={tankRows} />
+      </Section>
+
+      <Section title="Mangueiras de vácuo" subtitle="Componentes de ligação entre bombas, tanque e processo.">
+        <Table columns={["Mangueira", "Comprimento", "Diâmetro", "Fator de perda", "Status", "Função"]} rows={hoseRows} />
+      </Section>
+
+      <Section title="Sensores do processo" subtitle="Leituras usadas para controle, diagnóstico e rastreabilidade.">
+        <Table columns={["Sensor", "Tanque", "Variável", "Leitura", "Status", "Desempenho"]} rows={sensorRows} />
+      </Section>
+    </div>
+  );
+}
+
+
+
+function SimulationTraceability({ result, state, selectedScenario, hoses, tanks, config }: any) {
+  if (!result) return null;
+
+  const metrics = result.metrics || {};
+  const timeline = result.timeline || [];
+  const finalPoint = timeline[timeline.length - 1] || {};
+  const selectedHose = hoses.find((hose: any) => String(hose.id) === String(config?.hose_id) || String(hose.code) === String(config?.hose_id)) || hoses[0] || {};
+  const selectedTank = tanks.find((tank: any) => String(tank.type) === String(config?.tank_type) || String(tank.id) === String(config?.tank_id)) || tanks[0] || {};
+
+  const risk = Number(metrics.max_collapse_risk_pct || metrics.collapse_risk_pct || finalPoint.collapse_risk_pct || 0);
+  const finalPressure = Number(metrics.final_real_pressure_mbar ?? finalPoint.real_pressure_mbar ?? finalPoint.pressure_mbar ?? 0);
+  const estimatedTime = Number(metrics.estimated_time_seconds || metrics.cycle_time_seconds || 0);
+  const oilFlow = Number(config?.oil_flow_l_min || 0);
+  const hoseLoss = Number(selectedHose?.loss_factor || finalPoint.hose_loss_mbar || 0);
+
+  const simulationStatus = result.status === "success"
+    ? "Ciclo simulado aprovado"
+    : result.status === "warning"
+      ? "Ciclo simulado aprovado com restrição"
+      : "Ciclo simulado reprovado";
+
+  const componentRows = [
+    [<b>Bomba primária</b>, EQUIPMENT_SPECS.primaryPump.model, state?.primary_pump?.running ? "Ligada" : "Pronta", "98%", EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz, EQUIPMENT_SPECS.primaryPump.role],
+    [<b>Bomba Roots</b>, EQUIPMENT_SPECS.rootsPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", EQUIPMENT_SPECS.rootsPump.nominalSpeed50Hz, "Acionamento condicionado à pressão segura."],
+    [<b>Mangueira de vácuo</b>, selectedHose?.code || `MG-${config?.hose_id || "--"}`, hoseLoss > 1 ? "Perda elevada" : "Operacional", fmt(Math.max(70, 100 - hoseLoss * 12), "%"), `Fator ${fmt(hoseLoss)}`, "Perda de carga e restrição de fluxo."],
+    [<b>Tanque de processo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressão efetiva."],
+    [<b>Sensor de pressão</b>, `SP-${selectedTank?.code || "SIM"}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", fmt(finalPressure, "mbar"), "Mede pressão do tanque e alimenta diagnóstico."],
+    [<b>Sistema de óleo</b>, "Injeção de óleo", oilFlow < 1.5 ? "Vazão baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "L/min"), "Afeta vedação, estabilidade da curva e proteção do conjunto."]
+  ];
+
+  const actionRows = [
+    [<b>Preparação</b>, "Parâmetros carregados", selectedTank?.code || config?.tank_type || "--", selectedHose?.code || `MG-${config?.hose_id || "--"}`, "Configuração aplicada ao ciclo simulado."],
+    [<b>Evacuação inicial</b>, "Bomba primária em atuação", fmt(estimatedTime * 0.35, "s"), fmt(finalPressure, "mbar"), "Redução inicial da pressão no tanque."],
+    [<b>Acionamento Roots</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar, "mbar"), "Intertravamento", "A Roots só entra em faixa segura."],
+    [<b>Injeção de óleo</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "L/min"), "Vedação", "Condição usada para estabilidade e risco."],
+    [<b>Fechamento</b>, simulationStatus, fmt(risk, "%"), "Resultado", result.recommendation || "Sem recomendação adicional."]
+  ];
+
+  const reportRows = [
+    [<b>Status final</b>, <Badge value={result.status} />, simulationStatus],
+    [<b>Pressão final</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulação."],
+    [<b>Tempo estimado</b>, fmt(estimatedTime, "s"), "Duração prevista do ciclo."],
+    [<b>Risco máximo</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restrição" : "Aprovado"],
+    [<b>Cenário</b>, selectedScenario || "Manual", "Origem da simulação usada no diagnóstico."]
+  ];
+
+  return (
+    <div className="traceabilityStack">
+      <div className="traceHeader">
+        <div>
+          <h3>Rastreabilidade da simulação</h3>
+          <p>Registro técnico por máquina, peça, sensor, mangueira e ação simulada.</p>
+        </div>
+        <Badge value={result.status} />
+      </div>
+
+      <div className="tracePanel">
+        <h3>Máquinas, peças e sensores</h3>
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto no processo"]} rows={componentRows} />
+      </div>
+
+      <div className="tracePanel">
+        <h3>Ações da operação simulada</h3>
+        <Table columns={["Etapa", "Status", "Referência", "Evento", "Registro técnico"]} rows={actionRows} />
+      </div>
+
+      <div className="tracePanel">
+        <h3>Relatório da simulação</h3>
+        <Table columns={["Item", "Valor", "Interpretação"]} rows={reportRows} />
+      </div>
+    </div>
+  );
+}
+
+
 function App() {
+
+  const [tseaDarkTheme, setTseaDarkTheme] = useState(() => localStorage.getItem("tsea.theme") === "dark");
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = tseaDarkTheme ? "dark" : "light";
+    localStorage.setItem("tsea.theme", tseaDarkTheme ? "dark" : "light");
+
+    let button = document.getElementById("tsea-theme-toggle-fixed") as HTMLButtonElement | null;
+
+    if (!button) {
+      button = document.createElement("button");
+      button.id = "tsea-theme-toggle-fixed";
+      button.type = "button";
+      document.body.appendChild(button);
+    }
+
+    button.textContent = tseaDarkTheme ? "Claro" : "Escuro";
+    button.onclick = () => setTseaDarkTheme((current) => !current);
+
+    return () => {
+      if (button) button.onclick = null;
+    };
+  }, [tseaDarkTheme]);
+
+
   const [view, setView] = useState<View>("dashboard");
   const [menuOpen, setMenuOpen] = useState(false);
   const [apiOnline, setApiOnline] = useState(false);
@@ -494,14 +714,14 @@ function App() {
 
     if (q.includes("óleo") || q.includes("oleo")) {
       answer += " Verifique vazão de injeção, atraso de entrada e compensação de óleo. Baixa vazão ou atraso elevam a carga estrutural.";
-    } else if (q.includes("mangueira") || q.includes("linha")) {
-      answer += " Verifique comprimento, diâmetro e fator de perda da linha de vácuo. Perda elevada altera a curva esperada.";
+    } else if (q.includes("mangueira") || q.includes("mangueira")) {
+      answer += " Verifique comprimento, diâmetro e fator de perda da mangueira de vácuo. Perda elevada altera a curva esperada.";
     } else if (q.includes("roots") || q.includes("bomba")) {
       answer += " Confirme a pressão de acionamento da Roots e o índice de integridade da bomba. Acionamento fora da faixa aumenta risco operacional.";
     } else if (q.includes("risco")) {
       answer += " O índice de risco deve ser comparado ao limite estrutural definido para o tanque e à margem operacional de segurança.";
     } else {
-      answer += " Analise curva esperada, curva real/simulada, linha de vácuo, óleo e acionamento da Roots antes de liberar a execução.";
+      answer += " Analise curva esperada, curva real/simulada, mangueira de vácuo, óleo e acionamento da Roots antes de liberar a execução.";
     }
 
     setAssistantAnswer(answer);
@@ -655,7 +875,7 @@ function App() {
               <Metric label="Registros" value={(operations.length + simulations.length).toString()} detail="Ciclos + simulações" />
             </div>
 
-            <Section title="Mapa operacional" subtitle="Estado consolidado dos tanques de processo e linhas de vácuo.">
+            <Section title="Mapa operacional" subtitle="Estado consolidado dos tanques de processo e mangueiras de vácuo.">
               <div className="tankGrid">
                 {tanksState.map((item: any, index: number) => (
                   <TankCard key={item?.tank?.id || index} item={item} />
@@ -665,8 +885,8 @@ function App() {
 
             <Section title="Unidade de bombeamento" subtitle="Bomba primária, Roots, óleo e comunicação.">
               <div className="statusGrid">
-                <Metric label="Bomba Primária" value={state?.primary_pump?.running ? "Ligada" : "Desligada"} detail={state?.primary_pump?.model || "SV630B"} status={state?.primary_pump?.running ? "success" : "neutral"} />
-                <Metric label="Bomba Roots" value={state?.roots_pump?.running ? "Ligada" : "Bloqueada"} detail={state?.roots_pump?.model || "WSU2001"} status={state?.roots_pump?.running ? "success" : "warning"} />
+                <Metric label="Bomba Primária" value={state?.primary_pump?.running ? "Ligada" : "Desligada"} detail={state?.primary_pump?.model || "SV 630 B"} status={state?.primary_pump?.running ? "success" : "neutral"} />
+                <Metric label="Bomba Roots" value={state?.roots_pump?.running ? "Ligada" : "Bloqueada"} detail={state?.roots_pump?.model || "WSU 2001"} status={state?.roots_pump?.running ? "success" : "warning"} />
                 <Metric label="Injeção de Óleo" value={state?.oil_injection?.enabled ? "Ativa" : "Inativa"} detail={fmt(state?.oil_injection?.target_flow_l_min, "L/min")} status={state?.oil_injection?.enabled ? "success" : "neutral"} />
                 <Metric label="CLP" value={state?.plc_comm_ok ? "Comunicação normal" : "Falha de comunicação"} status={state?.plc_comm_ok ? "success" : "critical"} />
               </div>
@@ -676,6 +896,12 @@ function App() {
 
         {view === "operation" && (
           <div className="screen">
+            <ComponentHealthPanel
+              state={state}
+              allTanks={allTanks}
+              allHoses={allHoses}
+            />
+
             <Section title="Configuração da operação" subtitle="Parâmetros do ciclo antes da execução." action={<Badge value={state?.cycle?.status || "stopped"} />}>
               <div className="formGrid">
                 <Field label="Responsável operacional">
@@ -690,7 +916,7 @@ function App() {
                   </select>
                 </Field>
 
-                <Field label="Linha de vácuo / mangueira">
+                <Field label="Mangueira de vácuo / mangueira">
                   <select value={operationConfig.hose_id} onChange={(e) => setOp("hose_id", e.target.value)}>
                     {allHoses.map((hose: any) => (
                       <option key={hose.id || hose.code} value={hose.id || hose.code}>{hose.code} · {fmt(hose.length_m, "m")} · fator {fmt(hose.loss_factor)}</option>
@@ -759,7 +985,7 @@ function App() {
               </div>
             </Section>
 
-            <Section title="Operação em tempo real" subtitle="Pressão, óleo, linha de vácuo e risco estrutural por tanque.">
+            <Section title="Operação em tempo real" subtitle="Pressão, óleo, mangueira de vácuo e risco estrutural por tanque.">
               <div className="tankGrid">
                 {tanksState.map((item: any, index: number) => (
                   <TankCard key={item?.tank?.id || index} item={item} />
@@ -806,7 +1032,7 @@ function App() {
                       </select>
                     </Field>
 
-                    <Field label="Linha de vácuo">
+                    <Field label="Mangueira de vácuo">
                       <select value={twinManual.hose_id} onChange={(e) => setTwin("hose_id", Number(e.target.value))}>
                         {allHoses.map((hose: any) => (
                           <option key={hose.id || hose.code} value={hose.id || hose.code}>{hose.code} · {fmt(hose.length_m, "m")}</option>
@@ -840,7 +1066,7 @@ function App() {
                   </div>
 
                   <div className="checkGrid">
-                    <label><input type="checkbox" checked={!!twinManual.hose_correction_enabled} onChange={(e) => setTwin("hose_correction_enabled", e.target.checked)} /> Correção da linha</label>
+                    <label><input type="checkbox" checked={!!twinManual.hose_correction_enabled} onChange={(e) => setTwin("hose_correction_enabled", e.target.checked)} /> Correção da mangueira</label>
                     <label><input type="checkbox" checked={!!twinManual.oil_compensation_enabled} onChange={(e) => setTwin("oil_compensation_enabled", e.target.checked)} /> Compensação de óleo</label>
                     <label><input type="checkbox" checked={!!twinManual.simulate_hose_leak} onChange={(e) => setTwin("simulate_hose_leak", e.target.checked)} /> Perda de vedação</label>
                     <label><input type="checkbox" checked={!!twinManual.simulate_sensor_failure} onChange={(e) => setTwin("simulate_sensor_failure", e.target.checked)} /> Falha de sensor</label>
@@ -872,6 +1098,15 @@ function App() {
                       <strong>{simulationResult.diagnosis || "Diagnóstico não informado."}</strong>
                       <span>{simulationResult.recommendation || "Sem recomendação adicional."}</span>
                     </div>
+
+                    <SimulationTraceability
+                      result={simulationResult}
+                      state={state}
+                      selectedScenario={selectedScenario}
+                      hoses={allHoses}
+                      tanks={allTanks}
+                      config={selectedScenario === "manual" ? twinManual : (allScenarios.find((scenario: any) => scenario.key === selectedScenario)?.config || twinManual)}
+                    />
                   </div>
                 )
               )}
@@ -889,10 +1124,10 @@ function App() {
               {twinTab === "technical" && (
                 <div className="infoGridLarge">
                   <div><span>Modelo de pressão</span><b>dP/dt = -(S/V)P</b></div>
-                  <div><span>Bomba primária</span><b>{state?.primary_pump?.model || "SV630B"}</b></div>
-                  <div><span>Bomba Roots</span><b>{state?.roots_pump?.model || "WSU2001"}</b></div>
+                  <div><span>Bomba primária</span><b>{state?.primary_pump?.model || "SV 630 B"}</b></div>
+                  <div><span>Bomba Roots</span><b>{state?.roots_pump?.model || "WSU 2001"}</b></div>
                   <div><span>Pressão segura Roots</span><b>{fmt(state?.roots_pump?.safe_start_pressure_mbar, "mbar")}</b></div>
-                  <div><span>Linhas cadastradas</span><b>{allHoses.length}</b></div>
+                  <div><span>Mangueiras cadastradas</span><b>{allHoses.length}</b></div>
                   <div><span>Receitas cadastradas</span><b>{allRecipes.length}</b></div>
                 </div>
               )}
@@ -914,8 +1149,8 @@ function App() {
             >
               <Table
                 columns={historyTab === "operations"
-                  ? ["ID", "Data", "Responsável", "Estado", "Tanque", "Linha", "Pressão", "Ação"]
-                  : ["ID", "Data", "Nome", "Estado", "Tanque", "Linha", "Risco", "Ação"]}
+                  ? ["ID", "Data", "Responsável", "Estado", "Tanque", "Mangueira", "Pressão", "Ação"]
+                  : ["ID", "Data", "Nome", "Estado", "Tanque", "Mangueira", "Risco", "Ação"]}
                 rows={currentRows.map((item: any) => historyTab === "operations"
                   ? [
                       <b>{item.id}</b>,
@@ -949,7 +1184,7 @@ function App() {
                       <div><span>ID</span><b>{detail.record?.id || "--"}</b></div>
                       <div><span>Estado</span><b><Badge value={detail.record?.status || detail.result?.status} /></b></div>
                       <div><span>Tanque</span><b>{detail.record?.tank_code || detail.record?.tank_type || "--"}</b></div>
-                      <div><span>Linha</span><b>{detail.record?.hose_code || detail.record?.hose_id || "--"}</b></div>
+                      <div><span>Mangueira</span><b>{detail.record?.hose_code || detail.record?.hose_id || "--"}</b></div>
                     </div>
                   </div>
 
@@ -995,7 +1230,7 @@ function App() {
             {reportTab === "operations" && (
               <Section title="Relatório de operações" subtitle="Ciclos filtrados por período.">
                 <Table
-                  columns={["ID", "Data", "Responsável", "Estado", "Tanque", "Linha", "Pressão Final"]}
+                  columns={["ID", "Data", "Responsável", "Estado", "Tanque", "Mangueira", "Pressão Final"]}
                   rows={filteredOperations.map((item: any) => [
                     <b>{item.id}</b>,
                     item.created_at || "--",
@@ -1015,7 +1250,7 @@ function App() {
             {reportTab === "simulations" && (
               <Section title="Relatório de simulações" subtitle="Simulações filtradas por período.">
                 <Table
-                  columns={["ID", "Data", "Nome", "Estado", "Tanque", "Linha", "Risco Máximo"]}
+                  columns={["ID", "Data", "Nome", "Estado", "Tanque", "Mangueira", "Risco Máximo"]}
                   rows={filteredSimulations.map((item: any) => [
                     <b>{item.id}</b>,
                     item.created_at || "--",
@@ -1036,10 +1271,10 @@ function App() {
 
         {view === "parameters" && (
           <div className="screen">
-            <Section title="Cadastros técnicos" subtitle="Tanques, linhas de vácuo, receitas, fórmulas e responsáveis operacionais.">
+            <Section title="Cadastros técnicos" subtitle="Tanques, mangueiras de vácuo, receitas, fórmulas e responsáveis operacionais.">
               <div className="subtabs">
                 <button className={paramTab === "tanks" ? "" : "secondary"} onClick={() => { setParamTab("tanks"); setForm({}); }}>Tanques</button>
-                <button className={paramTab === "hoses" ? "" : "secondary"} onClick={() => { setParamTab("hoses"); setForm({}); }}>Linhas</button>
+                <button className={paramTab === "hoses" ? "" : "secondary"} onClick={() => { setParamTab("hoses"); setForm({}); }}>Mangueiras</button>
                 <button className={paramTab === "recipes" ? "" : "secondary"} onClick={() => { setParamTab("recipes"); setForm({}); }}>Receitas</button>
                 <button className={paramTab === "formulas" ? "" : "secondary"} onClick={() => { setParamTab("formulas"); setForm({}); }}>Fórmulas</button>
                 <button className={paramTab === "operators" ? "" : "secondary"} onClick={() => { setParamTab("operators"); setForm({}); }}>Operadores</button>
@@ -1106,7 +1341,7 @@ function App() {
             )}
 
             {paramTab === "hoses" && (
-              <Section title="Linhas cadastradas">
+              <Section title="Mangueiras cadastradas">
                 <Table columns={["Código", "Comprimento", "Diâmetro", "Fator", "Estado"]} rows={allHoses.map((hose: any) => [<b>{hose.code}</b>, fmt(hose.length_m, "m"), fmt(hose.diameter_in, "pol"), fmt(hose.loss_factor), hose.status || "--"])} />
               </Section>
             )}
