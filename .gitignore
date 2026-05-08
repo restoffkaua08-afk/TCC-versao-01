@@ -1,9 +1,9 @@
-__pycache__/
-*.py[cod]
+﻿node_modules/
 .venv/
-venv/
-tsea.db
-node_modules/
 dist/
+__pycache__/
+*.pyc
+backend-out.log
+backend-err.log
 .env
 .DS_Store
