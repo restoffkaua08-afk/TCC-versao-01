@@ -734,16 +734,12 @@ html[data-theme="dark"] {
   --blue: #e5e7eb;
 }
 
-html[data-theme="dark"] body {
-  background: #000000 !important;
-  color: #f7f7f7;
-}
-
+html[data-theme="dark"] body,
 html[data-theme="dark"] .layout,
 html[data-theme="dark"] main,
 html[data-theme="dark"] .content {
   background: #000000 !important;
-  color: #f7f7f7;
+  color: #f7f7f7 !important;
 }
 
 html[data-theme="dark"] .drawer,
@@ -763,7 +759,9 @@ html[data-theme="dark"] .traceHeader,
 html[data-theme="dark"] .scenarioColumn,
 html[data-theme="dark"] .scenarioEmpty,
 html[data-theme="dark"] .reportBox,
-html[data-theme="dark"] .errorPanel {
+html[data-theme="dark"] .errorPanel,
+html[data-theme="dark"] .createScenarioBox,
+html[data-theme="dark"] .detailPanel {
   background: #050505 !important;
   border-color: #1b211f !important;
   color: #f7f7f7 !important;
@@ -780,42 +778,13 @@ html[data-theme="dark"] b {
 
 html[data-theme="dark"] p,
 html[data-theme="dark"] small,
-html[data-theme="dark"] .brandBlock small,
-html[data-theme="dark"] .drawerFooter small,
-html[data-theme="dark"] .navList button small,
 html[data-theme="dark"] .field span,
 html[data-theme="dark"] .metric span,
 html[data-theme="dark"] .tankReadings span,
-html[data-theme="dark"] .infoGrid span,
-html[data-theme="dark"] .infoGridLarge span,
-html[data-theme="dark"] .scenarioColumnHead span,
-html[data-theme="dark"] .scenarioCard span,
-html[data-theme="dark"] .empty,
 html[data-theme="dark"] .chartLegend span,
-html[data-theme="dark"] .legend span {
+html[data-theme="dark"] .legend span,
+html[data-theme="dark"] .scenarioCard span {
   color: #a7b0ac !important;
-}
-
-html[data-theme="dark"] .brandBlock span,
-html[data-theme="dark"] .moduleLabel {
-  color: #10b981 !important;
-}
-
-html[data-theme="dark"] .navList button {
-  background: transparent !important;
-  color: #f7f7f7 !important;
-  border-color: transparent !important;
-}
-
-html[data-theme="dark"] .navList button:hover {
-  background: #0b0f0d !important;
-  border-color: #2f3a35 !important;
-}
-
-html[data-theme="dark"] .navList button.active,
-html[data-theme="dark"] .scenarioCard.selected {
-  background: rgba(16, 185, 129, .13) !important;
-  border-color: rgba(16, 185, 129, .65) !important;
 }
 
 html[data-theme="dark"] button {
@@ -829,8 +798,7 @@ html[data-theme="dark"] button:hover {
 
 html[data-theme="dark"] button.secondary,
 html[data-theme="dark"] .button.secondary,
-html[data-theme="dark"] .hamburger,
-html[data-theme="dark"] .themeToggle {
+html[data-theme="dark"] .hamburger {
   background: #050505 !important;
   color: #f7f7f7 !important;
   border: 1px solid #2f3a35 !important;
@@ -916,10 +884,11 @@ html[data-theme="dark"] .expectedDot {
 }
 
 .componentTraceStack,
-.traceabilityStack {
+.traceabilityStack,
+.resultStack {
   display: grid;
   gap: 14px;
-  margin-top: 4px;
+  margin-top: 14px;
 }
 
 .traceHeader {
@@ -933,7 +902,9 @@ html[data-theme="dark"] .expectedDot {
   background: var(--surfaceSoft);
 }
 
-.tracePanel {
+.tracePanel,
+.createScenarioBox,
+.detailPanel {
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 12px;
@@ -946,13 +917,27 @@ html[data-theme="dark"] .expectedDot {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+  margin-top: 12px;
 }
 
-.scenarioColumn {
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 12px;
-  background: var(--surfaceSoft);
+.scenarioCard {
+  display: grid;
+  gap: 10px;
+}
+
+.scenarioMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.subTabs,
+.actions,
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
 }
 
 @media (max-width: 900px) {

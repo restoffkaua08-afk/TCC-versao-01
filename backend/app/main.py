@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import math
 from datetime import datetime, timezone
@@ -671,3 +671,96 @@ def maintenance_prediction() -> list[dict[str, Any]]:
         {"asset_code": "WSU 2001", "risk_score": 24, "remaining_hours": 360, "recommendation": "Verificar intertravamento e diferencial de pressão."},
         {"asset_code": "MG-VAC-18M-C", "risk_score": 41, "remaining_hours": 180, "recommendation": "Inspecionar vedação e perda de carga."},
     ]
+
+
+# TSEA_BACKEND_SIMULATION_FALLBACK_START
+from fastapi import Body as _TSEA_Body
+from datetime import datetime as _TSEA_datetime
+import math as _TSEA_math
+
+_TSEA_SIMULATIONS_MEMORY = []
+
+def _tsea_simulate_cycle(payload: dict):
+    hose_factor = float(payload.get("hose_loss_factor", payload.get("loss_factor", 0.85)))
+    oil_flow = float(payload.get("oil_flow_l_min", 2.0))
+    oil_delay = float(payload.get("oil_delay_seconds", 0))
+    pump_health = float(payload.get("pump_health_factor", 1.0))
+    target = float(payload.get("target_pressure_mbar", 6.5))
+    max_cycle = float(payload.get("max_cycle_seconds", 900))
+
+    risk = max(4, min(98, 18 + hose_factor * 14 + max(0, 2 - oil_flow) * 16 + oil_delay * 0.18 + max(0, 1 - pump_health) * 42))
+    estimated = min(max_cycle, 430 + hose_factor * 45 + oil_delay * 1.6 + (1 - pump_health) * 180)
+    final_pressure = max(target, target + hose_factor * 0.7 + max(0, 2 - oil_flow) * 1.8)
+
+    status = "critical" if risk >= 82 else "warning" if risk >= 65 else "success"
+
+    diagnosis = (
+        "Simulação aprovada. O ciclo mantém margem operacional aceitável."
+        if status == "success"
+        else "Simulação aprovada com restrição. Existe tendência de perda, atraso ou redução de margem."
+        if status == "warning"
+        else "Simulação reprovada. O ciclo apresenta risco elevado e não deve ser liberado sem revisão."
+    )
+
+    recommendation = (
+        "Manter parâmetros e registrar o cenário como referência operacional."
+        if status == "success"
+        else "Revisar mangueira, vazão de óleo, sensores e condição das bombas antes da execução real."
+        if status == "warning"
+        else "Bloquear execução, revisar vedação, mangueira, bomba secundária, sensores e limites estruturais."
+    )
+
+    timeline = []
+    for i in range(18):
+        step = i / 17
+        pressure = max(final_pressure, 1000 * _TSEA_math.exp(-step * 5.5) + final_pressure)
+        timeline.append({
+            "second": round(step * estimated),
+            "pressure_mbar": pressure,
+            "real_pressure_mbar": pressure + hose_factor * step * 2.2,
+            "expected_pressure_mbar": max(final_pressure, pressure * 0.93),
+            "effective_pressure_mbar": final_pressure + risk * step * 0.18,
+            "collapse_risk_pct": round(risk * step),
+            "hose_loss_mbar": hose_factor,
+        })
+
+    result = {
+        "id": f"SIM-{int(_TSEA_datetime.now().timestamp())}",
+        "created_at": _TSEA_datetime.now().isoformat(),
+        "scenario": payload.get("name", "Simulação operacional"),
+        "status": status,
+        "diagnosis": diagnosis,
+        "recommendation": recommendation,
+        "config": payload,
+        "metrics": {
+            "estimated_time_seconds": round(estimated),
+            "final_real_pressure_mbar": final_pressure,
+            "max_collapse_risk_pct": risk,
+            "oil_flow_l_min": oil_flow,
+            "hose_loss_factor": hose_factor,
+        },
+        "timeline": timeline,
+    }
+
+    _TSEA_SIMULATIONS_MEMORY.insert(0, result)
+    return result
+
+try:
+    app.router.routes = [
+        route for route in app.router.routes
+        if getattr(route, "path", "") not in [
+            "/api/digital-twin/simulate-safe",
+            "/api/records/simulations-safe"
+        ]
+    ]
+except Exception:
+    pass
+
+@app.post("/api/digital-twin/simulate-safe")
+def tsea_digital_twin_simulate_safe(payload: dict = _TSEA_Body(default={})):
+    return _tsea_simulate_cycle(payload or {})
+
+@app.get("/api/records/simulations-safe")
+def tsea_records_simulations_safe():
+    return {"items": _TSEA_SIMULATIONS_MEMORY}
+# TSEA_BACKEND_SIMULATION_FALLBACK_END

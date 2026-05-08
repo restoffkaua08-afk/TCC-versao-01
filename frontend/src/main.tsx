@@ -286,11 +286,11 @@ const EQUIPMENT_SPECS = {
     motorPower50Hz: "15 kW",
     nominalRpm50Hz: "820 rpm",
     inlet: "DN 100 PN 10 / DN 100 ISO-K",
-    role: "Bomba de apoio responsável pela evacuação inicial e sustentação do conjunto Roots."
+    role: "Bomba de apoio responsável pela evacuação inicial e sustentação do conjunto bomba secundária."
   },
   rootsPump: {
     model: "Leybold RUVAC WSU 2001",
-    technology: "Bomba Roots com motor blindado refrigerado a ar",
+    technology: "Bomba secundária com motor blindado refrigerado a ar",
     nominalSpeed50Hz: "2050 m³/h",
     nominalSpeed60Hz: "2460 m³/h",
     effectiveSpeedWithSogevac50Hz: "1850 m³/h",
@@ -321,7 +321,7 @@ function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
       EQUIPMENT_SPECS.primaryPump.role
     ],
     [
-      <b>Bomba Roots</b>,
+      <b>Bomba secundária</b>,
       EQUIPMENT_SPECS.rootsPump.model,
       state?.roots_pump?.running ? "Ligada" : "Intertravada",
       state?.roots_pump?.running ? "96%" : "Aguardando faixa",
@@ -416,7 +416,7 @@ function SimulationTraceability({ result, state, selectedScenario, hoses, tanks,
 
   const componentRows = [
     [<b>Bomba primária</b>, EQUIPMENT_SPECS.primaryPump.model, state?.primary_pump?.running ? "Ligada" : "Pronta", "98%", EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz, EQUIPMENT_SPECS.primaryPump.role],
-    [<b>Bomba Roots</b>, EQUIPMENT_SPECS.rootsPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", EQUIPMENT_SPECS.rootsPump.nominalSpeed50Hz, "Acionamento condicionado à pressão segura."],
+    [<b>Bomba secundária</b>, EQUIPMENT_SPECS.rootsPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", EQUIPMENT_SPECS.rootsPump.nominalSpeed50Hz, "Acionamento condicionado à pressão segura."],
     [<b>Mangueira de vácuo</b>, selectedHose?.code || `MG-${config?.hose_id || "--"}`, hoseLoss > 1 ? "Perda elevada" : "Operacional", fmt(Math.max(70, 100 - hoseLoss * 12), "%"), `Fator ${fmt(hoseLoss)}`, "Perda de carga e restrição de fluxo."],
     [<b>Tanque de processo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressão efetiva."],
     [<b>Sensor de pressão</b>, `SP-${selectedTank?.code || "SIM"}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", fmt(finalPressure, "mbar"), "Mede pressão do tanque e alimenta diagnóstico."],
@@ -426,7 +426,7 @@ function SimulationTraceability({ result, state, selectedScenario, hoses, tanks,
   const actionRows = [
     [<b>Preparação</b>, "Parâmetros carregados", selectedTank?.code || config?.tank_type || "--", selectedHose?.code || `MG-${config?.hose_id || "--"}`, "Configuração aplicada ao ciclo simulado."],
     [<b>Evacuação inicial</b>, "Bomba primária em atuação", fmt(estimatedTime * 0.35, "s"), fmt(finalPressure, "mbar"), "Redução inicial da pressão no tanque."],
-    [<b>Acionamento Roots</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar, "mbar"), "Intertravamento", "A Roots só entra em faixa segura."],
+    [<b>Acionamento da bomba secundária</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar, "mbar"), "Intertravamento", "A bomba secundária só entra em faixa segura."],
     [<b>Injeção de óleo</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "L/min"), "Vedação", "Condição usada para estabilidade e risco."],
     [<b>Fechamento</b>, simulationStatus, fmt(risk, "%"), "Resultado", result.recommendation || "Sem recomendação adicional."]
   ];
@@ -466,6 +466,524 @@ function SimulationTraceability({ result, state, selectedScenario, hoses, tanks,
     </div>
   );
 }
+
+
+
+/* TSEA_PATCH_GEMEO_RASTREABILIDADE_FINAL_START */
+
+function tseaReadStorage<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function tseaWriteStorage(key: string, value: unknown) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+const TSEA_EQUIPMENT_SPECS = {
+  primaryPump: {
+    label: "Bomba primária",
+    model: "Leybold SOGEVAC SV 630 B",
+    technology: "Bomba rotativa de palhetas lubrificada a óleo",
+    nominalSpeed50Hz: "640 m³/h",
+    nominalSpeed60Hz: "755 m³/h",
+    ultimatePressureNoGasBallast: "≤ 0,08 mbar",
+    ultimatePressureGasBallast: "≤ 0,7 mbar",
+    oilFilling: "20 L",
+    motorPower50Hz: "15 kW",
+    nominalRpm50Hz: "820 rpm",
+    role: "Evacuação inicial e sustentação do conjunto de vácuo."
+  },
+  secondaryPump: {
+    label: "Bomba secundária",
+    model: "Leybold RUVAC WSU 2001",
+    technology: "Bomba secundária tipo Roots com motor blindado refrigerado a ar",
+    nominalSpeed50Hz: "2050 m³/h",
+    nominalSpeed60Hz: "2460 m³/h",
+    effectiveSpeedWithSogevac50Hz: "1850 m³/h",
+    ultimatePressure: "< 4 × 10⁻² mbar",
+    maxDifferentialPressure: "50 mbar",
+    role: "Reforço do vácuo após entrada em faixa segura de acionamento."
+  }
+};
+
+function tseaBuildSimulationResult(config: any, state: any, hoses: any[], tanks: any[], scenarioName = "Cenário manual") {
+  const selectedHose = hoses.find((hose: any) => String(hose.id) === String(config?.hose_id) || String(hose.code) === String(config?.hose_id)) || hoses[0] || {};
+  const selectedTank = tanks.find((tank: any) => String(tank.id) === String(config?.tank_id) || String(tank.type) === String(config?.tank_type)) || tanks[0] || {};
+
+  const pressureTarget = Number(config?.target_pressure_mbar || config?.pressaoFinal || 6.5);
+  const secondaryStart = Number(config?.roots_start_pressure_mbar || config?.secondary_start_pressure_mbar || 50);
+  const oilFlow = Number(config?.oil_flow_l_min || config?.vazaoOleo || 2);
+  const oilDelay = Number(config?.oil_delay_seconds || 0);
+  const pumpHealth = Number(config?.pump_health_factor || 1);
+  const hoseLoss = Number(selectedHose?.loss_factor || 0.8);
+  const maxCycle = Number(config?.max_cycle_seconds || 900);
+  const tankVolume = Number(selectedTank?.volume_liters || 1250);
+
+  const risk = Math.max(4, Math.min(98,
+    18 +
+    hoseLoss * 14 +
+    Math.max(0, 2 - oilFlow) * 16 +
+    oilDelay * 0.18 +
+    Math.max(0, 1 - pumpHealth) * 42 +
+    (config?.simulate_sensor_failure ? 18 : 0) +
+    (config?.simulate_hose_leak ? 24 : 0) +
+    (config?.simulate_plc_loss ? 14 : 0)
+  ));
+
+  const estimatedTime = Math.round(Math.min(maxCycle, (tankVolume / 640) * 220 + hoseLoss * 42 + oilDelay * 1.6 + (1 - pumpHealth) * 180));
+  const finalPressure = Math.max(pressureTarget, pressureTarget + hoseLoss * 0.7 + Math.max(0, 2 - oilFlow) * 1.8 + (config?.simulate_hose_leak ? 8 : 0));
+  const margin = Number(selectedTank?.structural_limit_mbar || 35) - finalPressure;
+
+  const status = risk >= 82 || margin < 0
+    ? "critical"
+    : risk >= 65
+      ? "warning"
+      : "success";
+
+  const diagnosis = status === "success"
+    ? "Simulação aprovada. O ciclo mantém margem operacional aceitável."
+    : status === "warning"
+      ? "Simulação aprovada com restrição. Existe tendência de perda, atraso ou redução de margem."
+      : "Simulação reprovada. O ciclo apresenta risco elevado e não deve ser liberado sem revisão.";
+
+  const recommendation = status === "success"
+    ? "Manter parâmetros e registrar o cenário como referência operacional."
+    : status === "warning"
+      ? "Revisar mangueira, vazão de óleo, sensores e condição das bombas antes da execução real."
+      : "Bloquear execução, revisar vedação, mangueira, bomba secundária, sensores e limites estruturais.";
+
+  const timeline = Array.from({ length: 18 }).map((_, index) => {
+    const step = index / 17;
+    const pressure = Math.max(finalPressure, 1000 * Math.exp(-step * 5.5) + finalPressure);
+    return {
+      second: Math.round(step * estimatedTime),
+      pressure_mbar: pressure,
+      real_pressure_mbar: pressure + hoseLoss * step * 2.2,
+      expected_pressure_mbar: Math.max(finalPressure, pressure * 0.93),
+      effective_pressure_mbar: finalPressure + risk * step * 0.18,
+      collapse_risk_pct: Math.round(risk * step),
+      hose_loss_mbar: hoseLoss
+    };
+  });
+
+  return {
+    id: `SIM-${Date.now().toString(36).toUpperCase()}`,
+    created_at: new Date().toISOString(),
+    scenario: scenarioName,
+    status,
+    diagnosis,
+    recommendation,
+    config,
+    metrics: {
+      estimated_time_seconds: estimatedTime,
+      final_real_pressure_mbar: finalPressure,
+      max_collapse_risk_pct: risk,
+      safety_margin_mbar: margin,
+      oil_flow_l_min: oilFlow,
+      hose_loss_factor: hoseLoss
+    },
+    timeline
+  };
+}
+
+function TseaComponentHealthPanel({ state, allTanks, allHoses }: any) {
+  const tankStates = Array.isArray(state?.tank_states) ? state.tank_states : [];
+  const sourceTanks = tankStates.length ? tankStates : allTanks;
+
+  const pumpRows = [
+    [
+      <b>{TSEA_EQUIPMENT_SPECS.primaryPump.label}</b>,
+      TSEA_EQUIPMENT_SPECS.primaryPump.model,
+      state?.primary_pump?.running ? "Ligada" : "Pronta",
+      "98%",
+      TSEA_EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz,
+      TSEA_EQUIPMENT_SPECS.primaryPump.role
+    ],
+    [
+      <b>{TSEA_EQUIPMENT_SPECS.secondaryPump.label}</b>,
+      TSEA_EQUIPMENT_SPECS.secondaryPump.model,
+      state?.roots_pump?.running ? "Ligada" : "Intertravada",
+      state?.roots_pump?.running ? "96%" : "Aguardando faixa",
+      TSEA_EQUIPMENT_SPECS.secondaryPump.nominalSpeed50Hz,
+      TSEA_EQUIPMENT_SPECS.secondaryPump.role
+    ]
+  ];
+
+  const tankRows = sourceTanks.map((item: any, index: number) => {
+    const tank = item?.tank || item;
+    const pressure = Number(item?.pressure_mbar ?? item?.expected_pressure_mbar ?? 0);
+    const oil = Number(item?.oil_volume_liters ?? 0);
+    const risk = Number(item?.collapse_risk_pct ?? 0);
+
+    return [
+      <b>{tank?.code || item?.code || `TQ-${index + 1}`}</b>,
+      tank?.type || item?.type || "Tanque de processo",
+      fmt(pressure, "mbar"),
+      fmt(oil, "L"),
+      fmt(risk, "%"),
+      risk >= 82 ? <Badge value="critical" /> : risk >= 65 ? <Badge value="warning" /> : <Badge value="success" />
+    ];
+  });
+
+  const hoseRows = allHoses.map((hose: any, index: number) => [
+    <b>{hose.code || `MG-${index + 1}`}</b>,
+    fmt(hose.length_m, "m"),
+    fmt(hose.diameter_in, "pol"),
+    fmt(hose.loss_factor),
+    Number(hose.loss_factor || 0) > 1 ? <Badge value="warning" /> : <Badge value="success" />,
+    "Conexão entre bomba, tanque e processo de vácuo."
+  ]);
+
+  const sensorRows = sourceTanks.map((item: any, index: number) => {
+    const tank = item?.tank || item;
+    const pressure = Number(item?.pressure_mbar ?? item?.expected_pressure_mbar ?? 0);
+    const risk = Number(item?.collapse_risk_pct ?? 0);
+
+    return [
+      <b>{`SP-${tank?.code || item?.code || index + 1}`}</b>,
+      tank?.code || item?.code || `Tanque ${index + 1}`,
+      "Pressão",
+      fmt(pressure, "mbar"),
+      risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional",
+      fmt(risk >= 82 ? 62 : risk >= 65 ? 82 : 98, "%")
+    ];
+  });
+
+  return (
+    <div className="componentTraceStack">
+      <Section title="Rastreabilidade de máquinas e peças" subtitle="Status, desempenho e leitura dos principais componentes do processo.">
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura técnica", "Função no processo"]} rows={pumpRows} />
+      </Section>
+
+      <Section title="Tanques do processo" subtitle="Leituras numéricas dos tanques usados no ciclo.">
+        <Table columns={["Tanque", "Tipo", "Pressão", "Óleo", "Risco", "Status"]} rows={tankRows} />
+      </Section>
+
+      <Section title="Mangueiras de vácuo" subtitle="Componentes de ligação entre bombas, tanque e processo.">
+        <Table columns={["Mangueira", "Comprimento", "Diâmetro", "Fator de perda", "Status", "Função"]} rows={hoseRows} />
+      </Section>
+
+      <Section title="Sensores do processo" subtitle="Leituras usadas para controle, diagnóstico e rastreabilidade.">
+        <Table columns={["Sensor", "Tanque", "Variável", "Leitura", "Status", "Desempenho"]} rows={sensorRows} />
+      </Section>
+    </div>
+  );
+}
+
+function TseaSimulationTraceability({ result, state, hoses, tanks }: any) {
+  if (!result) return null;
+
+  const config = result.config || {};
+  const metrics = result.metrics || {};
+  const selectedHose = hoses.find((hose: any) => String(hose.id) === String(config?.hose_id) || String(hose.code) === String(config?.hose_id)) || hoses[0] || {};
+  const selectedTank = tanks.find((tank: any) => String(tank.id) === String(config?.tank_id) || String(tank.type) === String(config?.tank_type)) || tanks[0] || {};
+
+  const risk = Number(metrics.max_collapse_risk_pct || 0);
+  const finalPressure = Number(metrics.final_real_pressure_mbar || 0);
+  const estimatedTime = Number(metrics.estimated_time_seconds || 0);
+  const oilFlow = Number(metrics.oil_flow_l_min || config?.oil_flow_l_min || 0);
+  const hoseLoss = Number(metrics.hose_loss_factor || selectedHose?.loss_factor || 0);
+
+  const simulationStatus = result.status === "success"
+    ? "Ciclo simulado aprovado"
+    : result.status === "warning"
+      ? "Ciclo simulado aprovado com restrição"
+      : "Ciclo simulado reprovado";
+
+  const componentRows = [
+    [<b>Bomba primária</b>, TSEA_EQUIPMENT_SPECS.primaryPump.model, state?.primary_pump?.running ? "Ligada" : "Pronta", "98%", TSEA_EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz, TSEA_EQUIPMENT_SPECS.primaryPump.role],
+    [<b>Bomba secundária</b>, TSEA_EQUIPMENT_SPECS.secondaryPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", TSEA_EQUIPMENT_SPECS.secondaryPump.nominalSpeed50Hz, "Acionamento condicionado à pressão segura."],
+    [<b>Mangueira de vácuo</b>, selectedHose?.code || `MG-${config?.hose_id || "--"}`, hoseLoss > 1 ? "Perda elevada" : "Operacional", fmt(Math.max(70, 100 - hoseLoss * 12), "%"), `Fator ${fmt(hoseLoss)}`, "Perda de carga e restrição de fluxo."],
+    [<b>Tanque de processo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressão efetiva."],
+    [<b>Sensor de pressão</b>, `SP-${selectedTank?.code || "SIM"}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", fmt(finalPressure, "mbar"), "Mede pressão do tanque e alimenta diagnóstico."],
+    [<b>Sistema de óleo</b>, "Injeção de óleo", oilFlow < 1.5 ? "Vazão baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "L/min"), "Afeta vedação, estabilidade da curva e proteção do conjunto."]
+  ];
+
+  const actionRows = [
+    [<b>Preparação</b>, "Parâmetros carregados", selectedTank?.code || config?.tank_type || "--", selectedHose?.code || `MG-${config?.hose_id || "--"}`, "Configuração aplicada ao ciclo simulado."],
+    [<b>Evacuação inicial</b>, "Bomba primária em atuação", fmt(estimatedTime * 0.35, "s"), fmt(finalPressure, "mbar"), "Redução inicial da pressão no tanque."],
+    [<b>Acionamento da bomba secundária</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar || 50, "mbar"), "Intertravamento", "A bomba secundária só entra em faixa segura."],
+    [<b>Injeção de óleo</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "L/min"), "Vedação", "Condição usada para estabilidade e risco."],
+    [<b>Fechamento</b>, simulationStatus, fmt(risk, "%"), "Resultado", result.recommendation || "Sem recomendação adicional."]
+  ];
+
+  const reportRows = [
+    [<b>Status final</b>, <Badge value={result.status} />, simulationStatus],
+    [<b>Pressão final</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulação."],
+    [<b>Tempo estimado</b>, fmt(estimatedTime, "s"), "Duração prevista do ciclo."],
+    [<b>Risco máximo</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restrição" : "Aprovado"],
+    [<b>Diagnóstico</b>, result.diagnosis || "--", result.recommendation || "--"]
+  ];
+
+  return (
+    <div className="traceabilityStack">
+      <div className="traceHeader">
+        <div>
+          <h3>Rastreabilidade da simulação</h3>
+          <p>Registro técnico por máquina, peça, sensor, mangueira e ação simulada.</p>
+        </div>
+        <Badge value={result.status} />
+      </div>
+
+      <div className="tracePanel">
+        <h3>Máquinas, peças e sensores</h3>
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto no processo"]} rows={componentRows} />
+      </div>
+
+      <div className="tracePanel">
+        <h3>Ações da operação simulada</h3>
+        <Table columns={["Etapa", "Status", "Referência", "Evento", "Registro técnico"]} rows={actionRows} />
+      </div>
+
+      <div className="tracePanel">
+        <h3>Relatório da simulação</h3>
+        <Table columns={["Item", "Valor", "Interpretação"]} rows={reportRows} />
+      </div>
+    </div>
+  );
+}
+
+function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
+  const baseScenarios = [
+    {
+      id: "base-seguro",
+      name: "Ciclo seguro padrão",
+      description: "Parâmetros conservadores para operação com margem ampliada.",
+      config: { tank_type: "grande", hose_id: 1, target_pressure_mbar: 8, roots_start_pressure_mbar: 55, oil_flow_l_min: 2, max_cycle_seconds: 780, pump_health_factor: 1 }
+    },
+    {
+      id: "base-produtivo",
+      name: "Reguladores TSEA - Vácuo com óleo",
+      description: "Cenário operacional padrão para reguladores com injeção de óleo.",
+      config: { tank_type: "grande", hose_id: 1, target_pressure_mbar: 6.5, roots_start_pressure_mbar: 50, oil_flow_l_min: 2, max_cycle_seconds: 900, pump_health_factor: 1 }
+    },
+    {
+      id: "base-risco",
+      name: "Teste de perda na mangueira",
+      description: "Cenário para avaliar perda de carga, vazão baixa e risco estrutural.",
+      config: { tank_type: "extra_grande", hose_id: 3, target_pressure_mbar: 7.5, roots_start_pressure_mbar: 60, oil_flow_l_min: 1.2, oil_delay_seconds: 30, max_cycle_seconds: 1100, pump_health_factor: 0.84, simulate_hose_leak: true }
+    }
+  ];
+
+  const [tab, setTab] = useState<"base" | "custom" | "create" | "result">("base");
+  const [customScenarios, setCustomScenarios] = useState<any[]>(() => tseaReadStorage("tsea.customScenarios.final", []));
+  const [result, setResult] = useState<any>(() => tseaReadStorage("tsea.lastSimulation.final", null));
+  const [form, setForm] = useState<any>({
+    name: "Novo cenário de teste",
+    description: "Cenário personalizado para validação operacional.",
+    tank_type: "grande",
+    hose_id: 1,
+    target_pressure_mbar: 6.5,
+    roots_start_pressure_mbar: 50,
+    oil_flow_l_min: 2,
+    oil_delay_seconds: 0,
+    max_cycle_seconds: 900,
+    pump_health_factor: 1,
+    simulate_hose_leak: false,
+    simulate_sensor_failure: false,
+    simulate_plc_loss: false
+  });
+
+  function persistCustom(next: any[]) {
+    setCustomScenarios(next);
+    tseaWriteStorage("tsea.customScenarios.final", next);
+  }
+
+  function runScenario(scenario: any) {
+    const generated = tseaBuildSimulationResult(scenario.config || scenario, state, allHoses, allTanks, scenario.name || "Cenário personalizado");
+    setResult(generated);
+    tseaWriteStorage("tsea.lastSimulation.final", generated);
+
+    const history = tseaReadStorage<any[]>("tsea.simulationHistory.final", []);
+    tseaWriteStorage("tsea.simulationHistory.final", [generated, ...history].slice(0, 60));
+
+    setTab("result");
+  }
+
+  function saveScenario() {
+    const scenario = {
+      id: `custom-${Date.now().toString(36)}`,
+      name: form.name || "Cenário personalizado",
+      description: form.description || "Cenário criado pelo usuário.",
+      config: { ...form }
+    };
+
+    persistCustom([scenario, ...customScenarios]);
+    setTab("custom");
+  }
+
+  function renderScenarioList(items: any[], emptyText: string) {
+    if (!items.length) {
+      return <Empty text={emptyText} />;
+    }
+
+    return (
+      <div className="scenarioBoard">
+        {items.map((scenario) => (
+          <article className="scenarioCard" key={scenario.id}>
+            <strong>{scenario.name}</strong>
+            <span>{scenario.description}</span>
+            <div className="scenarioMeta">
+              <small>Tanque: {scenario.config?.tank_type || "--"}</small>
+              <small>Mangueira: {scenario.config?.hose_id || "--"}</small>
+              <small>Óleo: {fmt(scenario.config?.oil_flow_l_min, "L/min")}</small>
+            </div>
+            <button onClick={() => runScenario(scenario)}>Simular</button>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <Section title="Gêmeo Digital — cenários e testes" subtitle="Cenários base, personalizados, criação de teste e resultado com rastreabilidade completa.">
+      <div className="subTabs">
+        <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>Cenários base</button>
+        <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>Cenários personalizados</button>
+        <button className={tab === "create" ? "" : "secondary"} onClick={() => setTab("create")}>Criar cenário</button>
+        <button className={tab === "result" ? "" : "secondary"} onClick={() => setTab("result")}>Resultado</button>
+      </div>
+
+      {tab === "base" && renderScenarioList(baseScenarios, "Nenhum cenário base disponível.")}
+      {tab === "custom" && renderScenarioList(customScenarios, "Nenhum cenário personalizado salvo.")}
+
+      {tab === "create" && (
+        <div className="createScenarioBox">
+          <div className="formGrid">
+            <Field label="Nome do cenário">
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </Field>
+
+            <Field label="Descrição">
+              <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </Field>
+
+            <Field label="Tipo de tanque">
+              <select value={form.tank_type} onChange={(e) => setForm({ ...form, tank_type: e.target.value })}>
+                <option value="pequeno">Pequeno</option>
+                <option value="medio">Médio</option>
+                <option value="grande">Grande</option>
+                <option value="extra_grande">Extra grande</option>
+              </select>
+            </Field>
+
+            <Field label="Mangueira">
+              <select value={form.hose_id} onChange={(e) => setForm({ ...form, hose_id: Number(e.target.value) })}>
+                {allHoses.map((hose: any, index: number) => (
+                  <option key={hose.id || index} value={hose.id || index + 1}>{hose.code || `MG-${index + 1}`}</option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Pressão final desejada">
+              <input type="number" value={form.target_pressure_mbar} onChange={(e) => setForm({ ...form, target_pressure_mbar: Number(e.target.value) })} />
+            </Field>
+
+            <Field label="Pressão da bomba secundária">
+              <input type="number" value={form.roots_start_pressure_mbar} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: Number(e.target.value) })} />
+            </Field>
+
+            <Field label="Vazão de óleo">
+              <input type="number" value={form.oil_flow_l_min} onChange={(e) => setForm({ ...form, oil_flow_l_min: Number(e.target.value) })} />
+            </Field>
+
+            <Field label="Saúde da bomba">
+              <input type="number" step="0.01" value={form.pump_health_factor} onChange={(e) => setForm({ ...form, pump_health_factor: Number(e.target.value) })} />
+            </Field>
+          </div>
+
+          <div className="checks">
+            <label><input type="checkbox" checked={form.simulate_hose_leak} onChange={(e) => setForm({ ...form, simulate_hose_leak: e.target.checked })} /> Perda na mangueira</label>
+            <label><input type="checkbox" checked={form.simulate_sensor_failure} onChange={(e) => setForm({ ...form, simulate_sensor_failure: e.target.checked })} /> Falha de sensor</label>
+            <label><input type="checkbox" checked={form.simulate_plc_loss} onChange={(e) => setForm({ ...form, simulate_plc_loss: e.target.checked })} /> Falha de comunicação</label>
+          </div>
+
+          <div className="actions">
+            <button onClick={saveScenario}>Salvar cenário</button>
+            <button className="secondary" onClick={() => runScenario({ name: form.name, description: form.description, config: form })}>Simular agora</button>
+          </div>
+        </div>
+      )}
+
+      {tab === "result" && (
+        result ? (
+          <div className="resultStack">
+            <div className="metrics">
+              <Metric label="Status da simulação" value={<Badge value={result.status} />} detail={result.scenario} />
+              <Metric label="Pressão final" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Valor calculado" />
+              <Metric label="Tempo estimado" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="Duração prevista" />
+              <Metric label="Risco máximo" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="Margem operacional" />
+            </div>
+
+            <div className="diagnosticBox">
+              <strong>{result.diagnosis}</strong>
+              <span>{result.recommendation}</span>
+            </div>
+
+            <TseaSimulationTraceability result={result} state={state} hoses={allHoses} tanks={allTanks} />
+          </div>
+        ) : (
+          <Empty text="Execute uma simulação para gerar o resultado técnico." />
+        )
+      )}
+    </Section>
+  );
+}
+
+function TseaHistoryDetailsPanel({ state, allTanks, allHoses }: any) {
+  const [items, setItems] = useState<any[]>(() => tseaReadStorage("tsea.simulationHistory.final", []));
+  const [selected, setSelected] = useState<any>(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setItems(tseaReadStorage("tsea.simulationHistory.final", []));
+    }, 1500);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <Section title="Detalhes técnicos das simulações" subtitle="Histórico local com parâmetros, resultado, componentes, ações e diagnóstico completo.">
+      <Table
+        columns={["ID", "Data", "Cenário", "Status", "Risco", "Pressão", "Detalhes"]}
+        rows={items.map((item) => [
+          <b>{item.id}</b>,
+          new Date(item.created_at).toLocaleString("pt-BR"),
+          item.scenario,
+          <Badge value={item.status} />,
+          fmt(item.metrics?.max_collapse_risk_pct, "%"),
+          fmt(item.metrics?.final_real_pressure_mbar, "mbar"),
+          <button className="secondary" onClick={() => setSelected(item)}>Ver detalhes</button>
+        ])}
+      />
+
+      {selected && (
+        <div className="detailPanel">
+          <div className="traceHeader">
+            <div>
+              <h3>{selected.scenario}</h3>
+              <p>{selected.diagnosis}</p>
+            </div>
+            <button className="secondary" onClick={() => setSelected(null)}>Fechar</button>
+          </div>
+
+          <TseaSimulationTraceability result={selected} state={state} hoses={allHoses} tanks={allTanks} />
+        </div>
+      )}
+    </Section>
+  );
+}
+
+/* TSEA_PATCH_GEMEO_RASTREABILIDADE_FINAL_END */
 
 
 function App() {
@@ -717,11 +1235,11 @@ function App() {
     } else if (q.includes("mangueira") || q.includes("mangueira")) {
       answer += " Verifique comprimento, diâmetro e fator de perda da mangueira de vácuo. Perda elevada altera a curva esperada.";
     } else if (q.includes("roots") || q.includes("bomba")) {
-      answer += " Confirme a pressão de acionamento da Roots e o índice de integridade da bomba. Acionamento fora da faixa aumenta risco operacional.";
+      answer += " Confirme a pressão de acionamento da bomba secundária e o índice de integridade da bomba. Acionamento fora da faixa aumenta risco operacional.";
     } else if (q.includes("risco")) {
       answer += " O índice de risco deve ser comparado ao limite estrutural definido para o tanque e à margem operacional de segurança.";
     } else {
-      answer += " Analise curva esperada, curva real/simulada, mangueira de vácuo, óleo e acionamento da Roots antes de liberar a execução.";
+      answer += " Analise curva esperada, curva real/simulada, mangueira de vácuo, óleo e acionamento da bomba secundária antes de liberar a execução.";
     }
 
     setAssistantAnswer(answer);
@@ -883,10 +1401,10 @@ function App() {
               </div>
             </Section>
 
-            <Section title="Unidade de bombeamento" subtitle="Bomba primária, Roots, óleo e comunicação.">
+            <Section title="Unidade de bombeamento" subtitle="Bomba primária, bomba secundária, óleo e comunicação.">
               <div className="statusGrid">
                 <Metric label="Bomba Primária" value={state?.primary_pump?.running ? "Ligada" : "Desligada"} detail={state?.primary_pump?.model || "SV 630 B"} status={state?.primary_pump?.running ? "success" : "neutral"} />
-                <Metric label="Bomba Roots" value={state?.roots_pump?.running ? "Ligada" : "Bloqueada"} detail={state?.roots_pump?.model || "WSU 2001"} status={state?.roots_pump?.running ? "success" : "warning"} />
+                <Metric label="Bomba secundária" value={state?.roots_pump?.running ? "Ligada" : "Bloqueada"} detail={state?.roots_pump?.model || "WSU 2001"} status={state?.roots_pump?.running ? "success" : "warning"} />
                 <Metric label="Injeção de Óleo" value={state?.oil_injection?.enabled ? "Ativa" : "Inativa"} detail={fmt(state?.oil_injection?.target_flow_l_min, "L/min")} status={state?.oil_injection?.enabled ? "success" : "neutral"} />
                 <Metric label="CLP" value={state?.plc_comm_ok ? "Comunicação normal" : "Falha de comunicação"} status={state?.plc_comm_ok ? "success" : "critical"} />
               </div>
@@ -896,13 +1414,7 @@ function App() {
 
         {view === "operation" && (
           <div className="screen">
-            <ComponentHealthPanel
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-
-            <Section title="Configuração da operação" subtitle="Parâmetros do ciclo antes da execução." action={<Badge value={state?.cycle?.status || "stopped"} />}>
+<Section title="Configuração da operação" subtitle="Parâmetros do ciclo antes da execução." action={<Badge value={state?.cycle?.status || "stopped"} />}>
               <div className="formGrid">
                 <Field label="Responsável operacional">
                   <input value={operationConfig.operator} onChange={(e) => setOp("operator", e.target.value)} />
@@ -959,7 +1471,7 @@ function App() {
                   <input type="number" value={operationConfig.target_pressure_mbar} onChange={(e) => setOp("target_pressure_mbar", Number(e.target.value))} />
                 </Field>
 
-                <Field label="Pressão de acionamento da Roots">
+                <Field label="Pressão de acionamento da bomba secundária">
                   <input type="number" value={operationConfig.roots_start_pressure_mbar} onChange={(e) => setOp("roots_start_pressure_mbar", Number(e.target.value))} />
                 </Field>
 
@@ -992,11 +1504,25 @@ function App() {
                 ))}
               </div>
             </Section>
+
+            <TseaComponentHealthPanel
+              state={state}
+              allTanks={allTanks}
+              allHoses={allHoses}
+            />
+
           </div>
         )}
 
         {view === "twin" && (
           <div className="screen">
+
+            <TseaTwinRecoveryPanel
+              state={state}
+              allTanks={allTanks}
+              allHoses={allHoses}
+            />
+
             <Section title="Gêmeo Digital" subtitle="Cenários, configuração manual, resultado e diagnóstico.">
               <div className="subtabs">
                 <button className={twinTab === "scenarios" ? "" : "secondary"} onClick={() => setTwinTab("scenarios")}>Cenários</button>
@@ -1044,7 +1570,7 @@ function App() {
                       <input type="number" value={twinManual.target_pressure_mbar} onChange={(e) => setTwin("target_pressure_mbar", Number(e.target.value))} />
                     </Field>
 
-                    <Field label="Acionamento da Roots">
+                    <Field label="Acionamento da bomba secundária">
                       <input type="number" value={twinManual.roots_start_pressure_mbar} onChange={(e) => setTwin("roots_start_pressure_mbar", Number(e.target.value))} />
                     </Field>
 
@@ -1125,8 +1651,8 @@ function App() {
                 <div className="infoGridLarge">
                   <div><span>Modelo de pressão</span><b>dP/dt = -(S/V)P</b></div>
                   <div><span>Bomba primária</span><b>{state?.primary_pump?.model || "SV 630 B"}</b></div>
-                  <div><span>Bomba Roots</span><b>{state?.roots_pump?.model || "WSU 2001"}</b></div>
-                  <div><span>Pressão segura Roots</span><b>{fmt(state?.roots_pump?.safe_start_pressure_mbar, "mbar")}</b></div>
+                  <div><span>Bomba secundária</span><b>{state?.roots_pump?.model || "WSU 2001"}</b></div>
+                  <div><span>Pressão segura bomba secundária</span><b>{fmt(state?.roots_pump?.safe_start_pressure_mbar, "mbar")}</b></div>
                   <div><span>Mangueiras cadastradas</span><b>{allHoses.length}</b></div>
                   <div><span>Receitas cadastradas</span><b>{allRecipes.length}</b></div>
                 </div>
@@ -1137,6 +1663,13 @@ function App() {
 
         {view === "history" && (
           <div className="screen">
+
+            <TseaHistoryDetailsPanel
+              state={state}
+              allTanks={allTanks}
+              allHoses={allHoses}
+            />
+
             <Section
               title="Histórico operacional"
               subtitle="Ciclos executados e simulações registradas."
@@ -1304,7 +1837,7 @@ function App() {
                     <Field label="Nome da receita"><input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
                     <Field label="Tipo de tanque"><input value={form.tank_type || ""} onChange={(e) => setForm({ ...form, tank_type: e.target.value })} /></Field>
                     <Field label="Pressão final"><input type="number" value={form.target_pressure_mbar || ""} onChange={(e) => setForm({ ...form, target_pressure_mbar: e.target.value })} /></Field>
-                    <Field label="Acionamento Roots"><input type="number" value={form.roots_start_pressure_mbar || ""} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: e.target.value })} /></Field>
+                    <Field label="Acionamento da bomba secundária"><input type="number" value={form.roots_start_pressure_mbar || ""} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: e.target.value })} /></Field>
                     <Field label="Tempo máximo"><input type="number" value={form.max_cycle_seconds || ""} onChange={(e) => setForm({ ...form, max_cycle_seconds: e.target.value })} /></Field>
                     <Field label="Vazão mínima de óleo"><input type="number" value={form.min_oil_flow_l_min || ""} onChange={(e) => setForm({ ...form, min_oil_flow_l_min: e.target.value })} /></Field>
                   </>
@@ -1348,7 +1881,7 @@ function App() {
 
             {paramTab === "recipes" && (
               <Section title="Receitas cadastradas">
-                <Table columns={["Nome", "Tanque", "Pressão", "Roots", "Tempo", "Óleo"]} rows={allRecipes.map((recipe: any) => [<b>{recipe.name}</b>, recipe.tank_type || "--", fmt(recipe.target_pressure_mbar, "mbar"), fmt(recipe.roots_start_pressure_mbar, "mbar"), fmt(recipe.max_cycle_seconds, "s"), fmt(recipe.min_oil_flow_l_min, "L/min")])} />
+                <Table columns={["Nome", "Tanque", "Pressão", "bomba secundária", "Tempo", "Óleo"]} rows={allRecipes.map((recipe: any) => [<b>{recipe.name}</b>, recipe.tank_type || "--", fmt(recipe.target_pressure_mbar, "mbar"), fmt(recipe.roots_start_pressure_mbar, "mbar"), fmt(recipe.max_cycle_seconds, "s"), fmt(recipe.min_oil_flow_l_min, "L/min")])} />
               </Section>
             )}
 
