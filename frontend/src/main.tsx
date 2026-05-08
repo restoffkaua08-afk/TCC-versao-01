@@ -1677,6 +1677,176 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 
 /* TSEA_GEMEO_DIGITAL_10_END */
 
+
+/* TSEA_SIMULACOES_GEMEO_NO_HISTORICO_START */
+
+function TseaTwinSimulationsHistoryPanel({ state, allTanks, allHoses }: any) {
+  const [items, setItems] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any>(null);
+
+  function readStorageList(key: string): any[] {
+    try {
+      const raw = localStorage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function loadItems() {
+    const sources = [
+      ...readStorageList("tsea.gemeo10.history"),
+      ...readStorageList("tsea.simulationHistory.final"),
+      ...readStorageList("tsea.simulations")
+    ];
+
+    const map = new Map<string, any>();
+
+    sources.forEach((item: any) => {
+      if (!item) return;
+      const id = String(item.id || item.created_at || item.scenario || Math.random());
+      if (!map.has(id)) map.set(id, item);
+    });
+
+    const ordered = Array.from(map.values()).sort((a: any, b: any) => {
+      const da = new Date(a.created_at || a.data || 0).getTime();
+      const db = new Date(b.created_at || b.data || 0).getTime();
+      return db - da;
+    });
+
+    setItems(ordered);
+  }
+
+  useEffect(() => {
+    loadItems();
+    const timer = window.setInterval(loadItems, 1500);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  function statusText(item: any) {
+    if (item.status === "success") return "Bem-sucedida";
+    if (item.status === "warning") return "Aprovada com restrição";
+    if (item.status === "critical") return "Reprovada";
+    return item.status || "Registrada";
+  }
+
+  function renderDetails(item: any) {
+    const metrics = item.metrics || {};
+    const components = Array.isArray(item.components) ? item.components : [];
+    const actions = Array.isArray(item.actions) ? item.actions : [];
+
+    const componentRows = components.length ? components.map((component: any) => [
+      <b>{component.type || component.tipo || "Componente"}</b>,
+      component.id || component.codigo || component.identificacao || "--",
+      component.status || "--",
+      component.performance || component.desempenho || "--",
+      component.reading || component.leitura || "--",
+      component.impact || component.impacto || "--"
+    ]) : [
+      [<b>Bomba primária</b>, "Leybold SOGEVAC SV 630 B", "Operacional", "98%", "640 m³/h", "Evacuação inicial do ciclo."],
+      [<b>Bomba secundária</b>, "Leybold RUVAC WSU 2001", metrics.secondary_released ? "Liberada" : "Conforme intertravamento", "--", fmt(metrics.secondary_start_pressure_mbar || 50, "mbar"), "Reforço do vácuo em faixa segura."],
+      [<b>Mangueira</b>, item.config?.hose_id || "--", Number(metrics.hose_loss_factor || 0) > 1 ? "Atenção" : "Operacional", "--", `Fator ${fmt(metrics.hose_loss_factor || 0)}`, "Perda de carga e tempo de ciclo."],
+      [<b>Tanque</b>, item.config?.tank_type || "--", item.status === "critical" ? "Crítico" : item.status === "warning" ? "Atenção" : "Operacional", "--", fmt(metrics.final_real_pressure_mbar, "mbar"), "Pressão final e margem estrutural."],
+      [<b>Sensor</b>, "SP-SIM", item.config?.simulate_sensor_failure ? "Falha simulada" : "Online", item.config?.simulate_sensor_failure ? "35%" : "98%", fmt(metrics.final_real_pressure_mbar, "mbar"), "Leitura usada no diagnóstico."],
+      [<b>Óleo</b>, "Injeção de óleo", Number(metrics.oil_flow_l_min || item.config?.oil_flow_l_min || 0) < 1.5 ? "Vazão baixa" : "Operacional", "--", fmt(metrics.oil_flow_l_min || item.config?.oil_flow_l_min, "L/min"), "Vedação e estabilidade do ciclo."]
+    ];
+
+    const actionRows = actions.length ? actions.map((action: any) => [
+      <b>{action.step || action.etapa || "Etapa"}</b>,
+      action.status || "--",
+      action.ref || action.referencia || "--",
+      action.log || action.registro || "--"
+    ]) : [
+      [<b>Preparação</b>, "Concluída", item.scenario || "--", "Parâmetros carregados para simulação."],
+      [<b>Evacuação inicial</b>, "Concluída", "Bomba primária", "Redução inicial de pressão calculada."],
+      [<b>Bomba secundária</b>, metrics.secondary_released ? "Liberada" : "Avaliada", fmt(metrics.secondary_start_pressure_mbar || 50, "mbar"), "Intertravamento avaliado pela pressão segura."],
+      [<b>Diagnóstico final</b>, statusText(item), fmt(metrics.max_collapse_risk_pct, "%"), item.recommendation || "Sem recomendação registrada."]
+    ];
+
+    return (
+      <div className="detailPanel">
+        <div className="traceHeader">
+          <div>
+            <h3>{item.scenario || item.nome || "Simulação do Gêmeo Digital"}</h3>
+            <p>{item.diagnosis || item.diagnostico || "Registro técnico da simulação."}</p>
+          </div>
+          <button className="secondary" onClick={() => setSelected(null)}>Fechar</button>
+        </div>
+
+        <div className="metrics">
+          <Metric label="Status" value={<Badge value={item.status || "success"} />} detail={statusText(item)} />
+          <Metric label="Pressão final" value={fmt(metrics.final_real_pressure_mbar || metrics.pressaoFinal, "mbar")} detail="Resultado previsto" />
+          <Metric label="Tempo estimado" value={fmt(metrics.estimated_time_seconds || metrics.duracao, "s")} detail="Duração simulada" />
+          <Metric label="Risco máximo" value={fmt(metrics.max_collapse_risk_pct || metrics.risco, "%")} detail="Avaliação estrutural" />
+        </div>
+
+        <div className="diagnosticBox">
+          <strong>{item.diagnosis || item.diagnostico || statusText(item)}</strong>
+          <span>{item.probableCause || item.causa || "Causa principal não registrada."}</span>
+          <small>{item.recommendation || item.recomendacao || "Sem recomendação adicional."}</small>
+        </div>
+
+        <div className="tracePanel">
+          <h3>Máquinas, peças e sensores</h3>
+          <Table
+            columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"]}
+            rows={componentRows}
+          />
+        </div>
+
+        <div className="tracePanel">
+          <h3>Ações da operação simulada</h3>
+          <Table
+            columns={["Etapa", "Status", "Referência", "Registro técnico"]}
+            rows={actionRows}
+          />
+        </div>
+
+        <div className="tracePanel">
+          <h3>Relatório técnico</h3>
+          <Table
+            columns={["Item", "Valor", "Interpretação"]}
+            rows={[
+              [<b>ID</b>, item.id || "--", "Identificador da simulação."],
+              [<b>Data</b>, item.created_at ? new Date(item.created_at).toLocaleString("pt-BR") : "--", "Data de execução."],
+              [<b>Cenário</b>, item.scenario || "--", "Cenário usado no Gêmeo Digital."],
+              [<b>Status final</b>, statusText(item), item.status === "critical" ? "Não recomendado para operação real." : item.status === "warning" ? "Exige revisão antes da operação." : "Pode ser usado como referência operacional."],
+              [<b>Motivo</b>, item.probableCause || "--", "Principal causa técnica identificada."],
+              [<b>Recomendação</b>, item.recommendation || "--", "Ação recomendada antes da execução real."]
+            ]}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Section
+      title="Simulações do Gêmeo Digital"
+      subtitle="Registros de testes executados, com diagnóstico, componentes, ações simuladas e relatório técnico."
+      action={<button className="secondary" onClick={loadItems}>Atualizar</button>}
+    >
+      <Table
+        columns={["ID", "Data", "Cenário", "Status", "Risco", "Pressão", "Detalhes"]}
+        rows={items.map((item: any) => [
+          <b>{item.id || "--"}</b>,
+          item.created_at ? new Date(item.created_at).toLocaleString("pt-BR") : "--",
+          item.scenario || item.nome || "Simulação",
+          <Badge value={item.status || "success"} />,
+          fmt(item.metrics?.max_collapse_risk_pct || item.metrics?.risco, "%"),
+          fmt(item.metrics?.final_real_pressure_mbar || item.metrics?.pressaoFinal, "mbar"),
+          <button className="secondary" onClick={() => setSelected(item)}>Ver detalhes</button>
+        ])}
+      />
+
+      {selected && renderDetails(selected)}
+    </Section>
+  );
+}
+
+/* TSEA_SIMULACOES_GEMEO_NO_HISTORICO_END */
+
 function App() {
 
   const [tseaDarkTheme, setTseaDarkTheme] = useState(() => localStorage.getItem("tsea.theme") === "dark");
@@ -2218,6 +2388,13 @@ function App() {
         {view === "history" && (
           <div className="screen">
 
+            <TseaTwinSimulationsHistoryPanel
+              state={state}
+              allTanks={allTanks}
+              allHoses={allHoses}
+            />
+
+
             <TseaHistoryDetailsPanel
               state={state}
               allTanks={allTanks}
@@ -2293,6 +2470,13 @@ function App() {
 
         {view === "reports" && (
           <div className="screen">
+
+            <TseaTwinSimulationsHistoryPanel
+              state={state}
+              allTanks={allTanks}
+              allHoses={allHoses}
+            />
+
             <Section title="Filtros de relatório" subtitle="Recorte operacional para análise.">
               <div className="filterRow">
                 <button className={reportPeriod === "today" ? "" : "secondary"} onClick={() => setReportPeriod("today")}>Hoje</button>
