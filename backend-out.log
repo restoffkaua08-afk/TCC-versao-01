@@ -1,8 +1,0 @@
-INFO:     127.0.0.1:53267 - "GET /api/health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53267 - "GET /api/operation/state HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53267 - "GET /api/digital-twin/config-options HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53267 - "GET /api/records/operations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53267 - "GET /api/records/simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53267 - "GET /api/reports/operational HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61958 - "GET /docs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61958 - "GET /openapi.json HTTP/1.1" 200 OK
