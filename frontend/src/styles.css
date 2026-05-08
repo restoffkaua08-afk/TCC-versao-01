@@ -53,6 +53,17 @@ button.danger {
   background: var(--red);
 }
 
+input,
+select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--lineStrong);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0 10px;
+}
+
 .layout {
   min-height: 100vh;
   display: grid;
@@ -196,7 +207,6 @@ small {
   padding: 0;
   display: grid;
   place-items: center;
-  gap: 0;
   background: #fff;
   border: 1px solid var(--lineStrong);
 }
@@ -339,6 +349,39 @@ p {
   font-size: 1.25rem;
 }
 
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field span {
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 850;
+}
+
+.checkGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.checkGrid label {
+  background: var(--surfaceSoft);
+  border: 1px solid #e4e8e4;
+  border-radius: 8px;
+  padding: 9px;
+  color: var(--muted);
+  font-weight: 750;
+}
+
 .tankGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -417,14 +460,20 @@ p {
 }
 
 .tankReadings,
-.infoGrid {
+.infoGrid,
+.infoGridLarge {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
+.infoGridLarge {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .tankReadings div,
 .infoGrid div,
+.infoGridLarge div,
 .infoCard,
 .reportBox,
 .diagnosticBox {
@@ -435,7 +484,8 @@ p {
 }
 
 .tankReadings span,
-.infoGrid span {
+.infoGrid span,
+.infoGridLarge span {
   display: block;
   color: var(--muted);
   font-size: .76rem;
@@ -446,10 +496,19 @@ p {
 .legend,
 .chartLegend,
 .commandBar,
-.tabs {
+.tabs,
+.subtabs,
+.filterRow {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.commandBar,
+.subtabs,
+.filterRow,
+.tabs {
+  margin-top: 12px;
 }
 
 .legend span,
@@ -495,13 +554,6 @@ p {
   background: var(--red);
 }
 
-.twinScreen {
-  display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
 .scenarioGrid {
   display: grid;
   gap: 8px;
@@ -525,6 +577,11 @@ p {
 .scenarioCard span {
   color: var(--muted);
   font-weight: 500;
+}
+
+.assistantBox {
+  display: grid;
+  gap: 12px;
 }
 
 .chartBox {
@@ -636,8 +693,10 @@ th {
   .metricsGrid,
   .statusGrid,
   .tankGrid,
-  .twinScreen,
-  .detailGrid {
+  .detailGrid,
+  .formGrid,
+  .checkGrid,
+  .infoGridLarge {
     grid-template-columns: 1fr;
   }
 

@@ -5,14 +5,17 @@ import "./styles.css";
 const API = "http://127.0.0.1:8000/api";
 
 type View = "dashboard" | "operation" | "twin" | "history" | "reports" | "parameters";
+type TwinTab = "scenarios" | "manual" | "result" | "assistant" | "technical";
+type ParamTab = "tanks" | "hoses" | "recipes" | "formulas" | "operators";
+type ReportTab = "operations" | "simulations";
 
 const menu: { key: View; label: string; sub: string }[] = [
   { key: "dashboard", label: "Painel", sub: "Resumo operacional" },
-  { key: "operation", label: "Operação", sub: "Ciclo em tempo real" },
-  { key: "twin", label: "Gêmeo Digital", sub: "Cenários e validação" },
+  { key: "operation", label: "Operação", sub: "Configuração e execução" },
+  { key: "twin", label: "Gêmeo Digital", sub: "Simulação operacional" },
   { key: "history", label: "Histórico", sub: "Ciclos e simulações" },
-  { key: "reports", label: "Relatórios", sub: "Indicadores técnicos" },
-  { key: "parameters", label: "Parâmetros", sub: "Tanques, linhas e receitas" },
+  { key: "reports", label: "Relatórios", sub: "Filtros e auditoria" },
+  { key: "parameters", label: "Parâmetros", sub: "Cadastros técnicos" },
 ];
 
 async function request(path: string, options: RequestInit = {}) {
@@ -36,6 +39,19 @@ async function safe(path: string, options: RequestInit = {}) {
   }
 }
 
+function loadLocal<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveLocal(key: string, value: unknown) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
 function fmt(value: unknown, suffix = "") {
   const n = Number(value);
   if (value === null || value === undefined || Number.isNaN(n)) return "--";
@@ -56,6 +72,8 @@ function statusLabel(status: unknown) {
     abortado: "Abortado",
     em_andamento: "Em andamento",
     emergency: "Emergência",
+    available: "Disponível",
+    attention: "Atenção",
   };
 
   return map[value] || String(status || "--");
@@ -64,11 +82,37 @@ function statusLabel(status: unknown) {
 function tone(status: unknown) {
   const value = String(status || "").toLowerCase();
 
-  if (["success", "concluido", "running", "ok", "conforme"].includes(value)) return "ok";
-  if (["warning", "paused", "em_andamento", "atenção", "atencao"].includes(value)) return "warn";
-  if (["critical", "abortado", "emergency", "falha"].includes(value)) return "bad";
+  if (["success", "concluido", "running", "ok", "conforme", "available"].includes(value)) return "ok";
+  if (["warning", "paused", "em_andamento", "atenção", "atencao", "attention"].includes(value)) return "warn";
+  if (["critical", "abortado", "emergency", "falha", "fault"].includes(value)) return "bad";
 
   return "neutral";
+}
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function daysAgo(days: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
+}
+
+function inPeriod(dateValue: string, period: string) {
+  if (period === "all") return true;
+  if (!dateValue) return false;
+
+  const d = new Date(dateValue);
+  if (Number.isNaN(d.getTime())) return true;
+
+  const date = d.toISOString().slice(0, 10);
+
+  if (period === "today") return date === todayISO();
+  if (period === "week") return date >= daysAgo(7);
+  if (period === "month") return date >= daysAgo(30);
+
+  return true;
 }
 
 function Badge({ value }: { value: unknown }) {
@@ -106,6 +150,15 @@ function Empty({ text }: { text: string }) {
       <strong>Sem dados disponíveis</strong>
       <span>{text}</span>
     </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      {children}
+    </label>
   );
 }
 
@@ -163,6 +216,8 @@ function TankCard({ item }: { item: any }) {
           <div><span>Curva Esperada</span><b>{fmt(item?.expected_pressure_mbar, "mbar")}</b></div>
           <div><span>Volume de Óleo</span><b>{fmt(item?.oil_volume_liters, "L")}</b></div>
           <div><span>Risco Estrutural</span><b>{fmt(risk, "%")}</b></div>
+          <div><span>Perda na Linha</span><b>{fmt(item?.hose_loss_mbar, "mbar")}</b></div>
+          <div><span>Sinal</span><b>{item?.status_light || "green"}</b></div>
         </div>
       </div>
 
@@ -235,10 +290,56 @@ function App() {
   const [hoses, setHoses] = useState<any[]>([]);
   const [recipes, setRecipes] = useState<any[]>([]);
 
+  const [localTanks, setLocalTanks] = useState<any[]>(() => loadLocal("tsea.localTanks", []));
+  const [localHoses, setLocalHoses] = useState<any[]>(() => loadLocal("tsea.localHoses", []));
+  const [localRecipes, setLocalRecipes] = useState<any[]>(() => loadLocal("tsea.localRecipes", []));
+  const [localFormulas, setLocalFormulas] = useState<any[]>(() => loadLocal("tsea.localFormulas", []));
+  const [localOperators, setLocalOperators] = useState<any[]>(() => loadLocal("tsea.localOperators", []));
+
+  const [operationConfig, setOperationConfig] = useState<any>(() => loadLocal("tsea.operationConfig", {
+    operator: "Operador TSEA",
+    tank_id: 1,
+    hose_id: 1,
+    recipe_id: 1,
+    target_pressure_mbar: 6.5,
+    roots_start_pressure_mbar: 50,
+    max_cycle_seconds: 900,
+    oil_flow_l_min: 2,
+    tank_type: "grande",
+    notes: "",
+  }));
+
+  const [twinTab, setTwinTab] = useState<TwinTab>("scenarios");
+  const [twinManual, setTwinManual] = useState<any>(() => loadLocal("tsea.twinManual", {
+    tank_type: "grande",
+    hose_id: 1,
+    target_pressure_mbar: 6.5,
+    roots_start_pressure_mbar: 50,
+    oil_flow_l_min: 2,
+    oil_delay_seconds: 0,
+    max_cycle_seconds: 900,
+    pump_health_factor: 1,
+    calibration_factor: 1,
+    hose_correction_enabled: true,
+    oil_compensation_enabled: true,
+    simulate_hose_leak: false,
+    simulate_sensor_failure: false,
+    simulate_plc_loss: false,
+  }));
+
   const [simulationResult, setSimulationResult] = useState<any>(null);
   const [selectedScenario, setSelectedScenario] = useState("");
+  const [assistantQuestion, setAssistantQuestion] = useState("");
+  const [assistantAnswer, setAssistantAnswer] = useState("");
+
   const [historyTab, setHistoryTab] = useState<"operations" | "simulations">("operations");
   const [detail, setDetail] = useState<any>(null);
+
+  const [reportTab, setReportTab] = useState<ReportTab>("operations");
+  const [reportPeriod, setReportPeriod] = useState("all");
+
+  const [paramTab, setParamTab] = useState<ParamTab>("tanks");
+  const [form, setForm] = useState<any>({});
 
   async function refresh(tick = false) {
     const health = await safe("/health");
@@ -293,8 +394,50 @@ function App() {
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => saveLocal("tsea.operationConfig", operationConfig), [operationConfig]);
+  useEffect(() => saveLocal("tsea.twinManual", twinManual), [twinManual]);
+  useEffect(() => saveLocal("tsea.localTanks", localTanks), [localTanks]);
+  useEffect(() => saveLocal("tsea.localHoses", localHoses), [localHoses]);
+  useEffect(() => saveLocal("tsea.localRecipes", localRecipes), [localRecipes]);
+  useEffect(() => saveLocal("tsea.localFormulas", localFormulas), [localFormulas]);
+  useEffect(() => saveLocal("tsea.localOperators", localOperators), [localOperators]);
+
+  const apiTanks = Array.isArray(tanks) ? tanks : [];
+  const apiHoses = Array.isArray(hoses) ? hoses : [];
+  const apiRecipes = Array.isArray(recipes) ? recipes : [];
+
+  const allTanks = [...apiTanks, ...localTanks];
+  const allHoses = [...apiHoses, ...localHoses];
+  const allRecipes = [...apiRecipes, ...localRecipes];
+
+  const tanksState = state?.tank_states || [];
+  const avgPressure = tanksState.reduce((sum: number, item: any) => sum + Number(item.pressure_mbar || 0), 0) / Math.max(tanksState.length, 1);
+  const maxRisk = Math.max(0, ...tanksState.map((item: any) => Number(item.collapse_risk_pct || 0)));
+  const currentRows = historyTab === "operations" ? operations : simulations;
+
+  const filteredOperations = operations.filter((op: any) => inPeriod(op.created_at, reportPeriod));
+  const filteredSimulations = simulations.filter((sim: any) => inPeriod(sim.created_at, reportPeriod));
+
+  const pageTitle = useMemo(() => menu.find((item) => item.key === view)?.label || "Painel", [view]);
+
+  function setOp(key: string, value: any) {
+    setOperationConfig((current: any) => ({ ...current, [key]: value }));
+  }
+
+  function setTwin(key: string, value: any) {
+    setTwinManual((current: any) => ({ ...current, [key]: value }));
+  }
+
   async function control(action: "start" | "pause" | "stop" | "reset" | "emergency") {
-    await request(`/operation/${action}`, { method: "POST" });
+    if (action === "start") {
+      await safe("/operation/start", {
+        method: "POST",
+        body: JSON.stringify(operationConfig),
+      });
+    } else {
+      await safe(`/operation/${action}`, { method: "POST" });
+    }
+
     await refresh(false);
   }
 
@@ -307,6 +450,7 @@ function App() {
     });
 
     setSimulationResult(result);
+    setTwinTab("result");
 
     await safe("/records/simulations", {
       method: "POST",
@@ -317,6 +461,50 @@ function App() {
     });
 
     await refresh(false);
+  }
+
+  async function runManualSimulation() {
+    const result = await request("/digital-twin/simulate", {
+      method: "POST",
+      body: JSON.stringify(twinManual),
+    });
+
+    setSimulationResult(result);
+    setSelectedScenario("manual");
+    setTwinTab("result");
+
+    await safe("/records/simulations", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Configuração Manual",
+        config: twinManual,
+      }),
+    });
+
+    await refresh(false);
+  }
+
+  function askAssistant() {
+    const q = assistantQuestion.toLowerCase();
+    const status = simulationResult?.status ? statusLabel(simulationResult.status) : "sem simulação executada";
+    const risk = simulationResult?.metrics?.max_collapse_risk_pct;
+    const pressure = simulationResult?.metrics?.final_real_pressure_mbar;
+
+    let answer = `Estado atual: ${status}. Risco máximo: ${fmt(risk, "%")}. Pressão final: ${fmt(pressure, "mbar")}.`;
+
+    if (q.includes("óleo") || q.includes("oleo")) {
+      answer += " Verifique vazão de injeção, atraso de entrada e compensação de óleo. Baixa vazão ou atraso elevam a carga estrutural.";
+    } else if (q.includes("mangueira") || q.includes("linha")) {
+      answer += " Verifique comprimento, diâmetro e fator de perda da linha de vácuo. Perda elevada altera a curva esperada.";
+    } else if (q.includes("roots") || q.includes("bomba")) {
+      answer += " Confirme a pressão de acionamento da Roots e o índice de integridade da bomba. Acionamento fora da faixa aumenta risco operacional.";
+    } else if (q.includes("risco")) {
+      answer += " O índice de risco deve ser comparado ao limite estrutural definido para o tanque e à margem operacional de segurança.";
+    } else {
+      answer += " Analise curva esperada, curva real/simulada, linha de vácuo, óleo e acionamento da Roots antes de liberar a execução.";
+    }
+
+    setAssistantAnswer(answer);
   }
 
   async function openHistoryDetail(item: any) {
@@ -338,14 +526,68 @@ function App() {
     URL.revokeObjectURL(url);
   }
 
-  const tanksState = state?.tank_states || [];
+  function saveParam() {
+    if (paramTab === "tanks") {
+      const item = {
+        id: `LT-${Date.now()}`,
+        code: form.code || "TQ-NOVO",
+        type: form.type || "grande",
+        volume_liters: Number(form.volume_liters || 0),
+        structural_limit_mbar: Number(form.structural_limit_mbar || 0),
+        status: form.status || "available",
+      };
+      setLocalTanks((list) => [...list, item]);
+    }
 
-  const avgPressure = tanksState.reduce((sum: number, item: any) => sum + Number(item.pressure_mbar || 0), 0) / Math.max(tanksState.length, 1);
-  const maxRisk = Math.max(0, ...tanksState.map((item: any) => Number(item.collapse_risk_pct || 0)));
+    if (paramTab === "hoses") {
+      const item = {
+        id: `LH-${Date.now()}`,
+        code: form.code || "MG-NOVA",
+        length_m: Number(form.length_m || 0),
+        diameter_in: Number(form.diameter_in || 0),
+        loss_factor: Number(form.loss_factor || 0),
+        status: form.status || "available",
+      };
+      setLocalHoses((list) => [...list, item]);
+    }
 
-  const pageTitle = useMemo(() => menu.find((item) => item.key === view)?.label || "Painel", [view]);
+    if (paramTab === "recipes") {
+      const item = {
+        id: `LR-${Date.now()}`,
+        name: form.name || "Receita Operacional",
+        tank_type: form.tank_type || "grande",
+        target_pressure_mbar: Number(form.target_pressure_mbar || 6.5),
+        roots_start_pressure_mbar: Number(form.roots_start_pressure_mbar || 50),
+        max_cycle_seconds: Number(form.max_cycle_seconds || 900),
+        min_oil_flow_l_min: Number(form.min_oil_flow_l_min || 2),
+      };
+      setLocalRecipes((list) => [...list, item]);
+    }
 
-  const currentRows = historyTab === "operations" ? operations : simulations;
+    if (paramTab === "formulas") {
+      const item = {
+        id: `LF-${Date.now()}`,
+        name: form.name || "Fórmula Operacional",
+        expression: form.expression || "dP/dt = -(S/V)P",
+        variable: form.variable || "Pressão",
+        description: form.description || "Modelo operacional padrão",
+      };
+      setLocalFormulas((list) => [...list, item]);
+    }
+
+    if (paramTab === "operators") {
+      const item = {
+        id: `LO-${Date.now()}`,
+        name: form.name || "Operador",
+        registration: form.registration || "N/A",
+        role: form.role || "Operação",
+        status: form.status || "Ativo",
+      };
+      setLocalOperators((list) => [...list, item]);
+    }
+
+    setForm({});
+  }
 
   return (
     <div className={`layout ${menuOpen ? "drawerOpen" : ""}`}>
@@ -421,7 +663,7 @@ function App() {
               </div>
             </Section>
 
-            <Section title="Unidade de bombeamento" subtitle="Leitura funcional da bomba primária, Roots, óleo e comunicação.">
+            <Section title="Unidade de bombeamento" subtitle="Bomba primária, Roots, óleo e comunicação.">
               <div className="statusGrid">
                 <Metric label="Bomba Primária" value={state?.primary_pump?.running ? "Ligada" : "Desligada"} detail={state?.primary_pump?.model || "SV630B"} status={state?.primary_pump?.running ? "success" : "neutral"} />
                 <Metric label="Bomba Roots" value={state?.roots_pump?.running ? "Ligada" : "Bloqueada"} detail={state?.roots_pump?.model || "WSU2001"} status={state?.roots_pump?.running ? "success" : "warning"} />
@@ -434,9 +676,82 @@ function App() {
 
         {view === "operation" && (
           <div className="screen">
-            <Section title="Comando do ciclo" subtitle="Controle direto do processo operacional." action={<Badge value={state?.cycle?.status || "stopped"} />}>
+            <Section title="Configuração da operação" subtitle="Parâmetros do ciclo antes da execução." action={<Badge value={state?.cycle?.status || "stopped"} />}>
+              <div className="formGrid">
+                <Field label="Responsável operacional">
+                  <input value={operationConfig.operator} onChange={(e) => setOp("operator", e.target.value)} />
+                </Field>
+
+                <Field label="Tanque de processo">
+                  <select value={operationConfig.tank_id} onChange={(e) => setOp("tank_id", e.target.value)}>
+                    {allTanks.map((tank: any) => (
+                      <option key={tank.id || tank.code} value={tank.id || tank.code}>{tank.code || tank.name} · {tank.type || "tipo"}</option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Linha de vácuo / mangueira">
+                  <select value={operationConfig.hose_id} onChange={(e) => setOp("hose_id", e.target.value)}>
+                    {allHoses.map((hose: any) => (
+                      <option key={hose.id || hose.code} value={hose.id || hose.code}>{hose.code} · {fmt(hose.length_m, "m")} · fator {fmt(hose.loss_factor)}</option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Receita operacional">
+                  <select
+                    value={operationConfig.recipe_id}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const recipe = allRecipes.find((r: any) => String(r.id) === String(value));
+                      setOperationConfig((current: any) => ({
+                        ...current,
+                        recipe_id: value,
+                        target_pressure_mbar: recipe?.target_pressure_mbar ?? current.target_pressure_mbar,
+                        roots_start_pressure_mbar: recipe?.roots_start_pressure_mbar ?? current.roots_start_pressure_mbar,
+                        max_cycle_seconds: recipe?.max_cycle_seconds ?? current.max_cycle_seconds,
+                        oil_flow_l_min: recipe?.min_oil_flow_l_min ?? current.oil_flow_l_min,
+                        tank_type: recipe?.tank_type ?? current.tank_type,
+                      }));
+                    }}
+                  >
+                    {allRecipes.map((recipe: any) => (
+                      <option key={recipe.id || recipe.name} value={recipe.id || recipe.name}>{recipe.name}</option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Tipo de tanque">
+                  <select value={operationConfig.tank_type} onChange={(e) => setOp("tank_type", e.target.value)}>
+                    <option value="medio">Médio</option>
+                    <option value="grande">Grande</option>
+                    <option value="extra_grande">Extra grande</option>
+                  </select>
+                </Field>
+
+                <Field label="Pressão final do processo">
+                  <input type="number" value={operationConfig.target_pressure_mbar} onChange={(e) => setOp("target_pressure_mbar", Number(e.target.value))} />
+                </Field>
+
+                <Field label="Pressão de acionamento da Roots">
+                  <input type="number" value={operationConfig.roots_start_pressure_mbar} onChange={(e) => setOp("roots_start_pressure_mbar", Number(e.target.value))} />
+                </Field>
+
+                <Field label="Vazão de óleo">
+                  <input type="number" value={operationConfig.oil_flow_l_min} onChange={(e) => setOp("oil_flow_l_min", Number(e.target.value))} />
+                </Field>
+
+                <Field label="Tempo máximo do ciclo">
+                  <input type="number" value={operationConfig.max_cycle_seconds} onChange={(e) => setOp("max_cycle_seconds", Number(e.target.value))} />
+                </Field>
+
+                <Field label="Observação técnica">
+                  <input value={operationConfig.notes} onChange={(e) => setOp("notes", e.target.value)} />
+                </Field>
+              </div>
+
               <div className="commandBar">
-                <button onClick={() => control("start")}>Iniciar ciclo</button>
+                <button onClick={() => control("start")}>Iniciar operação</button>
                 <button className="secondary" onClick={() => control("pause")}>Pausar</button>
                 <button className="secondary" onClick={() => control("stop")}>Finalizar</button>
                 <button className="secondary" onClick={() => control("reset")}>Resetar</button>
@@ -444,7 +759,7 @@ function App() {
               </div>
             </Section>
 
-            <Section title="Tanques em operação" subtitle="Pressão, curva esperada, óleo e risco por tanque.">
+            <Section title="Operação em tempo real" subtitle="Pressão, óleo, linha de vácuo e risco estrutural por tanque.">
               <div className="tankGrid">
                 {tanksState.map((item: any, index: number) => (
                   <TankCard key={item?.tank?.id || index} item={item} />
@@ -455,40 +770,130 @@ function App() {
         )}
 
         {view === "twin" && (
-          <div className="twinScreen">
-            <Section title="Cenários operacionais" subtitle="Validação de comportamento antes da execução.">
-              <div className="scenarioGrid">
-                {Object.entries(options?.presets || {}).map(([key, preset]: [string, any]) => (
-                  <button
-                    key={key}
-                    className={`scenarioCard ${selectedScenario === key ? "selected" : ""}`}
-                    onClick={() => runScenario(key)}
-                  >
-                    <strong>{preset.name || key}</strong>
-                    <span>{preset.description || "Cenário de processo"}</span>
-                  </button>
-                ))}
+          <div className="screen">
+            <Section title="Gêmeo Digital" subtitle="Cenários, configuração manual, resultado e diagnóstico.">
+              <div className="subtabs">
+                <button className={twinTab === "scenarios" ? "" : "secondary"} onClick={() => setTwinTab("scenarios")}>Cenários</button>
+                <button className={twinTab === "manual" ? "" : "secondary"} onClick={() => setTwinTab("manual")}>Configuração</button>
+                <button className={twinTab === "result" ? "" : "secondary"} onClick={() => setTwinTab("result")}>Resultado</button>
+                <button className={twinTab === "assistant" ? "" : "secondary"} onClick={() => setTwinTab("assistant")}>Assistente</button>
+                <button className={twinTab === "technical" ? "" : "secondary"} onClick={() => setTwinTab("technical")}>Dados Técnicos</button>
               </div>
-            </Section>
 
-            <Section title="Resultado da validação" subtitle="Curva de pressão, risco estrutural, eventos e recomendação técnica.">
-              {!simulationResult ? (
-                <Empty text="Nenhuma validação executada no ciclo atual da interface." />
-              ) : (
-                <div className="resultStack">
-                  <div className="metricsGrid compact">
-                    <Metric label="Estado" value={statusLabel(simulationResult.status)} status={simulationResult.status} />
-                    <Metric label="Tempo Estimado" value={fmt(simulationResult.metrics?.estimated_time_seconds, "s")} />
-                    <Metric label="Pressão Final" value={fmt(simulationResult.metrics?.final_real_pressure_mbar, "mbar")} />
-                    <Metric label="Risco Máximo" value={fmt(simulationResult.metrics?.max_collapse_risk_pct, "%")} status={simulationResult.status} />
+              {twinTab === "scenarios" && (
+                <div className="scenarioGrid">
+                  {Object.entries(options?.presets || {}).map(([key, preset]: [string, any]) => (
+                    <button
+                      key={key}
+                      className={`scenarioCard ${selectedScenario === key ? "selected" : ""}`}
+                      onClick={() => runScenario(key)}
+                    >
+                      <strong>{preset.name || key}</strong>
+                      <span>{preset.description || "Cenário de processo"}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {twinTab === "manual" && (
+                <div>
+                  <div className="formGrid">
+                    <Field label="Tipo de tanque">
+                      <select value={twinManual.tank_type} onChange={(e) => setTwin("tank_type", e.target.value)}>
+                        <option value="medio">Médio</option>
+                        <option value="grande">Grande</option>
+                        <option value="extra_grande">Extra grande</option>
+                      </select>
+                    </Field>
+
+                    <Field label="Linha de vácuo">
+                      <select value={twinManual.hose_id} onChange={(e) => setTwin("hose_id", Number(e.target.value))}>
+                        {allHoses.map((hose: any) => (
+                          <option key={hose.id || hose.code} value={hose.id || hose.code}>{hose.code} · {fmt(hose.length_m, "m")}</option>
+                        ))}
+                      </select>
+                    </Field>
+
+                    <Field label="Pressão final">
+                      <input type="number" value={twinManual.target_pressure_mbar} onChange={(e) => setTwin("target_pressure_mbar", Number(e.target.value))} />
+                    </Field>
+
+                    <Field label="Acionamento da Roots">
+                      <input type="number" value={twinManual.roots_start_pressure_mbar} onChange={(e) => setTwin("roots_start_pressure_mbar", Number(e.target.value))} />
+                    </Field>
+
+                    <Field label="Vazão de óleo">
+                      <input type="number" value={twinManual.oil_flow_l_min} onChange={(e) => setTwin("oil_flow_l_min", Number(e.target.value))} />
+                    </Field>
+
+                    <Field label="Atraso do óleo">
+                      <input type="number" value={twinManual.oil_delay_seconds} onChange={(e) => setTwin("oil_delay_seconds", Number(e.target.value))} />
+                    </Field>
+
+                    <Field label="Índice da bomba">
+                      <input type="number" step="0.01" value={twinManual.pump_health_factor} onChange={(e) => setTwin("pump_health_factor", Number(e.target.value))} />
+                    </Field>
+
+                    <Field label="Fator de calibração">
+                      <input type="number" step="0.001" value={twinManual.calibration_factor} onChange={(e) => setTwin("calibration_factor", Number(e.target.value))} />
+                    </Field>
                   </div>
 
-                  <Chart points={simulationResult.timeline || []} />
-
-                  <div className="diagnosticBox">
-                    <strong>{simulationResult.diagnosis || "Diagnóstico não informado."}</strong>
-                    <span>{simulationResult.recommendation || "Sem recomendação adicional."}</span>
+                  <div className="checkGrid">
+                    <label><input type="checkbox" checked={!!twinManual.hose_correction_enabled} onChange={(e) => setTwin("hose_correction_enabled", e.target.checked)} /> Correção da linha</label>
+                    <label><input type="checkbox" checked={!!twinManual.oil_compensation_enabled} onChange={(e) => setTwin("oil_compensation_enabled", e.target.checked)} /> Compensação de óleo</label>
+                    <label><input type="checkbox" checked={!!twinManual.simulate_hose_leak} onChange={(e) => setTwin("simulate_hose_leak", e.target.checked)} /> Perda de vedação</label>
+                    <label><input type="checkbox" checked={!!twinManual.simulate_sensor_failure} onChange={(e) => setTwin("simulate_sensor_failure", e.target.checked)} /> Falha de sensor</label>
+                    <label><input type="checkbox" checked={!!twinManual.simulate_plc_loss} onChange={(e) => setTwin("simulate_plc_loss", e.target.checked)} /> Falha de CLP</label>
                   </div>
+
+                  <div className="commandBar">
+                    <button onClick={runManualSimulation}>Executar simulação manual</button>
+                    <button className="secondary" onClick={() => download("configuracao-gemeo-digital.json", twinManual)}>Exportar configuração</button>
+                  </div>
+                </div>
+              )}
+
+              {twinTab === "result" && (
+                !simulationResult ? (
+                  <Empty text="Nenhuma simulação executada." />
+                ) : (
+                  <div className="resultStack">
+                    <div className="metricsGrid compact">
+                      <Metric label="Estado" value={statusLabel(simulationResult.status)} status={simulationResult.status} />
+                      <Metric label="Tempo Estimado" value={fmt(simulationResult.metrics?.estimated_time_seconds, "s")} />
+                      <Metric label="Pressão Final" value={fmt(simulationResult.metrics?.final_real_pressure_mbar, "mbar")} />
+                      <Metric label="Risco Máximo" value={fmt(simulationResult.metrics?.max_collapse_risk_pct, "%")} status={simulationResult.status} />
+                    </div>
+
+                    <Chart points={simulationResult.timeline || []} />
+
+                    <div className="diagnosticBox">
+                      <strong>{simulationResult.diagnosis || "Diagnóstico não informado."}</strong>
+                      <span>{simulationResult.recommendation || "Sem recomendação adicional."}</span>
+                    </div>
+                  </div>
+                )
+              )}
+
+              {twinTab === "assistant" && (
+                <div className="assistantBox">
+                  <Field label="Consulta técnica">
+                    <input value={assistantQuestion} onChange={(e) => setAssistantQuestion(e.target.value)} placeholder="Ex.: por que o risco aumentou?" />
+                  </Field>
+                  <button onClick={askAssistant}>Analisar</button>
+                  {assistantAnswer && <div className="diagnosticBox"><strong>Resposta técnica</strong><span>{assistantAnswer}</span></div>}
+                </div>
+              )}
+
+              {twinTab === "technical" && (
+                <div className="infoGridLarge">
+                  <div><span>Modelo de pressão</span><b>dP/dt = -(S/V)P</b></div>
+                  <div><span>Bomba primária</span><b>{state?.primary_pump?.model || "SV630B"}</b></div>
+                  <div><span>Bomba Roots</span><b>{state?.roots_pump?.model || "WSU2001"}</b></div>
+                  <div><span>Pressão segura Roots</span><b>{fmt(state?.roots_pump?.safe_start_pressure_mbar, "mbar")}</b></div>
+                  <div><span>Linhas cadastradas</span><b>{allHoses.length}</b></div>
+                  <div><span>Receitas cadastradas</span><b>{allRecipes.length}</b></div>
                 </div>
               )}
             </Section>
@@ -566,74 +971,163 @@ function App() {
 
         {view === "reports" && (
           <div className="screen">
+            <Section title="Filtros de relatório" subtitle="Recorte operacional para análise.">
+              <div className="filterRow">
+                <button className={reportPeriod === "today" ? "" : "secondary"} onClick={() => setReportPeriod("today")}>Hoje</button>
+                <button className={reportPeriod === "week" ? "" : "secondary"} onClick={() => setReportPeriod("week")}>Últimos 7 dias</button>
+                <button className={reportPeriod === "month" ? "" : "secondary"} onClick={() => setReportPeriod("month")}>Últimos 30 dias</button>
+                <button className={reportPeriod === "all" ? "" : "secondary"} onClick={() => setReportPeriod("all")}>Todos</button>
+              </div>
+
+              <div className="tabs">
+                <button className={reportTab === "operations" ? "" : "secondary"} onClick={() => setReportTab("operations")}>Operações</button>
+                <button className={reportTab === "simulations" ? "" : "secondary"} onClick={() => setReportTab("simulations")}>Simulações</button>
+              </div>
+            </Section>
+
             <div className="metricsGrid">
-              <Metric label="Ciclos" value={report?.cycles_count ?? operations.length} />
-              <Metric label="Simulações" value={simulations.length} />
+              <Metric label="Operações Filtradas" value={filteredOperations.length} />
+              <Metric label="Simulações Filtradas" value={filteredSimulations.length} />
               <Metric label="Alarmes" value={report?.alarms_count ?? alarms.length} status={(report?.alarms_count || alarms.length) ? "warning" : "success"} />
               <Metric label="Pressão Média" value={fmt(report?.average_recent_pressure_mbar, "mbar")} />
             </div>
 
-            <Section title="Relatório técnico" subtitle="Consolidado operacional para análise e auditoria.">
-              <div className="reportBox">
-                <h3>{report?.title || "Relatório Operacional TSEA"}</h3>
-                <p>Ciclos, simulações, alarmes e indicadores do processo de vácuo.</p>
-                <button onClick={() => download("relatorio-operacional-tsea.json", { report, alarms, operations, simulations })}>Exportar relatório</button>
-              </div>
-            </Section>
+            {reportTab === "operations" && (
+              <Section title="Relatório de operações" subtitle="Ciclos filtrados por período.">
+                <Table
+                  columns={["ID", "Data", "Responsável", "Estado", "Tanque", "Linha", "Pressão Final"]}
+                  rows={filteredOperations.map((item: any) => [
+                    <b>{item.id}</b>,
+                    item.created_at || "--",
+                    item.operator || "--",
+                    <Badge value={item.status} />,
+                    item.tank_code || item.tank_type || "--",
+                    item.hose_code || item.hose_id || "--",
+                    fmt(item.final_pressure_mbar, "mbar"),
+                  ])}
+                />
+                <div className="commandBar">
+                  <button onClick={() => download("relatorio-operacoes.json", filteredOperations)}>Exportar operações</button>
+                </div>
+              </Section>
+            )}
 
-            <Section title="Alarmes registrados" subtitle="Ocorrências técnicas retornadas pela API.">
-              <Table
-                columns={["Código", "Severidade", "Mensagem"]}
-                rows={alarms.map((alarm: any) => [
-                  alarm.code || "--",
-                  <Badge value={alarm.severity} />,
-                  alarm.message || "--",
-                ])}
-              />
-            </Section>
+            {reportTab === "simulations" && (
+              <Section title="Relatório de simulações" subtitle="Simulações filtradas por período.">
+                <Table
+                  columns={["ID", "Data", "Nome", "Estado", "Tanque", "Linha", "Risco Máximo"]}
+                  rows={filteredSimulations.map((item: any) => [
+                    <b>{item.id}</b>,
+                    item.created_at || "--",
+                    item.name || "--",
+                    <Badge value={item.status} />,
+                    item.tank_type || "--",
+                    item.hose_code || item.hose_id || "--",
+                    fmt(item.max_collapse_risk_pct, "%"),
+                  ])}
+                />
+                <div className="commandBar">
+                  <button onClick={() => download("relatorio-simulacoes.json", filteredSimulations)}>Exportar simulações</button>
+                </div>
+              </Section>
+            )}
           </div>
         )}
 
         {view === "parameters" && (
           <div className="screen">
-            <Section title="Tanques de processo" subtitle="Cadastro técnico dos tanques utilizados.">
-              <Table
-                columns={["Código", "Tipo", "Volume", "Limite Estrutural", "Estado"]}
-                rows={tanks.map((tank: any) => [
-                  <b>{tank.code}</b>,
-                  tank.type || "--",
-                  fmt(tank.volume_liters, "L"),
-                  fmt(tank.structural_limit_mbar, "mbar"),
-                  tank.status || "--",
-                ])}
-              />
+            <Section title="Cadastros técnicos" subtitle="Tanques, linhas de vácuo, receitas, fórmulas e responsáveis operacionais.">
+              <div className="subtabs">
+                <button className={paramTab === "tanks" ? "" : "secondary"} onClick={() => { setParamTab("tanks"); setForm({}); }}>Tanques</button>
+                <button className={paramTab === "hoses" ? "" : "secondary"} onClick={() => { setParamTab("hoses"); setForm({}); }}>Linhas</button>
+                <button className={paramTab === "recipes" ? "" : "secondary"} onClick={() => { setParamTab("recipes"); setForm({}); }}>Receitas</button>
+                <button className={paramTab === "formulas" ? "" : "secondary"} onClick={() => { setParamTab("formulas"); setForm({}); }}>Fórmulas</button>
+                <button className={paramTab === "operators" ? "" : "secondary"} onClick={() => { setParamTab("operators"); setForm({}); }}>Operadores</button>
+              </div>
+
+              <div className="formGrid">
+                {paramTab === "tanks" && (
+                  <>
+                    <Field label="Código"><input value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value })} /></Field>
+                    <Field label="Tipo"><input value={form.type || ""} onChange={(e) => setForm({ ...form, type: e.target.value })} /></Field>
+                    <Field label="Volume (L)"><input type="number" value={form.volume_liters || ""} onChange={(e) => setForm({ ...form, volume_liters: e.target.value })} /></Field>
+                    <Field label="Limite estrutural (mbar)"><input type="number" value={form.structural_limit_mbar || ""} onChange={(e) => setForm({ ...form, structural_limit_mbar: e.target.value })} /></Field>
+                  </>
+                )}
+
+                {paramTab === "hoses" && (
+                  <>
+                    <Field label="Código"><input value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value })} /></Field>
+                    <Field label="Comprimento (m)"><input type="number" value={form.length_m || ""} onChange={(e) => setForm({ ...form, length_m: e.target.value })} /></Field>
+                    <Field label="Diâmetro (pol)"><input type="number" value={form.diameter_in || ""} onChange={(e) => setForm({ ...form, diameter_in: e.target.value })} /></Field>
+                    <Field label="Fator de perda"><input type="number" value={form.loss_factor || ""} onChange={(e) => setForm({ ...form, loss_factor: e.target.value })} /></Field>
+                  </>
+                )}
+
+                {paramTab === "recipes" && (
+                  <>
+                    <Field label="Nome da receita"><input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+                    <Field label="Tipo de tanque"><input value={form.tank_type || ""} onChange={(e) => setForm({ ...form, tank_type: e.target.value })} /></Field>
+                    <Field label="Pressão final"><input type="number" value={form.target_pressure_mbar || ""} onChange={(e) => setForm({ ...form, target_pressure_mbar: e.target.value })} /></Field>
+                    <Field label="Acionamento Roots"><input type="number" value={form.roots_start_pressure_mbar || ""} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: e.target.value })} /></Field>
+                    <Field label="Tempo máximo"><input type="number" value={form.max_cycle_seconds || ""} onChange={(e) => setForm({ ...form, max_cycle_seconds: e.target.value })} /></Field>
+                    <Field label="Vazão mínima de óleo"><input type="number" value={form.min_oil_flow_l_min || ""} onChange={(e) => setForm({ ...form, min_oil_flow_l_min: e.target.value })} /></Field>
+                  </>
+                )}
+
+                {paramTab === "formulas" && (
+                  <>
+                    <Field label="Nome"><input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+                    <Field label="Variável"><input value={form.variable || ""} onChange={(e) => setForm({ ...form, variable: e.target.value })} /></Field>
+                    <Field label="Expressão"><input value={form.expression || ""} onChange={(e) => setForm({ ...form, expression: e.target.value })} /></Field>
+                    <Field label="Descrição"><input value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+                  </>
+                )}
+
+                {paramTab === "operators" && (
+                  <>
+                    <Field label="Nome"><input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+                    <Field label="Registro"><input value={form.registration || ""} onChange={(e) => setForm({ ...form, registration: e.target.value })} /></Field>
+                    <Field label="Função"><input value={form.role || ""} onChange={(e) => setForm({ ...form, role: e.target.value })} /></Field>
+                    <Field label="Estado"><input value={form.status || ""} onChange={(e) => setForm({ ...form, status: e.target.value })} /></Field>
+                  </>
+                )}
+              </div>
+
+              <div className="commandBar">
+                <button onClick={saveParam}>Cadastrar</button>
+              </div>
             </Section>
 
-            <Section title="Linhas de vácuo" subtitle="Mangueiras cadastradas e características técnicas.">
-              <Table
-                columns={["Código", "Comprimento", "Diâmetro", "Fator de Perda", "Estado"]}
-                rows={hoses.map((hose: any) => [
-                  <b>{hose.code}</b>,
-                  fmt(hose.length_m, "m"),
-                  fmt(hose.diameter_in, "pol"),
-                  fmt(hose.loss_factor),
-                  hose.status || "--",
-                ])}
-              />
-            </Section>
+            {paramTab === "tanks" && (
+              <Section title="Tanques cadastrados">
+                <Table columns={["Código", "Tipo", "Volume", "Limite", "Estado"]} rows={allTanks.map((tank: any) => [<b>{tank.code}</b>, tank.type || "--", fmt(tank.volume_liters, "L"), fmt(tank.structural_limit_mbar, "mbar"), tank.status || "--"])} />
+              </Section>
+            )}
 
-            <Section title="Receitas operacionais" subtitle="Parâmetros-base para execução de ciclos.">
-              <Table
-                columns={["Nome", "Tanque", "Pressão Final", "Acionamento Roots", "Tempo Máximo"]}
-                rows={recipes.map((recipe: any) => [
-                  <b>{recipe.name}</b>,
-                  recipe.tank_type || "--",
-                  fmt(recipe.target_pressure_mbar, "mbar"),
-                  fmt(recipe.roots_start_pressure_mbar, "mbar"),
-                  fmt(recipe.max_cycle_seconds, "s"),
-                ])}
-              />
-            </Section>
+            {paramTab === "hoses" && (
+              <Section title="Linhas cadastradas">
+                <Table columns={["Código", "Comprimento", "Diâmetro", "Fator", "Estado"]} rows={allHoses.map((hose: any) => [<b>{hose.code}</b>, fmt(hose.length_m, "m"), fmt(hose.diameter_in, "pol"), fmt(hose.loss_factor), hose.status || "--"])} />
+              </Section>
+            )}
+
+            {paramTab === "recipes" && (
+              <Section title="Receitas cadastradas">
+                <Table columns={["Nome", "Tanque", "Pressão", "Roots", "Tempo", "Óleo"]} rows={allRecipes.map((recipe: any) => [<b>{recipe.name}</b>, recipe.tank_type || "--", fmt(recipe.target_pressure_mbar, "mbar"), fmt(recipe.roots_start_pressure_mbar, "mbar"), fmt(recipe.max_cycle_seconds, "s"), fmt(recipe.min_oil_flow_l_min, "L/min")])} />
+              </Section>
+            )}
+
+            {paramTab === "formulas" && (
+              <Section title="Fórmulas cadastradas">
+                <Table columns={["Nome", "Variável", "Expressão", "Descrição"]} rows={localFormulas.map((f: any) => [<b>{f.name}</b>, f.variable, f.expression, f.description])} />
+              </Section>
+            )}
+
+            {paramTab === "operators" && (
+              <Section title="Operadores cadastrados">
+                <Table columns={["Nome", "Registro", "Função", "Estado"]} rows={localOperators.map((op: any) => [<b>{op.name}</b>, op.registration, op.role, op.status])} />
+              </Section>
+            )}
           </div>
         )}
       </main>
