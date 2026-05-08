@@ -1678,179 +1678,13 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 /* TSEA_GEMEO_DIGITAL_10_END */
 
 
-/* TSEA_SIMULACOES_GEMEO_NO_HISTORICO_START */
-
-function TseaTwinSimulationsHistoryPanel({ state, allTanks, allHoses }: any) {
-  const [items, setItems] = useState<any[]>([]);
-  const [selected, setSelected] = useState<any>(null);
-
-  function readStorageList(key: string): any[] {
-    try {
-      const raw = localStorage.getItem(key);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-
-  function loadItems() {
-    const sources = [
-      ...readStorageList("tsea.gemeo10.history"),
-      ...readStorageList("tsea.simulationHistory.final"),
-      ...readStorageList("tsea.simulations")
-    ];
-
-    const map = new Map<string, any>();
-
-    sources.forEach((item: any) => {
-      if (!item) return;
-      const id = String(item.id || item.created_at || item.scenario || Math.random());
-      if (!map.has(id)) map.set(id, item);
-    });
-
-    const ordered = Array.from(map.values()).sort((a: any, b: any) => {
-      const da = new Date(a.created_at || a.data || 0).getTime();
-      const db = new Date(b.created_at || b.data || 0).getTime();
-      return db - da;
-    });
-
-    setItems(ordered);
-  }
-
-  useEffect(() => {
-    loadItems();
-    const timer = window.setInterval(loadItems, 1500);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  function statusText(item: any) {
-    if (item.status === "success") return "Bem-sucedida";
-    if (item.status === "warning") return "Aprovada com restrição";
-    if (item.status === "critical") return "Reprovada";
-    return item.status || "Registrada";
-  }
-
-  function renderDetails(item: any) {
-    const metrics = item.metrics || {};
-    const components = Array.isArray(item.components) ? item.components : [];
-    const actions = Array.isArray(item.actions) ? item.actions : [];
-
-    const componentRows = components.length ? components.map((component: any) => [
-      <b>{component.type || component.tipo || "Componente"}</b>,
-      component.id || component.codigo || component.identificacao || "--",
-      component.status || "--",
-      component.performance || component.desempenho || "--",
-      component.reading || component.leitura || "--",
-      component.impact || component.impacto || "--"
-    ]) : [
-      [<b>Bomba primária</b>, "Leybold SOGEVAC SV 630 B", "Operacional", "98%", "640 m³/h", "Evacuação inicial do ciclo."],
-      [<b>Bomba secundária</b>, "Leybold RUVAC WSU 2001", metrics.secondary_released ? "Liberada" : "Conforme intertravamento", "--", fmt(metrics.secondary_start_pressure_mbar || 50, "mbar"), "Reforço do vácuo em faixa segura."],
-      [<b>Mangueira</b>, item.config?.hose_id || "--", Number(metrics.hose_loss_factor || 0) > 1 ? "Atenção" : "Operacional", "--", `Fator ${fmt(metrics.hose_loss_factor || 0)}`, "Perda de carga e tempo de ciclo."],
-      [<b>Tanque</b>, item.config?.tank_type || "--", item.status === "critical" ? "Crítico" : item.status === "warning" ? "Atenção" : "Operacional", "--", fmt(metrics.final_real_pressure_mbar, "mbar"), "Pressão final e margem estrutural."],
-      [<b>Sensor</b>, "SP-SIM", item.config?.simulate_sensor_failure ? "Falha simulada" : "Online", item.config?.simulate_sensor_failure ? "35%" : "98%", fmt(metrics.final_real_pressure_mbar, "mbar"), "Leitura usada no diagnóstico."],
-      [<b>Óleo</b>, "Injeção de óleo", Number(metrics.oil_flow_l_min || item.config?.oil_flow_l_min || 0) < 1.5 ? "Vazão baixa" : "Operacional", "--", fmt(metrics.oil_flow_l_min || item.config?.oil_flow_l_min, "L/min"), "Vedação e estabilidade do ciclo."]
-    ];
-
-    const actionRows = actions.length ? actions.map((action: any) => [
-      <b>{action.step || action.etapa || "Etapa"}</b>,
-      action.status || "--",
-      action.ref || action.referencia || "--",
-      action.log || action.registro || "--"
-    ]) : [
-      [<b>Preparação</b>, "Concluída", item.scenario || "--", "Parâmetros carregados para simulação."],
-      [<b>Evacuação inicial</b>, "Concluída", "Bomba primária", "Redução inicial de pressão calculada."],
-      [<b>Bomba secundária</b>, metrics.secondary_released ? "Liberada" : "Avaliada", fmt(metrics.secondary_start_pressure_mbar || 50, "mbar"), "Intertravamento avaliado pela pressão segura."],
-      [<b>Diagnóstico final</b>, statusText(item), fmt(metrics.max_collapse_risk_pct, "%"), item.recommendation || "Sem recomendação registrada."]
-    ];
-
-    return (
-      <div className="detailPanel">
-        <div className="traceHeader">
-          <div>
-            <h3>{item.scenario || item.nome || "Simulação do Gêmeo Digital"}</h3>
-            <p>{item.diagnosis || item.diagnostico || "Registro técnico da simulação."}</p>
-          </div>
-          <button className="secondary" onClick={() => setSelected(null)}>Fechar</button>
-        </div>
-
-        <div className="metrics">
-          <Metric label="Status" value={<Badge value={item.status || "success"} />} detail={statusText(item)} />
-          <Metric label="Pressão final" value={fmt(metrics.final_real_pressure_mbar || metrics.pressaoFinal, "mbar")} detail="Resultado previsto" />
-          <Metric label="Tempo estimado" value={fmt(metrics.estimated_time_seconds || metrics.duracao, "s")} detail="Duração simulada" />
-          <Metric label="Risco máximo" value={fmt(metrics.max_collapse_risk_pct || metrics.risco, "%")} detail="Avaliação estrutural" />
-        </div>
-
-        <div className="diagnosticBox">
-          <strong>{item.diagnosis || item.diagnostico || statusText(item)}</strong>
-          <span>{item.probableCause || item.causa || "Causa principal não registrada."}</span>
-          <small>{item.recommendation || item.recomendacao || "Sem recomendação adicional."}</small>
-        </div>
-
-        <div className="tracePanel">
-          <h3>Máquinas, peças e sensores</h3>
-          <Table
-            columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"]}
-            rows={componentRows}
-          />
-        </div>
-
-        <div className="tracePanel">
-          <h3>Ações da operação simulada</h3>
-          <Table
-            columns={["Etapa", "Status", "Referência", "Registro técnico"]}
-            rows={actionRows}
-          />
-        </div>
-
-        <div className="tracePanel">
-          <h3>Relatório técnico</h3>
-          <Table
-            columns={["Item", "Valor", "Interpretação"]}
-            rows={[
-              [<b>ID</b>, item.id || "--", "Identificador da simulação."],
-              [<b>Data</b>, item.created_at ? new Date(item.created_at).toLocaleString("pt-BR") : "--", "Data de execução."],
-              [<b>Cenário</b>, item.scenario || "--", "Cenário usado no Gêmeo Digital."],
-              [<b>Status final</b>, statusText(item), item.status === "critical" ? "Não recomendado para operação real." : item.status === "warning" ? "Exige revisão antes da operação." : "Pode ser usado como referência operacional."],
-              [<b>Motivo</b>, item.probableCause || "--", "Principal causa técnica identificada."],
-              [<b>Recomendação</b>, item.recommendation || "--", "Ação recomendada antes da execução real."]
-            ]}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <Section
-      title="Simulações do Gêmeo Digital"
-      subtitle="Registros de testes executados, com diagnóstico, componentes, ações simuladas e relatório técnico."
-      action={<button className="secondary" onClick={loadItems}>Atualizar</button>}
-    >
-      <Table
-        columns={["ID", "Data", "Cenário", "Status", "Risco", "Pressão", "Detalhes"]}
-        rows={items.map((item: any) => [
-          <b>{item.id || "--"}</b>,
-          item.created_at ? new Date(item.created_at).toLocaleString("pt-BR") : "--",
-          item.scenario || item.nome || "Simulação",
-          <Badge value={item.status || "success"} />,
-          fmt(item.metrics?.max_collapse_risk_pct || item.metrics?.risco, "%"),
-          fmt(item.metrics?.final_real_pressure_mbar || item.metrics?.pressaoFinal, "mbar"),
-          <button className="secondary" onClick={() => setSelected(item)}>Ver detalhes</button>
-        ])}
-      />
-
-      {selected && renderDetails(selected)}
-    </Section>
-  );
-}
-
-/* TSEA_SIMULACOES_GEMEO_NO_HISTORICO_END */
 
 
-/* TSEA_WORD_REPORTS_START */
 
-function tseaSafeText(value: any) {
+
+/* TSEA_HISTORY_REPORTS_REDESIGN_START */
+
+function tseaHRText(value: any) {
   return String(value ?? "--")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -1858,7 +1692,7 @@ function tseaSafeText(value: any) {
     .replaceAll('"', "&quot;");
 }
 
-function tseaDateBR(value?: any) {
+function tseaHRDate(value?: any) {
   try {
     const date = value ? new Date(value) : new Date();
     if (Number.isNaN(date.getTime())) return "--";
@@ -1868,13 +1702,13 @@ function tseaDateBR(value?: any) {
   }
 }
 
-function tseaNumber(value: any, suffix = "") {
+function tseaHRNumber(value: any, suffix = "") {
   const n = Number(value);
   if (!Number.isFinite(n)) return "--";
   return `${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}${suffix ? " " + suffix : ""}`;
 }
 
-function tseaReadList(key: string): any[] {
+function tseaHRReadList(key: string): any[] {
   try {
     const raw = localStorage.getItem(key);
     const parsed = raw ? JSON.parse(raw) : [];
@@ -1884,7 +1718,7 @@ function tseaReadList(key: string): any[] {
   }
 }
 
-function tseaStatusLabelWord(status: any) {
+function tseaHRStatusLabel(status: any) {
   const value = String(status || "").toLowerCase();
 
   if (["success", "concluido", "concluído", "operacional", "ok"].includes(value)) return "Bem-sucedido";
@@ -1894,7 +1728,15 @@ function tseaStatusLabelWord(status: any) {
   return String(status || "Registrado");
 }
 
-function tseaWordStyle() {
+function tseaHRStatusBadge(status: any) {
+  const value = String(status || "").toLowerCase();
+
+  if (value.includes("warning") || value.includes("aten")) return "warning";
+  if (value.includes("critical") || value.includes("crit") || value.includes("abort") || value.includes("falha")) return "critical";
+  return "success";
+}
+
+function tseaHRWordStyle() {
   return `
     @page WordSection1 {
       size: A4;
@@ -1915,14 +1757,13 @@ function tseaWordStyle() {
     .cover {
       text-align: center;
       min-height: 900px;
-      display: block;
-      padding-top: 60px;
+      padding-top: 70px;
     }
 
     .cover h1 {
       font-size: 16pt;
       text-transform: uppercase;
-      margin-top: 120px;
+      margin-top: 130px;
       margin-bottom: 80px;
       font-weight: bold;
     }
@@ -1992,14 +1833,44 @@ function tseaWordStyle() {
       margin-top: 4px;
       margin-bottom: 16px;
     }
-
-    .muted {
-      color: #333;
-    }
   `;
 }
 
-function tseaBuildRampSvg(points: any[]) {
+function tseaHRDownloadWord(filename: string, body: string) {
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:w="urn:schemas-microsoft-com:office:word"
+          xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <title>${tseaHRText(filename)}</title>
+        <style>${tseaHRWordStyle()}</style>
+      </head>
+      <body>
+        <div class="WordSection1">${body}</div>
+      </body>
+    </html>
+  `;
+
+  const blob = new Blob(["\ufeff", html], { type: "application/msword;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename.endsWith(".doc") ? filename : `${filename}.doc`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function tseaHRTable(headers: string[], rows: any[][]) {
+  const head = headers.map((header) => `<th>${tseaHRText(header)}</th>`).join("");
+  const body = rows.length
+    ? rows.map((row) => `<tr>${row.map((cell) => `<td>${tseaHRText(cell)}</td>`).join("")}</tr>`).join("")
+    : `<tr><td colspan="${headers.length}">Sem registros.</td></tr>`;
+
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function tseaHRRampSvg(points: any[]) {
   const list = Array.isArray(points) && points.length ? points : Array.from({ length: 18 }).map((_, index) => {
     const step = index / 17;
     return {
@@ -2051,109 +1922,116 @@ function tseaBuildRampSvg(points: any[]) {
   `;
 }
 
-function tseaTable(headers: string[], rows: any[][]) {
-  const head = headers.map((header) => `<th>${tseaSafeText(header)}</th>`).join("");
-  const body = rows.length
-    ? rows.map((row) => `<tr>${row.map((cell) => `<td>${tseaSafeText(cell)}</td>`).join("")}</tr>`).join("")
-    : `<tr><td colspan="${headers.length}">Sem registros.</td></tr>`;
+function tseaHRGetSimulations() {
+  const sources = [
+    ...tseaHRReadList("tsea.gemeo10.history"),
+    ...tseaHRReadList("tsea.simulationHistory.final"),
+    ...tseaHRReadList("tsea.simulations")
+  ];
 
-  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
-}
+  const map = new Map<string, any>();
 
-function tseaDownloadWord(filename: string, htmlBody: string) {
-  const html = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office"
-          xmlns:w="urn:schemas-microsoft-com:office:word"
-          xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta charset="utf-8" />
-        <title>${tseaSafeText(filename)}</title>
-        <style>${tseaWordStyle()}</style>
-      </head>
-      <body>
-        <div class="WordSection1">
-          ${htmlBody}
-        </div>
-      </body>
-    </html>
-  `;
-
-  const blob = new Blob(["\ufeff", html], {
-    type: "application/msword;charset=utf-8"
+  sources.forEach((item: any) => {
+    if (!item) return;
+    const key = String(item.id || item.created_at || item.scenario || Math.random());
+    if (!map.has(key)) map.set(key, item);
   });
 
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename.endsWith(".doc") ? filename : `${filename}.doc`;
-  link.click();
-  URL.revokeObjectURL(url);
+  return Array.from(map.values()).sort((a, b) => {
+    const da = new Date(a.created_at || a.data || 0).getTime();
+    const db = new Date(b.created_at || b.data || 0).getTime();
+    return db - da;
+  });
 }
 
-function tseaBuildComponentRowsFromOperation(operation: any, state: any, allTanks: any[], allHoses: any[]) {
-  const config = operation?.config || operation || {};
-  const tankCode = operation?.tank || operation?.tanque || config?.tank_type || config?.tanque || allTanks?.[0]?.code || "--";
-  const hoseCode = operation?.hose || operation?.mangueira || config?.hose_id || config?.mangueira || allHoses?.[0]?.code || "--";
-  const pressure = operation?.pressure || operation?.pressaoFinal || operation?.pressao_final || config?.target_pressure_mbar || config?.pressaoFinal || "--";
+function tseaHRComponentRows(record: any, allTanks: any[], allHoses: any[]) {
+  if (Array.isArray(record?.components) && record.components.length) {
+    return record.components.map((item: any) => [
+      item.type || item.tipo || "Componente",
+      item.id || item.codigo || item.identificacao || "--",
+      item.status || "--",
+      item.performance || item.desempenho || "--",
+      item.reading || item.leitura || "--",
+      item.impact || item.impacto || "--"
+    ]);
+  }
+
+  const config = record?.config || record || {};
+  const tankCode = record?.tank || record?.tanque || config?.tank_type || config?.tanque || allTanks?.[0]?.code || "--";
+  const hoseCode = record?.hose || record?.mangueira || config?.hose_id || config?.mangueira || allHoses?.[0]?.code || "--";
+  const pressure = record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || config?.target_pressure_mbar || config?.pressaoFinal || "--";
 
   return [
     ["Bomba primária", "Leybold SOGEVAC SV 630 B", "Operacional", "98%", "640 m³/h", "Evacuação inicial e sustentação do vácuo."],
     ["Bomba secundária", "Leybold RUVAC WSU 2001", "Conforme intertravamento", "96%", "2050 m³/h", "Reforço do vácuo após faixa segura."],
-    ["Mangueira de vácuo", hoseCode, "Operacional", "Conforme fator de perda", String(config?.hose_loss_factor || config?.loss_factor || "--"), "Perda de carga e ligação entre bomba/tanque."],
-    ["Tanque de processo", tankCode, operation?.status || "Registrado", "--", tseaNumber(pressure, "mbar"), "Volume, pressão e margem estrutural do ciclo."],
-    ["Sensor de pressão", `SP-${tankCode}`, "Online", "98%", tseaNumber(pressure, "mbar"), "Leitura utilizada no controle e rastreabilidade."],
-    ["Sistema de óleo", "Injeção de óleo", Number(config?.oil_flow_l_min || config?.vazaoOleo || 2) < 1.5 ? "Vazão baixa" : "Operacional", "--", tseaNumber(config?.oil_flow_l_min || config?.vazaoOleo || 2, "L/min"), "Vedação, estabilidade e proteção do conjunto."]
+    ["Mangueira de vácuo", hoseCode, "Operacional", "Conforme fator de perda", String(config?.hose_loss_factor || config?.loss_factor || record?.metrics?.hose_loss_factor || "--"), "Perda de carga e ligação entre bomba/tanque."],
+    ["Tanque de processo", tankCode, tseaHRStatusLabel(record?.status), "--", tseaHRNumber(pressure, "mbar"), "Volume, pressão e margem estrutural."],
+    ["Sensor de pressão", `SP-${tankCode}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", tseaHRNumber(pressure, "mbar"), "Leitura usada no controle e rastreabilidade."],
+    ["Sistema de óleo", "Injeção de óleo", Number(config?.oil_flow_l_min || config?.vazaoOleo || 2) < 1.5 ? "Vazão baixa" : "Operacional", "--", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min || 2, "L/min"), "Vedação, estabilidade e proteção do conjunto."]
   ];
 }
 
-function tseaBuildActionRowsFromOperation(operation: any) {
-  const config = operation?.config || operation || {};
+function tseaHRActionsRows(record: any) {
+  if (Array.isArray(record?.actions) && record.actions.length) {
+    return record.actions.map((item: any) => [
+      item.step || item.etapa || "Etapa",
+      item.status || "--",
+      item.ref || item.referencia || "--",
+      item.log || item.registro || "--"
+    ]);
+  }
+
+  const config = record?.config || record || {};
 
   return [
-    ["Preparação", "Concluída", operation?.recipe || operation?.receita || config?.recipe_id || "--", "Receita/parâmetros carregados no sistema."],
-    ["Seleção de tanque", "Concluída", operation?.tank || operation?.tanque || config?.tank_type || "--", "Tanque vinculado ao ciclo."],
-    ["Conexão da mangueira", "Concluída", operation?.hose || operation?.mangueira || config?.hose_id || "--", "Mangueira associada ao processo de vácuo."],
+    ["Preparação", "Concluída", record?.scenario || record?.recipe || record?.receita || "--", "Parâmetros carregados no sistema."],
+    ["Seleção de tanque", "Concluída", record?.tank || record?.tanque || config?.tank_type || "--", "Tanque vinculado ao ciclo."],
+    ["Conexão da mangueira", "Concluída", record?.hose || record?.mangueira || config?.hose_id || "--", "Mangueira associada ao processo de vácuo."],
     ["Evacuação inicial", "Registrada", "Bomba primária", "Redução inicial da pressão."],
-    ["Acionamento da bomba secundária", "Avaliado", tseaNumber(config?.secondary_start_pressure_mbar || config?.roots_start_pressure_mbar || 50, "mbar"), "Intertravamento analisado por faixa segura."],
-    ["Fechamento", operation?.status || "Registrado", operation?.id || "--", "Resultado consolidado para relatório."]
+    ["Acionamento da bomba secundária", "Avaliado", tseaHRNumber(config?.secondary_start_pressure_mbar || config?.roots_start_pressure_mbar || 50, "mbar"), "Intertravamento analisado por faixa segura."],
+    ["Fechamento", tseaHRStatusLabel(record?.status), record?.id || "--", record?.recommendation || "Resultado consolidado para relatório."]
   ];
 }
 
-function tseaBuildAdditionalRowsFromOperation(operation: any) {
-  const config = operation?.config || operation || {};
+function tseaHRInfoRows(record: any) {
+  const config = record?.config || record || {};
 
   return [
-    ["ID da operação", operation?.id || "--"],
-    ["Data/hora", tseaDateBR(operation?.created_at || operation?.data || operation?.started_at)],
-    ["Operador", operation?.operator || operation?.operador || config?.operator || "--"],
-    ["Lote / ordem", operation?.lot || operation?.lote || config?.lot || "--"],
-    ["Tanque", operation?.tank || operation?.tanque || config?.tank_type || "--"],
-    ["Mangueira", operation?.hose || operation?.mangueira || config?.hose_id || "--"],
-    ["Receita", operation?.recipe || operation?.receita || config?.recipe_id || "--"],
-    ["Pressão final", tseaNumber(operation?.pressure || operation?.pressaoFinal || config?.target_pressure_mbar || config?.pressaoFinal, "mbar")],
-    ["Vazão de óleo", tseaNumber(config?.oil_flow_l_min || config?.vazaoOleo, "L/min")],
-    ["Tempo máximo", tseaNumber(config?.max_cycle_seconds || config?.tempoMaximo, "s")],
-    ["Status", tseaStatusLabelWord(operation?.status)],
-    ["Observações", operation?.notes || operation?.observacao || "--"]
+    ["ID", record?.id || "--"],
+    ["Data/hora", tseaHRDate(record?.created_at || record?.data || record?.started_at)],
+    ["Cenário / operação", record?.scenario || record?.nome || record?.recipe || record?.receita || "--"],
+    ["Operador", record?.operator || record?.operador || config?.operator || "--"],
+    ["Lote / ordem", record?.lot || record?.lote || config?.lot || "--"],
+    ["Tanque", record?.tank || record?.tanque || config?.tank_type || "--"],
+    ["Mangueira", record?.hose || record?.mangueira || config?.hose_id || "--"],
+    ["Pressão final", tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || config?.target_pressure_mbar || config?.pressaoFinal, "mbar")],
+    ["Tempo estimado", tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || config?.max_cycle_seconds, "s")],
+    ["Risco máximo", tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")],
+    ["Vazão de óleo", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min, "L/min")],
+    ["Status", tseaHRStatusLabel(record?.status)],
+    ["Diagnóstico", record?.diagnosis || record?.diagnostico || "--"],
+    ["Recomendação", record?.recommendation || record?.recomendacao || "--"]
   ];
 }
 
-function tseaBuildOperationWordReport(operation: any, state: any, allTanks: any[], allHoses: any[]) {
-  const componentRows = tseaBuildComponentRowsFromOperation(operation, state, allTanks, allHoses);
-  const actionRows = tseaBuildActionRowsFromOperation(operation);
-  const additionalRows = tseaBuildAdditionalRowsFromOperation(operation);
-  const timeline = operation?.timeline || operation?.ramp || operation?.curve || operation?.points || [];
+function tseaHRBuildWordRecord(record: any, kind: string, allTanks: any[], allHoses: any[]) {
+  const componentRows = tseaHRComponentRows(record, allTanks, allHoses);
+  const actionRows = tseaHRActionsRows(record);
+  const infoRows = tseaHRInfoRows(record);
+  const timeline = record?.timeline || record?.ramp || record?.curve || record?.points || [];
 
-  const title = `Relatório Técnico da Operação ${operation?.id || ""}`;
+  const title = kind === "simulation"
+    ? `Relatório Técnico da Simulação ${record?.id || ""}`
+    : `Relatório Técnico da Operação ${record?.id || ""}`;
 
   return `
     <div class="cover">
       <h2>TSEA</h2>
       <h2>Supervisório Digital</h2>
-      <h1>${tseaSafeText(title)}</h1>
-      <p><strong>Documento:</strong> Relatório técnico operacional</p>
+      <h1>${tseaHRText(title)}</h1>
+      <p><strong>Documento:</strong> Relatório técnico</p>
       <p><strong>Sistema:</strong> Rastreabilidade e Gêmeo Digital do processo de vácuo</p>
-      <p><strong>Data de emissão:</strong> ${tseaDateBR()}</p>
+      <p><strong>Data de emissão:</strong> ${tseaHRDate()}</p>
       <div class="bottom">
         <p>Belo Horizonte</p>
         <p>${new Date().getFullYear()}</p>
@@ -2162,58 +2040,58 @@ function tseaBuildOperationWordReport(operation: any, state: any, allTanks: any[
 
     <div class="page-break sumario">
       <h1>Sumário</h1>
-      <p>1. Identificação da operação</p>
+      <p>1. Identificação</p>
       <p>2. Gráfico da rampa de vácuo</p>
       <p>3. Rastreabilidade de máquinas e peças</p>
-      <p>4. Ações da operação</p>
+      <p>4. Ações registradas</p>
       <p>5. Informações adicionais</p>
       <p>6. Conclusão técnica</p>
     </div>
 
     <div class="page-break">
-      <h1>1. Identificação da operação</h1>
-      ${tseaTable(["Campo", "Informação"], additionalRows.slice(0, 8))}
+      <h1>1. Identificação</h1>
+      ${tseaHRTable(["Campo", "Informação"], infoRows.slice(0, 8))}
 
       <h1>2. Gráfico da rampa de vácuo</h1>
-      ${tseaBuildRampSvg(timeline)}
+      ${tseaHRRampSvg(timeline)}
       <p class="caption">Figura 1 — Curva da rampa de vácuo: pressão simulada/real, curva esperada e carga estrutural.</p>
 
       <h1>3. Rastreabilidade de máquinas e peças</h1>
-      ${tseaTable(["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto no processo"], componentRows)}
+      ${tseaHRTable(["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"], componentRows)}
 
-      <h1>4. Ações da operação</h1>
-      ${tseaTable(["Etapa", "Status", "Referência", "Registro técnico"], actionRows)}
+      <h1>4. Ações registradas</h1>
+      ${tseaHRTable(["Etapa", "Status", "Referência", "Registro técnico"], actionRows)}
 
       <h1>5. Informações adicionais</h1>
-      ${tseaTable(["Campo", "Valor"], additionalRows)}
+      ${tseaHRTable(["Campo", "Valor"], infoRows)}
 
       <h1>6. Conclusão técnica</h1>
       <p>
-        A operação registrada apresenta rastreabilidade dos principais componentes envolvidos no processo de vácuo,
-        incluindo bombas, mangueira, tanque, sensores e sistema de óleo. As informações consolidadas neste relatório
-        permitem análise operacional, investigação de falhas, padronização de procedimentos e suporte à tomada de decisão técnica.
+        O registro apresenta rastreabilidade dos principais componentes envolvidos no processo de vácuo,
+        incluindo bombas, mangueira, tanque, sensores e sistema de óleo. As informações consolidadas permitem
+        análise operacional, investigação de falhas, padronização de procedimentos e suporte à tomada de decisão técnica.
       </p>
     </div>
   `;
 }
 
-function tseaBuildGeneralWordReport(operations: any[], simulations: any[]) {
+function tseaHRBuildWordGeneral(operations: any[], simulations: any[]) {
   const opRows = operations.map((op: any) => [
     op.id || "--",
-    tseaDateBR(op.created_at || op.data || op.started_at),
+    tseaHRDate(op.created_at || op.data || op.started_at),
     op.operator || op.operador || "--",
     op.tank || op.tanque || "--",
     op.hose || op.mangueira || "--",
-    tseaStatusLabelWord(op.status)
+    tseaHRStatusLabel(op.status)
   ]);
 
   const simRows = simulations.map((sim: any) => [
     sim.id || "--",
-    tseaDateBR(sim.created_at || sim.data),
+    tseaHRDate(sim.created_at || sim.data),
     sim.scenario || sim.nome || "--",
-    tseaStatusLabelWord(sim.status),
-    tseaNumber(sim.metrics?.max_collapse_risk_pct || sim.metrics?.risco, "%"),
-    tseaNumber(sim.metrics?.final_real_pressure_mbar || sim.metrics?.pressaoFinal, "mbar")
+    tseaHRStatusLabel(sim.status),
+    tseaHRNumber(sim.metrics?.max_collapse_risk_pct || sim.metrics?.risco, "%"),
+    tseaHRNumber(sim.metrics?.final_real_pressure_mbar || sim.metrics?.pressaoFinal, "mbar")
   ]);
 
   return `
@@ -2223,7 +2101,7 @@ function tseaBuildGeneralWordReport(operations: any[], simulations: any[]) {
       <h1>Relatório Geral de Operações e Simulações</h1>
       <p><strong>Documento:</strong> Relatório técnico gerencial</p>
       <p><strong>Sistema:</strong> Rastreabilidade, operação e Gêmeo Digital do processo de vácuo</p>
-      <p><strong>Data de emissão:</strong> ${tseaDateBR()}</p>
+      <p><strong>Data de emissão:</strong> ${tseaHRDate()}</p>
       <div class="bottom">
         <p>Belo Horizonte</p>
         <p>${new Date().getFullYear()}</p>
@@ -2233,159 +2111,358 @@ function tseaBuildGeneralWordReport(operations: any[], simulations: any[]) {
     <div class="page-break sumario">
       <h1>Sumário</h1>
       <p>1. Introdução</p>
-      <p>2. Escopo do relatório</p>
-      <p>3. Registros de operações</p>
-      <p>4. Registros de simulações</p>
-      <p>5. Considerações técnicas</p>
-      <p>6. Conclusão</p>
+      <p>2. Escopo</p>
+      <p>3. Operações registradas</p>
+      <p>4. Simulações do Gêmeo Digital</p>
+      <p>5. Conclusão técnica</p>
     </div>
 
     <div class="page-break">
       <h1>1. Introdução</h1>
       <p>
-        Este relatório apresenta a consolidação dos registros operacionais e simulações executadas no sistema
-        TSEA Supervisório Digital, com foco em rastreabilidade, análise técnica, controle de processo e suporte à padronização
-        das operações de vácuo aplicadas à produção de reguladores.
+        Este relatório consolida registros operacionais e simulações executadas no TSEA Supervisório Digital,
+        com foco em rastreabilidade, análise técnica, controle de processo e apoio à padronização do ciclo de vácuo.
       </p>
 
-      <h1>2. Escopo do relatório</h1>
+      <h1>2. Escopo</h1>
       <p>
-        O documento contempla operações registradas, simulações do Gêmeo Digital, status do processo,
-        parâmetros principais e informações técnicas relevantes para avaliação operacional.
+        O documento contempla operações, simulações, status, parâmetros principais e informações técnicas relevantes
+        para avaliação operacional.
       </p>
 
-      <h1>3. Registros de operações</h1>
-      ${tseaTable(["ID", "Data", "Operador", "Tanque", "Mangueira", "Status"], opRows)}
+      <h1>3. Operações registradas</h1>
+      ${tseaHRTable(["ID", "Data", "Operador", "Tanque", "Mangueira", "Status"], opRows)}
 
-      <h1>4. Registros de simulações</h1>
-      ${tseaTable(["ID", "Data", "Cenário", "Status", "Risco", "Pressão final"], simRows)}
+      <h1>4. Simulações do Gêmeo Digital</h1>
+      ${tseaHRTable(["ID", "Data", "Cenário", "Status", "Risco", "Pressão final"], simRows)}
 
-      <h1>5. Considerações técnicas</h1>
+      <h1>5. Conclusão técnica</h1>
       <p>
-        As operações e simulações devem ser avaliadas considerando a condição das bombas, mangueiras, tanques,
-        sensores, vazão de óleo, pressão final desejada e limites estruturais definidos para o processo.
-      </p>
-
-      <h1>6. Conclusão</h1>
-      <p>
-        O relatório permite acompanhamento técnico, rastreabilidade de processo e base documental para auditoria,
+        Os registros permitem acompanhamento técnico, rastreabilidade de processo e base documental para auditoria,
         melhoria contínua e evolução do Gêmeo Digital para integração com dados reais da linha de produção.
       </p>
     </div>
   `;
 }
 
-function TseaWordReportsPanel({ operations = [], state, allTanks = [], allHoses = [] }: any) {
-  const [selected, setSelected] = useState<any>(null);
-  const [detail, setDetail] = useState<any>(null);
+function TseaRecordDetail({ record, kind, allTanks, allHoses, onClose }: any) {
+  const infoRows = tseaHRInfoRows(record);
+  const componentRows = tseaHRComponentRows(record, allTanks, allHoses);
+  const actionRows = tseaHRActionsRows(record);
+  const timeline = record?.timeline || record?.ramp || record?.curve || record?.points || [];
 
-  function simulationHistory() {
-    const sources = [
-      ...tseaReadList("tsea.gemeo10.history"),
-      ...tseaReadList("tsea.simulationHistory.final"),
-      ...tseaReadList("tsea.simulations")
-    ];
-
-    const map = new Map<string, any>();
-
-    sources.forEach((item: any) => {
-      if (!item) return;
-      const key = String(item.id || item.created_at || item.scenario || Math.random());
-      if (!map.has(key)) map.set(key, item);
-    });
-
-    return Array.from(map.values());
+  function exportWord() {
+    const html = tseaHRBuildWordRecord(record, kind, allTanks, allHoses);
+    const prefix = kind === "simulation" ? "Relatorio_Simulacao" : "Relatorio_Operacao";
+    tseaHRDownloadWord(`${prefix}_${record?.id || "TSEA"}.doc`, html);
   }
-
-  function exportGeneral() {
-    const html = tseaBuildGeneralWordReport(operations || [], simulationHistory());
-    tseaDownloadWord("Relatorio_Geral_TSEA_Supervisorio_Digital.doc", html);
-  }
-
-  function exportSpecific(operation: any) {
-    const html = tseaBuildOperationWordReport(operation, state, allTanks, allHoses);
-    tseaDownloadWord(`Relatorio_Operacao_${operation?.id || "TSEA"}.doc`, html);
-  }
-
-  const rows = (operations || []).map((operation: any) => [
-    <b>{operation.id || "--"}</b>,
-    tseaDateBR(operation.created_at || operation.data || operation.started_at),
-    operation.operator || operation.operador || "--",
-    operation.tank || operation.tanque || "--",
-    operation.hose || operation.mangueira || "--",
-    <Badge value={operation.status || "success"} />,
-    <div className="wordReportActions">
-      <button className="secondary" onClick={() => setDetail(operation)}>Ver detalhes</button>
-      <button onClick={() => exportSpecific(operation)}>Salvar Word</button>
-    </div>
-  ]);
 
   return (
-    <Section
-      title="Relatórios Word — operações e auditoria"
-      subtitle="Gere documentos empresariais compatíveis com Word, com capa, sumário, tabelas e rastreabilidade técnica."
-      action={<button onClick={exportGeneral}>Exportar relatório geral Word</button>}
-    >
-      <Table
-        columns={["ID", "Data", "Operador", "Tanque", "Mangueira", "Status", "Ações"]}
-        rows={rows}
-      />
-
-      {detail && (
-        <div className="operationWordDetail">
-          <div className="traceHeader">
-            <div>
-              <h3>Detalhes completos da operação</h3>
-              <p>{detail.id || "Operação registrada"} · {tseaDateBR(detail.created_at || detail.data || detail.started_at)}</p>
-            </div>
-            <div className="wordReportActions">
-              <button onClick={() => exportSpecific(detail)}>Salvar esta operação em Word</button>
-              <button className="secondary" onClick={() => setDetail(null)}>Fechar</button>
-            </div>
-          </div>
-
-          <div className="metrics">
-            <Metric label="Status" value={<Badge value={detail.status || "success"} />} detail="Resultado operacional" />
-            <Metric label="Tanque" value={detail.tank || detail.tanque || detail.config?.tank_type || "--"} detail="Componente do ciclo" />
-            <Metric label="Mangueira" value={detail.hose || detail.mangueira || detail.config?.hose_id || "--"} detail="Ligação do processo" />
-            <Metric label="Pressão final" value={tseaNumber(detail.pressure || detail.pressaoFinal || detail.config?.target_pressure_mbar || detail.config?.pressaoFinal, "mbar")} detail="Valor registrado" />
-          </div>
-
-          <div className="tracePanel">
-            <h3>Gráfico da rampa</h3>
-            <div className="wordRampPreview" dangerouslySetInnerHTML={{ __html: tseaBuildRampSvg(detail.timeline || detail.ramp || detail.curve || []) }} />
-          </div>
-
-          <div className="tracePanel">
-            <h3>Rastreabilidade de máquinas e peças</h3>
-            <Table
-              columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"]}
-              rows={tseaBuildComponentRowsFromOperation(detail, state, allTanks, allHoses)}
-            />
-          </div>
-
-          <div className="tracePanel">
-            <h3>Ações da operação</h3>
-            <Table
-              columns={["Etapa", "Status", "Referência", "Registro técnico"]}
-              rows={tseaBuildActionRowsFromOperation(detail)}
-            />
-          </div>
-
-          <div className="tracePanel">
-            <h3>Informações adicionais</h3>
-            <Table
-              columns={["Campo", "Valor"]}
-              rows={tseaBuildAdditionalRowsFromOperation(detail)}
-            />
-          </div>
+    <div className="hrDetailPanel">
+      <div className="hrDetailHeader">
+        <div>
+          <span>{kind === "simulation" ? "Simulação" : "Operação"}</span>
+          <h3>{record?.scenario || record?.nome || record?.id || "Registro técnico"}</h3>
+          <p>{record?.diagnosis || record?.diagnostico || "Detalhamento técnico do registro selecionado."}</p>
         </div>
-      )}
-    </Section>
+
+        <div className="hrActions">
+          <button onClick={exportWord}>Salvar Word</button>
+          <button className="secondary" onClick={onClose}>Fechar</button>
+        </div>
+      </div>
+
+      <div className="metrics">
+        <Metric label="Status" value={<Badge value={tseaHRStatusBadge(record?.status)} />} detail={tseaHRStatusLabel(record?.status)} />
+        <Metric label="Pressão final" value={tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || record?.config?.target_pressure_mbar, "mbar")} detail="Valor registrado/calculado" />
+        <Metric label="Tempo" value={tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || record?.config?.max_cycle_seconds, "s")} detail="Duração ou estimativa" />
+        <Metric label="Risco" value={tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")} detail="Avaliação técnica" />
+      </div>
+
+      <div className="hrBlock">
+        <h3>Gráfico da rampa</h3>
+        <div className="hrRamp" dangerouslySetInnerHTML={{ __html: tseaHRRampSvg(timeline) }} />
+      </div>
+
+      <div className="hrBlock">
+        <h3>Rastreabilidade de máquinas e peças</h3>
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"]} rows={componentRows} />
+      </div>
+
+      <div className="hrBlock">
+        <h3>Ações registradas</h3>
+        <Table columns={["Etapa", "Status", "Referência", "Registro técnico"]} rows={actionRows} />
+      </div>
+
+      <div className="hrBlock">
+        <h3>Informações importantes</h3>
+        <Table columns={["Campo", "Valor"]} rows={infoRows.slice(0, 8)} />
+      </div>
+
+      <div className="hrBlock">
+        <h3>Informações adicionais</h3>
+        <Table columns={["Campo", "Valor"]} rows={infoRows.slice(8)} />
+      </div>
+    </div>
   );
 }
 
-/* TSEA_WORD_REPORTS_END */
+function TseaHistoryMenuV2({ operations = [], state, allTanks = [], allHoses = [] }: any) {
+  const [tab, setTab] = useState<"operations" | "simulations">("operations");
+  const [selected, setSelected] = useState<any>(null);
+  const [selectedKind, setSelectedKind] = useState<"operation" | "simulation">("operation");
+  const [simulations, setSimulations] = useState<any[]>([]);
+
+  function loadSims() {
+    setSimulations(tseaHRGetSimulations());
+  }
+
+  useEffect(() => {
+    loadSims();
+    const timer = window.setInterval(loadSims, 1500);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  function openDetail(record: any, kind: "operation" | "simulation") {
+    setSelected(record);
+    setSelectedKind(kind);
+  }
+
+  return (
+    <div className="hrMenu">
+      <Section title="Histórico técnico" subtitle="Consulta organizada de operações reais e simulações do Gêmeo Digital.">
+        <div className="hrTabs">
+          <button className={tab === "operations" ? "" : "secondary"} onClick={() => setTab("operations")}>Operações</button>
+          <button className={tab === "simulations" ? "" : "secondary"} onClick={() => setTab("simulations")}>Simulações do Gêmeo</button>
+        </div>
+
+        {tab === "operations" && (
+          <Table
+            columns={["ID", "Data", "Operador", "Tanque", "Mangueira", "Status", "Ações"]}
+            rows={(operations || []).map((op: any) => [
+              <b>{op.id || "--"}</b>,
+              tseaHRDate(op.created_at || op.data || op.started_at),
+              op.operator || op.operador || "--",
+              op.tank || op.tanque || op.config?.tank_type || "--",
+              op.hose || op.mangueira || op.config?.hose_id || "--",
+              <Badge value={tseaHRStatusBadge(op.status)} />,
+              <button className="secondary" onClick={() => openDetail(op, "operation")}>Ver detalhes</button>
+            ])}
+          />
+        )}
+
+        {tab === "simulations" && (
+          <Table
+            columns={["ID", "Data", "Cenário", "Status", "Risco", "Pressão", "Ações"]}
+            rows={(simulations || []).map((sim: any) => [
+              <b>{sim.id || "--"}</b>,
+              tseaHRDate(sim.created_at || sim.data),
+              sim.scenario || sim.nome || "--",
+              <Badge value={tseaHRStatusBadge(sim.status)} />,
+              tseaHRNumber(sim.metrics?.max_collapse_risk_pct || sim.metrics?.risco, "%"),
+              tseaHRNumber(sim.metrics?.final_real_pressure_mbar || sim.metrics?.pressaoFinal, "mbar"),
+              <button className="secondary" onClick={() => openDetail(sim, "simulation")}>Ver detalhes</button>
+            ])}
+          />
+        )}
+      </Section>
+
+      {selected && (
+        <TseaRecordDetail
+          record={selected}
+          kind={selectedKind}
+          allTanks={allTanks}
+          allHoses={allHoses}
+          onClose={() => setSelected(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [] }: any) {
+  const [tab, setTab] = useState<"overview" | "operations" | "simulations" | "individual">("overview");
+  const [period, setPeriod] = useState<"all" | "today" | "7" | "30">("all");
+  const [status, setStatus] = useState("all");
+  const [simulations, setSimulations] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any>(null);
+  const [selectedKind, setSelectedKind] = useState<"operation" | "simulation">("operation");
+
+  useEffect(() => {
+    function load() {
+      setSimulations(tseaHRGetSimulations());
+    }
+
+    load();
+    const timer = window.setInterval(load, 1500);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  function inPeriod(item: any) {
+    if (period === "all") return true;
+
+    const raw = item.created_at || item.data || item.started_at;
+    const date = raw ? new Date(raw) : null;
+
+    if (!date || Number.isNaN(date.getTime())) return true;
+
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const days = diff / (1000 * 60 * 60 * 24);
+
+    if (period === "today") {
+      return date.toDateString() === now.toDateString();
+    }
+
+    if (period === "7") return days <= 7;
+    if (period === "30") return days <= 30;
+
+    return true;
+  }
+
+  function matchStatus(item: any) {
+    if (status === "all") return true;
+    return String(item.status || "").toLowerCase().includes(status);
+  }
+
+  const filteredOperations = (operations || []).filter((item: any) => inPeriod(item) && matchStatus(item));
+  const filteredSimulations = (simulations || []).filter((item: any) => inPeriod(item) && matchStatus(item));
+
+  function exportGeneral() {
+    const html = tseaHRBuildWordGeneral(filteredOperations, filteredSimulations);
+    tseaHRDownloadWord("Relatorio_Geral_TSEA_Supervisorio_Digital.doc", html);
+  }
+
+  function exportOperations() {
+    const html = tseaHRBuildWordGeneral(filteredOperations, []);
+    tseaHRDownloadWord("Relatorio_Operacoes_TSEA.doc", html);
+  }
+
+  function exportSimulations() {
+    const html = tseaHRBuildWordGeneral([], filteredSimulations);
+    tseaHRDownloadWord("Relatorio_Simulacoes_Gemeo_Digital_TSEA.doc", html);
+  }
+
+  function exportSpecific(record: any, kind: "operation" | "simulation") {
+    const html = tseaHRBuildWordRecord(record, kind, allTanks, allHoses);
+    const name = kind === "simulation" ? "Relatorio_Simulacao" : "Relatorio_Operacao";
+    tseaHRDownloadWord(`${name}_${record?.id || "TSEA"}.doc`, html);
+  }
+
+  function openDetail(record: any, kind: "operation" | "simulation") {
+    setSelected(record);
+    setSelectedKind(kind);
+    setTab("individual");
+  }
+
+  return (
+    <div className="hrMenu">
+      <Section title="Relatórios técnicos" subtitle="Geração organizada de documentos Word para operações, simulações e registros individuais.">
+        <div className="hrTabs">
+          <button className={tab === "overview" ? "" : "secondary"} onClick={() => setTab("overview")}>Visão geral</button>
+          <button className={tab === "operations" ? "" : "secondary"} onClick={() => setTab("operations")}>Operações</button>
+          <button className={tab === "simulations" ? "" : "secondary"} onClick={() => setTab("simulations")}>Simulações</button>
+          <button className={tab === "individual" ? "" : "secondary"} onClick={() => setTab("individual")}>Relatório individual</button>
+        </div>
+
+        <div className="hrFilters">
+          <Field label="Período">
+            <select value={period} onChange={(event) => setPeriod(event.target.value as any)}>
+              <option value="all">Todos</option>
+              <option value="today">Hoje</option>
+              <option value="7">Últimos 7 dias</option>
+              <option value="30">Últimos 30 dias</option>
+            </select>
+          </Field>
+
+          <Field label="Status">
+            <select value={status} onChange={(event) => setStatus(event.target.value)}>
+              <option value="all">Todos</option>
+              <option value="success">Bem-sucedido</option>
+              <option value="warning">Restrição</option>
+              <option value="critical">Crítico</option>
+            </select>
+          </Field>
+        </div>
+      </Section>
+
+      {tab === "overview" && (
+        <Section title="Visão geral dos relatórios" subtitle="Resumo dos registros disponíveis para exportação.">
+          <div className="metrics">
+            <Metric label="Operações filtradas" value={filteredOperations.length} detail="Registros operacionais" />
+            <Metric label="Simulações filtradas" value={filteredSimulations.length} detail="Gêmeo Digital" />
+            <Metric label="Relatórios Word" value="3 tipos" detail="Geral, por módulo e individual" />
+            <Metric label="Formato" value=".doc" detail="Compatível com Word" />
+          </div>
+
+          <div className="hrActions">
+            <button onClick={exportGeneral}>Exportar relatório geral Word</button>
+            <button className="secondary" onClick={exportOperations}>Exportar operações Word</button>
+            <button className="secondary" onClick={exportSimulations}>Exportar simulações Word</button>
+          </div>
+        </Section>
+      )}
+
+      {tab === "operations" && (
+        <Section title="Relatório de operações" subtitle="Selecione uma operação para visualizar detalhes ou gerar relatório individual.">
+          <Table
+            columns={["ID", "Data", "Operador", "Tanque", "Mangueira", "Status", "Ações"]}
+            rows={filteredOperations.map((op: any) => [
+              <b>{op.id || "--"}</b>,
+              tseaHRDate(op.created_at || op.data || op.started_at),
+              op.operator || op.operador || "--",
+              op.tank || op.tanque || op.config?.tank_type || "--",
+              op.hose || op.mangueira || op.config?.hose_id || "--",
+              <Badge value={tseaHRStatusBadge(op.status)} />,
+              <div className="hrActions inline">
+                <button className="secondary" onClick={() => openDetail(op, "operation")}>Ver detalhes</button>
+                <button onClick={() => exportSpecific(op, "operation")}>Salvar Word</button>
+              </div>
+            ])}
+          />
+        </Section>
+      )}
+
+      {tab === "simulations" && (
+        <Section title="Relatório de simulações" subtitle="Simulações executadas no Gêmeo Digital com status, risco e pressão final.">
+          <Table
+            columns={["ID", "Data", "Cenário", "Status", "Risco", "Pressão", "Ações"]}
+            rows={filteredSimulations.map((sim: any) => [
+              <b>{sim.id || "--"}</b>,
+              tseaHRDate(sim.created_at || sim.data),
+              sim.scenario || sim.nome || "--",
+              <Badge value={tseaHRStatusBadge(sim.status)} />,
+              tseaHRNumber(sim.metrics?.max_collapse_risk_pct || sim.metrics?.risco, "%"),
+              tseaHRNumber(sim.metrics?.final_real_pressure_mbar || sim.metrics?.pressaoFinal, "mbar"),
+              <div className="hrActions inline">
+                <button className="secondary" onClick={() => openDetail(sim, "simulation")}>Ver detalhes</button>
+                <button onClick={() => exportSpecific(sim, "simulation")}>Salvar Word</button>
+              </div>
+            ])}
+          />
+        </Section>
+      )}
+
+      {tab === "individual" && (
+        selected ? (
+          <TseaRecordDetail
+            record={selected}
+            kind={selectedKind}
+            allTanks={allTanks}
+            allHoses={allHoses}
+            onClose={() => setSelected(null)}
+          />
+        ) : (
+          <Section title="Relatório individual" subtitle="Escolha uma operação ou simulação nas abas anteriores para visualizar e exportar.">
+            <Empty text="Nenhum registro selecionado." />
+          </Section>
+        )
+      )}
+    </div>
+  );
+}
+
+/* TSEA_HISTORY_REPORTS_REDESIGN_END */
 
 function App() {
 
@@ -2927,172 +3004,23 @@ function App() {
 
         {view === "history" && (
           <div className="screen">
-
-            <TseaWordReportsPanel
+            <TseaHistoryMenuV2
               operations={operations}
               state={state}
               allTanks={allTanks}
               allHoses={allHoses}
             />
-
-
-            <TseaTwinSimulationsHistoryPanel
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-
-
-            <TseaHistoryDetailsPanel
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-
-            <Section
-              title="Histórico operacional"
-              subtitle="Ciclos executados e simulações registradas."
-              action={
-                <div className="tabs">
-                  <button className={historyTab === "operations" ? "" : "secondary"} onClick={() => { setHistoryTab("operations"); setDetail(null); }}>Ciclos</button>
-                  <button className={historyTab === "simulations" ? "" : "secondary"} onClick={() => { setHistoryTab("simulations"); setDetail(null); }}>Simulações</button>
-                </div>
-              }
-            >
-              <Table
-                columns={historyTab === "operations"
-                  ? ["ID", "Data", "Responsável", "Estado", "Tanque", "Mangueira", "Pressão", "Ação"]
-                  : ["ID", "Data", "Nome", "Estado", "Tanque", "Mangueira", "Risco", "Ação"]}
-                rows={currentRows.map((item: any) => historyTab === "operations"
-                  ? [
-                      <b>{item.id}</b>,
-                      item.created_at || "--",
-                      item.operator || "--",
-                      <Badge value={item.status} />,
-                      item.tank_code || item.tank_type || "--",
-                      item.hose_code || item.hose_id || "--",
-                      fmt(item.final_pressure_mbar, "mbar"),
-                      <button onClick={() => openHistoryDetail(item)}>Detalhes</button>,
-                    ]
-                  : [
-                      <b>{item.id}</b>,
-                      item.created_at || "--",
-                      item.name || "--",
-                      <Badge value={item.status} />,
-                      item.tank_type || "--",
-                      item.hose_code || item.hose_id || "--",
-                      fmt(item.max_collapse_risk_pct, "%"),
-                      <button onClick={() => openHistoryDetail(item)}>Detalhes</button>,
-                    ])}
-              />
-            </Section>
-
-            {detail && (
-              <Section title="Detalhamento técnico" subtitle="Registro operacional com parâmetros e curva associada.">
-                <div className="detailGrid">
-                  <div className="infoCard">
-                    <h3>Identificação</h3>
-                    <div className="infoGrid">
-                      <div><span>ID</span><b>{detail.record?.id || "--"}</b></div>
-                      <div><span>Estado</span><b><Badge value={detail.record?.status || detail.result?.status} /></b></div>
-                      <div><span>Tanque</span><b>{detail.record?.tank_code || detail.record?.tank_type || "--"}</b></div>
-                      <div><span>Mangueira</span><b>{detail.record?.hose_code || detail.record?.hose_id || "--"}</b></div>
-                    </div>
-                  </div>
-
-                  <div className="infoCard wide">
-                    <h3>Curva operacional</h3>
-                    <Chart points={detail.chart || detail.result?.timeline || detail.simulation_reference?.timeline || []} />
-                  </div>
-
-                  <div className="infoCard wide">
-                    <h3>Diagnóstico</h3>
-                    <p>{detail.result?.diagnosis || detail.simulation_reference?.diagnosis || "Diagnóstico técnico não disponível para este registro."}</p>
-                    <p>{detail.result?.recommendation || detail.simulation_reference?.recommendation || "Sem recomendação adicional."}</p>
-                  </div>
-                </div>
-              </Section>
-            )}
           </div>
         )}
 
         {view === "reports" && (
           <div className="screen">
-
-            <TseaWordReportsPanel
+            <TseaReportsMenuV2
               operations={operations}
               state={state}
               allTanks={allTanks}
               allHoses={allHoses}
             />
-
-
-            <TseaTwinSimulationsHistoryPanel
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-
-            <Section title="Filtros de relatório" subtitle="Recorte operacional para análise.">
-              <div className="filterRow">
-                <button className={reportPeriod === "today" ? "" : "secondary"} onClick={() => setReportPeriod("today")}>Hoje</button>
-                <button className={reportPeriod === "week" ? "" : "secondary"} onClick={() => setReportPeriod("week")}>Últimos 7 dias</button>
-                <button className={reportPeriod === "month" ? "" : "secondary"} onClick={() => setReportPeriod("month")}>Últimos 30 dias</button>
-                <button className={reportPeriod === "all" ? "" : "secondary"} onClick={() => setReportPeriod("all")}>Todos</button>
-              </div>
-
-              <div className="tabs">
-                <button className={reportTab === "operations" ? "" : "secondary"} onClick={() => setReportTab("operations")}>Operações</button>
-                <button className={reportTab === "simulations" ? "" : "secondary"} onClick={() => setReportTab("simulations")}>Simulações</button>
-              </div>
-            </Section>
-
-            <div className="metricsGrid">
-              <Metric label="Operações Filtradas" value={filteredOperations.length} />
-              <Metric label="Simulações Filtradas" value={filteredSimulations.length} />
-              <Metric label="Alarmes" value={report?.alarms_count ?? alarms.length} status={(report?.alarms_count || alarms.length) ? "warning" : "success"} />
-              <Metric label="Pressão Média" value={fmt(report?.average_recent_pressure_mbar, "mbar")} />
-            </div>
-
-            {reportTab === "operations" && (
-              <Section title="Relatório de operações" subtitle="Ciclos filtrados por período.">
-                <Table
-                  columns={["ID", "Data", "Responsável", "Estado", "Tanque", "Mangueira", "Pressão Final"]}
-                  rows={filteredOperations.map((item: any) => [
-                    <b>{item.id}</b>,
-                    item.created_at || "--",
-                    item.operator || "--",
-                    <Badge value={item.status} />,
-                    item.tank_code || item.tank_type || "--",
-                    item.hose_code || item.hose_id || "--",
-                    fmt(item.final_pressure_mbar, "mbar"),
-                  ])}
-                />
-                <div className="commandBar">
-                  <button onClick={() => download("relatorio-operacoes.json", filteredOperations)}>Exportar operações</button>
-                </div>
-              </Section>
-            )}
-
-            {reportTab === "simulations" && (
-              <Section title="Relatório de simulações" subtitle="Simulações filtradas por período.">
-                <Table
-                  columns={["ID", "Data", "Nome", "Estado", "Tanque", "Mangueira", "Risco Máximo"]}
-                  rows={filteredSimulations.map((item: any) => [
-                    <b>{item.id}</b>,
-                    item.created_at || "--",
-                    item.name || "--",
-                    <Badge value={item.status} />,
-                    item.tank_type || "--",
-                    item.hose_code || item.hose_id || "--",
-                    fmt(item.max_collapse_risk_pct, "%"),
-                  ])}
-                />
-                <div className="commandBar">
-                  <button onClick={() => download("relatorio-simulacoes.json", filteredSimulations)}>Exportar simulações</button>
-                </div>
-              </Section>
-            )}
           </div>
         )}
 
