@@ -1277,9 +1277,18 @@ html[data-theme="dark"] .hrRamp {
 
 
 
+
+
+
+
+
+
 /* TSEA_UNIDADES_MEDIDA_CSS_START */
 .unitTableBlock {
-  margin-top: 16px;
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  margin: 18px 0 0 !important;
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: 12px;
@@ -1297,6 +1306,10 @@ html[data-theme="dark"] .hrRamp {
   color: var(--muted);
 }
 
+.unitTableBlock .tableWrap {
+  margin-top: 6px;
+}
+
 html[data-theme="dark"] .unitTableBlock {
   background: #050505 !important;
   border-color: #1b211f !important;
@@ -1308,7 +1321,7 @@ html[data-theme="dark"] .unitTableBlock p {
 /* TSEA_UNIDADES_MEDIDA_CSS_END */
 
 
-/* TSEA_RESPONSIVIDADE_GERAL_START */
+/* TSEA_RESPONSIVIDADE_CORRIGIDA_START */
 * {
   box-sizing: border-box;
 }
@@ -1319,13 +1332,41 @@ body {
   overflow-x: hidden;
 }
 
-.screen,
+main,
 .content,
-main {
+.screen,
+.section {
   min-width: 0;
 }
 
-.section,
+.screen {
+  width: 100%;
+  max-width: 100%;
+}
+
+.section {
+  overflow: hidden;
+}
+
+.metrics,
+.grid,
+.grid2,
+.grid3,
+.dashboardGrid,
+.operationGrid,
+.parameterGrid,
+.reportsGrid,
+.machineGrid,
+.componentGrid,
+.twin10Grid,
+.twinForm,
+.hrFilters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+  gap: 14px;
+  min-width: 0;
+}
+
 .metric,
 .tankCard,
 .scenarioCard,
@@ -1343,55 +1384,17 @@ main {
 .chartBox,
 .tableWrap {
   min-width: 0;
-}
-
-.metrics,
-.grid,
-.grid2,
-.grid3,
-.dashboardGrid,
-.operationGrid,
-.parameterGrid,
-.reportsGrid,
-.machineGrid,
-.componentGrid,
-.twin10Grid,
-.twinForm {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-  gap: 14px;
-  min-width: 0;
-}
-
-.twin10Tabs,
-.hrTabs,
-.actions,
-.hrActions,
-.twinScenarioActions,
-.twinChecks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.twin10Tabs button,
-.hrTabs button,
-.actions button,
-.hrActions button {
-  white-space: normal;
-}
-
-.tableWrap,
-table {
   max-width: 100%;
 }
 
 .tableWrap {
+  width: 100%;
   overflow-x: auto;
 }
 
 table {
-  min-width: 760px;
+  width: 100%;
+  min-width: 720px;
 }
 
 input,
@@ -1410,8 +1413,28 @@ small,
 strong,
 td,
 th,
-button {
-  overflow-wrap: anywhere;
+button,
+label {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.twin10Tabs,
+.hrTabs,
+.actions,
+.hrActions,
+.twinScenarioActions,
+.twinChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.twin10Tabs button,
+.hrTabs button,
+.actions button,
+.hrActions button {
+  white-space: normal;
 }
 
 @media (max-width: 1366px) {
@@ -1434,8 +1457,9 @@ button {
   .machineGrid,
   .componentGrid,
   .twin10Grid,
-  .twinForm {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  .twinForm,
+  .hrFilters {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
     gap: 12px;
   }
 
@@ -1444,58 +1468,55 @@ button {
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1150px) {
   .layout {
-    grid-template-columns: 84px minmax(0, 1fr) !important;
+    grid-template-columns: 220px minmax(0, 1fr) !important;
   }
 
-  .drawer {
-    width: 84px !important;
-    min-width: 84px !important;
-  }
-
-  .drawer .brandText,
-  .drawer small,
-  .drawer .navSub,
-  .drawer .menuText {
-    display: none !important;
+  .drawer,
+  .sidebar,
+  aside {
+    width: 220px !important;
+    min-width: 220px !important;
   }
 
   .drawer button,
-  .drawer a {
-    justify-content: center !important;
-    padding-left: 8px !important;
-    padding-right: 8px !important;
+  .drawer a,
+  nav button,
+  .menu button {
+    font-size: .86rem !important;
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .layout {
     display: block !important;
   }
 
-  .drawer {
+  .drawer,
+  .sidebar,
+  aside {
     position: relative !important;
     width: 100% !important;
     min-width: 0 !important;
     height: auto !important;
-    display: flex !important;
-    overflow-x: auto !important;
   }
 
   .drawer nav,
-  .drawer .menu {
+  .drawer .menu,
+  nav.menu {
     display: flex !important;
     flex-direction: row !important;
     gap: 8px !important;
     overflow-x: auto !important;
+    padding-bottom: 6px;
   }
 
-  .drawer .brandText,
-  .drawer small,
-  .drawer .navSub,
-  .drawer .menuText {
-    display: none !important;
+  .drawer button,
+  .drawer a,
+  nav button,
+  .menu button {
+    flex: 0 0 auto;
   }
 
   .metrics,
@@ -1515,10 +1536,10 @@ button {
   }
 
   table {
-    min-width: 680px;
+    min-width: 640px;
   }
 }
-/* TSEA_RESPONSIVIDADE_GERAL_END */
+/* TSEA_RESPONSIVIDADE_CORRIGIDA_END */
 
 
 /* TSEA_DARK_MENU_REFINO_START */
@@ -1537,6 +1558,7 @@ html[data-theme="dark"] .navItem {
   background: #0b0f0d !important;
   color: #d8dedb !important;
   border: 1px solid #1b211f !important;
+  box-shadow: none !important;
 }
 
 html[data-theme="dark"] .drawer button:hover,
@@ -1553,12 +1575,11 @@ html[data-theme="dark"] .drawer button.active,
 html[data-theme="dark"] .drawer a.active,
 html[data-theme="dark"] nav button.active,
 html[data-theme="dark"] .menu button.active,
-html[data-theme="dark"] .navItem.active,
-html[data-theme="dark"] .active {
-  background: linear-gradient(90deg, rgba(16, 185, 129, .16), rgba(15, 23, 20, .95)) !important;
+html[data-theme="dark"] .navItem.active {
+  background: #0f1714 !important;
   color: #ffffff !important;
-  border-color: rgba(16, 185, 129, .55) !important;
-  box-shadow: inset 4px 0 0 #10b981 !important;
+  border-color: rgba(16, 185, 129, .45) !important;
+  box-shadow: inset 3px 0 0 #10b981 !important;
 }
 
 html[data-theme="dark"] .drawer h1,
@@ -1578,11 +1599,5 @@ html[data-theme="dark"] .topbar p,
 html[data-theme="dark"] .topbar span,
 html[data-theme="dark"] .topbar small {
   color: #a7b0ac !important;
-}
-
-html[data-theme="dark"] .section h1,
-html[data-theme="dark"] .section h2,
-html[data-theme="dark"] .section h3 {
-  color: #f7f7f7 !important;
 }
 /* TSEA_DARK_MENU_REFINO_END */

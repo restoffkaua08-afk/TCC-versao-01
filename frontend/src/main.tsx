@@ -2457,27 +2457,29 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
 
 
 
+
+
 /* TSEA_UNIDADES_MEDIDA_START */
 
 function TseaUnitLegend() {
   const rows = [
-    ["mbar", "Pressão / vácuo", "Usado em pressão atual, pressão final, pressão de acionamento e limite estrutural."],
-    ["s", "Tempo em segundos", "Usado em atraso do óleo, tempo máximo, tempo estimado e duração do ciclo."],
-    ["L/min", "Vazão de óleo", "Indica o volume de óleo aplicado por minuto no processo."],
-    ["L", "Volume de óleo", "Usado para quantidade de óleo registrada no tanque ou no sistema."],
-    ["%", "Percentual", "Usado em risco, desempenho, eficiência e saúde visual dos componentes."],
-    ["0 a 1", "Saúde relativa", "Escala de condição do equipamento: 1 representa condição ideal e valores menores indicam degradação."],
-    ["m", "Comprimento", "Usado no comprimento da mangueira."],
-    ["mm", "Diâmetro", "Usado no diâmetro interno da mangueira."],
-    ["m³/h", "Vazão nominal", "Usado para capacidade nominal de bombas."],
-    ["kW", "Potência", "Usado para potência nominal dos equipamentos."],
-    ["°C", "Temperatura", "Usado quando houver leitura térmica de bomba, tanque ou ambiente."]
+    ["mbar", "Pressão / vácuo", "Pressão atual, pressão final, pressão de acionamento e limite estrutural."],
+    ["s", "Tempo em segundos", "Atraso do óleo, tempo máximo, tempo estimado e duração do ciclo."],
+    ["L/min", "Vazão de óleo", "Volume de óleo aplicado por minuto durante o processo."],
+    ["L", "Volume", "Quantidade de óleo registrada no tanque ou no sistema."],
+    ["%", "Percentual", "Risco, desempenho, eficiência e indicadores de condição."],
+    ["0 a 1", "Saúde relativa", "Escala de condição do equipamento. Valor 1 indica condição ideal."],
+    ["m", "Comprimento", "Comprimento da mangueira."],
+    ["mm", "Diâmetro", "Diâmetro interno da mangueira."],
+    ["m³/h", "Vazão nominal", "Capacidade nominal das bombas."],
+    ["kW", "Potência", "Potência nominal de equipamentos."],
+    ["°C", "Temperatura", "Leitura térmica de bomba, tanque ou ambiente."]
   ];
 
   return (
     <div className="unitTableBlock">
       <h3>Unidades de medida utilizadas</h3>
-      <p>Referência técnica para leitura dos campos, parâmetros e indicadores do sistema.</p>
+      <p>Referência técnica para leitura dos campos, parâmetros e indicadores.</p>
       <Table
         columns={["Unidade", "Aplicação", "Descrição"]}
         rows={rows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
