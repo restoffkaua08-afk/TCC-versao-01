@@ -842,8 +842,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
 
   return (
     <Section title="Gêmeo Digital — cenários e testes" subtitle="Cenários base, personalizados, criação de teste e resultado com rastreabilidade completa.">
-        <TseaUnitLegend />
-      <div className="subTabs">
+<div className="subTabs">
         <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>Cenários base</button>
         <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>Cenários personalizados</button>
         <button className={tab === "create" ? "" : "secondary"} onClick={() => setTab("create")}>Criar cenário</button>
@@ -1543,9 +1542,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 
   return (
     <Section title="Gêmeo Digital do processo de vácuo" subtitle="Simulação operacional com cenários, criação de testes, diagnóstico, rastreabilidade e histórico técnico.">
-      <TseaUnitLegend />
-
-      <div className="twin10Tabs">
+<div className="twin10Tabs">
         <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>Cenários base</button>
         <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>Personalizados</button>
         <button className={tab === "create" ? "" : "secondary"} onClick={() => setTab("create")}>Criar cenário</button>
@@ -1662,6 +1659,8 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 
       {tab === "technical" && (
         <div className="twin10Panel">
+          <TseaUnitLegend />
+
           <Table
             columns={["Sistema", "Modelo", "Dado técnico", "Função"]}
             rows={[
@@ -2999,8 +2998,7 @@ function App() {
             </Section>
 
             <Section title="Operação em tempo real" subtitle="Pressão, óleo, mangueira de vácuo e risco estrutural por tanque.">
-        <TseaUnitLegend />
-              <div className="tankGrid">
+<div className="tankGrid">
                 {tanksState.map((item: any, index: number) => (
                   <TankCard key={item?.tank?.id || index} item={item} />
                 ))}
