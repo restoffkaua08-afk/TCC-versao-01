@@ -2464,6 +2464,78 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
 
 
 
+
+/* TSEA_TABELAS_TECNICAS_MARGEM_START */
+
+function TseaTechnicalReferenceTables() {
+  const unitRows = [
+    ["mbar", "Pressão / vácuo", "Usado em pressão atual, pressão final, pressão de acionamento e limite estrutural."],
+    ["s", "Tempo em segundos", "Usado em atraso do óleo, tempo máximo, tempo estimado e duração do ciclo."],
+    ["L/min", "Vazão de óleo", "Indica o volume de óleo aplicado por minuto no processo."],
+    ["L", "Volume", "Quantidade de óleo registrada no tanque ou no sistema."],
+    ["%", "Percentual", "Usado em risco, desempenho, eficiência, desvio e margem de erro."],
+    ["0 a 1", "Saúde relativa", "Escala de condição do equipamento. Valor 1 indica condição ideal."],
+    ["m", "Comprimento", "Comprimento da mangueira."],
+    ["mm", "Diâmetro", "Diâmetro interno da mangueira."],
+    ["m³/h", "Vazão nominal", "Capacidade nominal das bombas."],
+    ["kW", "Potência", "Potência nominal de equipamentos."],
+    ["°C", "Temperatura", "Leitura térmica de bomba, tanque ou ambiente."]
+  ];
+
+  const parameterRows = [
+    ["Pressão final", "Valor alvo de vácuo ou pressão ao final do ciclo.", "mbar"],
+    ["Tempo estimado", "Tempo previsto para conclusão da operação.", "s"],
+    ["Atraso do óleo", "Intervalo considerado antes da estabilização/atuação do óleo no processo.", "s"],
+    ["Vazão de óleo", "Fluxo de óleo aplicado durante a operação.", "L/min"],
+    ["Saúde da bomba", "Indicador relativo da condição operacional da bomba.", "0 a 1"],
+    ["Fator de perda da mangueira", "Multiplicador usado para representar perda de eficiência pela mangueira.", "multiplicador"],
+    ["Risco operacional", "Índice técnico usado para representar criticidade da operação.", "%"],
+    ["Leitura do sensor", "Valor medido usado para diagnóstico e rastreabilidade.", "depende da variável medida"]
+  ];
+
+  const marginRows = [
+    ["Desvio percentual", "|valor medido - valor esperado| / valor esperado × 100", "Calcula o quanto o valor real/simulado se afastou do esperado."],
+    ["Dentro da margem", "desvio ≤ margem permitida", "Status Operacional / semáforo verde."],
+    ["Faixa de atenção", "margem < desvio ≤ 2 × margem", "Status Atenção / semáforo amarelo."],
+    ["Faixa crítica", "desvio > 2 × margem", "Status Crítico / semáforo vermelho."],
+    ["Status geral", "se qualquer parâmetro essencial for crítico, o processo fica crítico", "Regra conservadora para segurança operacional."],
+    ["Aplicação futura", "pressão, tempo, vazão de óleo, sensor e desempenho das bombas", "A margem de erro poderá padronizar os alertas do sistema e do semáforo físico."]
+  ];
+
+  return (
+    <div className="technicalReferenceTables">
+      <div className="technicalReferenceBlock">
+        <h3>Unidades de medida utilizadas</h3>
+        <p>Referência para interpretação dos campos numéricos do sistema.</p>
+        <Table
+          columns={["Unidade", "Aplicação", "Descrição"]}
+          rows={unitRows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
+        />
+      </div>
+
+      <div className="technicalReferenceBlock">
+        <h3>Descrição técnica dos principais parâmetros</h3>
+        <p>Resumo do significado dos parâmetros usados na operação e na análise técnica.</p>
+        <Table
+          columns={["Parâmetro", "Descrição", "Unidade"]}
+          rows={parameterRows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
+        />
+      </div>
+
+      <div className="technicalReferenceBlock">
+        <h3>Critérios de margem de erro e semáforo operacional</h3>
+        <p>A margem de erro define a tolerância entre valor esperado e valor medido/simulado.</p>
+        <Table
+          columns={["Critério", "Regra / Fórmula", "Interpretação"]}
+          rows={marginRows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* TSEA_TABELAS_TECNICAS_MARGEM_END */
+
 function App() {
 
   const [tseaDarkTheme, setTseaDarkTheme] = useState(() => localStorage.getItem("tsea.theme") === "dark");
@@ -3121,6 +3193,8 @@ function App() {
           </div>
         )}
       </main>
+
+          <TseaTechnicalReferenceTables />
 </div>
   );
 }

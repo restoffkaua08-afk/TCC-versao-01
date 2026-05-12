@@ -1358,3 +1358,46 @@ html[data-theme="dark"] .topbar small {
   color: #a7b0ac !important;
 }
 /* TSEA_DARK_MENU_REFINO_END */
+
+
+/* TSEA_TABELAS_TECNICAS_MARGEM_CSS_START */
+.technicalReferenceTables {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.technicalReferenceBlock {
+  position: static !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.technicalReferenceBlock h3 {
+  margin: 0 0 4px;
+}
+
+.technicalReferenceBlock p {
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+
+.technicalReferenceBlock .tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+html[data-theme="dark"] .technicalReferenceBlock {
+  background: #050505 !important;
+  border-color: #1b211f !important;
+}
+
+html[data-theme="dark"] .technicalReferenceBlock p {
+  color: #a7b0ac !important;
+}
+/* TSEA_TABELAS_TECNICAS_MARGEM_CSS_END */
