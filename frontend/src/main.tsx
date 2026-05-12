@@ -1549,8 +1549,6 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 <button className={tab === "result" ? "" : "secondary"} onClick={() => setTab("result")}>Resultado</button>
         <button className={tab === "history" ? "" : "secondary"} onClick={() => setTab("history")}>Histórico</button>
         <button className={tab === "technical" ? "" : "secondary"} onClick={() => setTab("technical")}>Dados técnicos</button>
-      
-          <TseaUnitsTechnicalTable />
 </div>
 
       {tab === "base" && (
@@ -2465,36 +2463,6 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
 
 
 
-/* TSEA_UNIDADES_TECNICAS_FINAL_START */
-
-function TseaUnitsTechnicalTable() {
-  const rows = [
-    ["mbar", "Pressão / vácuo", "Pressão atual, pressão final, pressão de acionamento e limite estrutural."],
-    ["s", "Tempo em segundos", "Atraso do óleo, tempo máximo, tempo estimado e duração do ciclo."],
-    ["L/min", "Vazão de óleo", "Volume de óleo aplicado por minuto durante o processo."],
-    ["L", "Volume", "Quantidade de óleo registrada no tanque ou no sistema."],
-    ["%", "Percentual", "Risco, desempenho, eficiência e indicadores de condição."],
-    ["0 a 1", "Saúde relativa", "Escala de condição do equipamento. Valor 1 indica condição ideal."],
-    ["m", "Comprimento", "Comprimento da mangueira."],
-    ["mm", "Diâmetro", "Diâmetro interno da mangueira."],
-    ["m³/h", "Vazão nominal", "Capacidade nominal das bombas."],
-    ["kW", "Potência", "Potência nominal de equipamentos."],
-    ["°C", "Temperatura", "Leitura térmica de bomba, tanque ou ambiente."]
-  ];
-
-  return (
-    <div className="unitsTechnicalTable">
-      <h3>Unidades de medida utilizadas</h3>
-      <p>Referência técnica para leitura dos campos, parâmetros e indicadores do sistema.</p>
-      <Table
-        columns={["Unidade", "Aplicação", "Descrição"]}
-        rows={rows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
-      />
-    </div>
-  );
-}
-
-/* TSEA_UNIDADES_TECNICAS_FINAL_END */
 
 function App() {
 
