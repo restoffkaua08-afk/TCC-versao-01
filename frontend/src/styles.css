@@ -1360,44 +1360,86 @@ html[data-theme="dark"] .topbar small {
 /* TSEA_DARK_MENU_REFINO_END */
 
 
+
+
 /* TSEA_TABELAS_TECNICAS_MARGEM_CSS_START */
 .technicalReferenceTables {
+  width: 100%;
+  max-width: 1120px;
+  margin: 22px auto 0 auto;
   display: grid;
-  gap: 16px;
-  margin-top: 18px;
+  gap: 18px;
+  clear: both;
 }
 
 .technicalReferenceBlock {
   position: static !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  padding: 14px;
+  inset: auto !important;
+  transform: none !important;
+  z-index: auto !important;
+
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 18px;
+
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--surface);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
 }
 
 .technicalReferenceBlock h3 {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
+  font-size: 1rem;
+  line-height: 1.25;
 }
 
 .technicalReferenceBlock p {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   color: var(--muted);
+  line-height: 1.45;
 }
 
 .technicalReferenceBlock .tableWrap {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  border-radius: 10px;
+}
+
+.technicalReferenceBlock table {
+  width: 100%;
+  min-width: 760px;
+}
+
+.technicalReferenceBlock th,
+.technicalReferenceBlock td {
+  vertical-align: top;
 }
 
 html[data-theme="dark"] .technicalReferenceBlock {
   background: #050505 !important;
   border-color: #1b211f !important;
+  box-shadow: none !important;
 }
 
 html[data-theme="dark"] .technicalReferenceBlock p {
   color: #a7b0ac !important;
+}
+
+@media (max-width: 1280px) {
+  .technicalReferenceTables {
+    max-width: 100%;
+  }
+
+  .technicalReferenceBlock {
+    max-width: 100%;
+    padding: 14px;
+  }
+
+  .technicalReferenceBlock table {
+    min-width: 680px;
+  }
 }
 /* TSEA_TABELAS_TECNICAS_MARGEM_CSS_END */
