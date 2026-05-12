@@ -436,7 +436,7 @@ function SimulationTraceability({ result, state, selectedScenario, hoses, tanks,
     [<b>Pressão final (mbar)</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulação."],
     [<b>Tempo estimado (s)</b>, fmt(estimatedTime, "s"), "Duração (s) prevista do ciclo."],
     [<b>Risco máximo (%)</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restrição" : "Aprovado"],
-    [<b>Cenário</b>, selectedScenario || "Manual", "Origem da simulação usada no diagnóstico."]
+    [<b>Cenário</b>, selectedScenario || "Configuração", "Origem da simulação usada no diagnóstico."]
   ];
 
   return (
@@ -1116,7 +1116,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
   };
 
   const [form, setForm] = useState<any>(() => loadLocal("tsea.gemeo10.form", defaultForm));
-  const [manual, setManual] = useState<any>(() => loadLocal("tsea.gemeo10.manual", defaultForm));
+  const [manual, setConfiguração] = useState<any>(() => loadLocal("tsea.gemeo10.manual", defaultForm));
 
   useEffect(() => saveLocal("tsea.gemeo10.customScenarios", customScenarios), [customScenarios]);
   useEffect(() => saveLocal("tsea.gemeo10.history", history), [history]);
@@ -1546,8 +1546,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>Cenários base</button>
         <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>Personalizados</button>
         <button className={tab === "create" ? "" : "secondary"} onClick={() => setTab("create")}>Criar cenário</button>
-        <button className={tab === "manual" ? "" : "secondary"} onClick={() => setTab("manual")}>Manual</button>
-        <button className={tab === "result" ? "" : "secondary"} onClick={() => setTab("result")}>Resultado</button>
+<button className={tab === "result" ? "" : "secondary"} onClick={() => setTab("result")}>Resultado</button>
         <button className={tab === "history" ? "" : "secondary"} onClick={() => setTab("history")}>Histórico</button>
         <button className={tab === "technical" ? "" : "secondary"} onClick={() => setTab("technical")}>Dados técnicos</button>
       </div>
@@ -1583,19 +1582,8 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         </div>
       )}
 
-      {tab === "manual" && (
-        <div className="twin10Panel">
-          <h3>Simulação manual</h3>
-          <p>Ajuste parâmetros rapidamente sem salvar como cenário.</p>
+      
 
-          {renderConfigForm(manual, setManual, false)}
-          {renderChecks(manual, setManual)}
-
-          <div className="actions">
-            <button onClick={() => runScenario({ name: "Simulação manual", description: "Teste manual de parâmetros", config: manual })}>Executar simulação</button>
-          </div>
-        </div>
-      )}
 
       {tab === "result" && (
         result ? (
@@ -1659,9 +1647,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 
       {tab === "technical" && (
         <div className="twin10Panel">
-          <TseaUnitLegend />
-
-          <Table
+<Table
             columns={["Sistema", "Modelo", "Dado técnico", "Função"]}
             rows={[
               ["Bomba primária", "Leybold SOGEVAC SV 630 B", "640 m³/h · ≤ 0,08 mbar · 20 L óleo · 15 kW", "Evacuação inicial e sustentação do vácuo."],
@@ -2467,19 +2453,35 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
 /* TSEA_HISTORY_REPORTS_REDESIGN_END */
 
 
+
+
+
+
 /* TSEA_UNIDADES_MEDIDA_START */
 
 function TseaUnitLegend() {
+  const rows = [
+    ["mbar", "Pressão / vácuo", "Usado em pressão atual, pressão final, pressão de acionamento e limite estrutural."],
+    ["s", "Tempo em segundos", "Usado em atraso do óleo, tempo máximo, tempo estimado e duração do ciclo."],
+    ["L/min", "Vazão de óleo", "Indica o volume de óleo aplicado por minuto no processo."],
+    ["L", "Volume de óleo", "Usado para quantidade de óleo registrada no tanque ou no sistema."],
+    ["%", "Percentual", "Usado em risco, desempenho, eficiência e saúde visual dos componentes."],
+    ["0 a 1", "Saúde relativa", "Escala de condição do equipamento: 1 representa condição ideal e valores menores indicam degradação."],
+    ["m", "Comprimento", "Usado no comprimento da mangueira."],
+    ["mm", "Diâmetro", "Usado no diâmetro interno da mangueira."],
+    ["m³/h", "Vazão nominal", "Usado para capacidade nominal de bombas."],
+    ["kW", "Potência", "Usado para potência nominal dos equipamentos."],
+    ["°C", "Temperatura", "Usado quando houver leitura térmica de bomba, tanque ou ambiente."]
+  ];
+
   return (
-    <div className="unitLegend">
-      <strong>Unidades utilizadas no sistema</strong>
-      <span><b>mbar</b> — pressão/vácuo</span>
-      <span><b>s</b> — tempo em segundos</span>
-      <span><b>L/min</b> — vazão de óleo</span>
-      <span><b>%</b> — risco, desempenho ou eficiência</span>
-      <span><b>0 a 1</b> — saúde relativa do equipamento</span>
-      <span><b>m / mm</b> — comprimento e diâmetro da mangueira</span>
-      <span><b>m³/h</b> — vazão nominal das bombas</span>
+    <div className="unitTableBlock">
+      <h3>Unidades de medida utilizadas</h3>
+      <p>Referência técnica para leitura dos campos, parâmetros e indicadores do sistema.</p>
+      <Table
+        columns={["Unidade", "Aplicação", "Descrição"]}
+        rows={rows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
+      />
     </div>
   );
 }
@@ -2548,7 +2550,7 @@ function App() {
   }));
 
   const [twinTab, setTwinTab] = useState<TwinTab>("scenarios");
-  const [twinManual, setTwinManual] = useState<any>(() => loadLocal("tsea.twinManual", {
+  const [twinConfiguração, setTwinConfiguração] = useState<any>(() => loadLocal("tsea.twinConfiguração", {
     tank_type: "grande",
     hose_id: 1,
     target_pressure_mbar: 6.5,
@@ -2633,7 +2635,7 @@ function App() {
   }, []);
 
   useEffect(() => saveLocal("tsea.operationConfig", operationConfig), [operationConfig]);
-  useEffect(() => saveLocal("tsea.twinManual", twinManual), [twinManual]);
+  useEffect(() => saveLocal("tsea.twinConfiguração", twinConfiguração), [twinConfiguração]);
   useEffect(() => saveLocal("tsea.localTanks", localTanks), [localTanks]);
   useEffect(() => saveLocal("tsea.localHoses", localHoses), [localHoses]);
   useEffect(() => saveLocal("tsea.localRecipes", localRecipes), [localRecipes]);
@@ -2663,7 +2665,7 @@ function App() {
   }
 
   function setTwin(key: string, value: any) {
-    setTwinManual((current: any) => ({ ...current, [key]: value }));
+    setTwinConfiguração((current: any) => ({ ...current, [key]: value }));
   }
 
   async function control(action: "start" | "pause" | "stop" | "reset" | "emergency") {
@@ -2701,10 +2703,10 @@ function App() {
     await refresh(false);
   }
 
-  async function runManualSimulation() {
+  async function runConfiguraçãoSimulation() {
     const result = await request("/digital-twin/simulate", {
       method: "POST",
-      body: JSON.stringify(twinManual),
+      body: JSON.stringify(twinConfiguração),
     });
 
     setSimulationResult(result);
@@ -2714,8 +2716,8 @@ function App() {
     await safe("/records/simulations", {
       method: "POST",
       body: JSON.stringify({
-        name: "Configuração Manual",
-        config: twinManual,
+        name: "Configuração Configuração",
+        config: twinConfiguração,
       }),
     });
 
@@ -3143,7 +3145,9 @@ function App() {
           </div>
         )}
       </main>
-    </div>
+
+          <TseaUnitLegend />
+</div>
   );
 }
 

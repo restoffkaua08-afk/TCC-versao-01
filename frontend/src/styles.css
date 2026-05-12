@@ -1269,49 +1269,320 @@ html[data-theme="dark"] .hrRamp {
 /* TSEA_HISTORY_REPORTS_REDESIGN_CSS_END */
 
 
+
+
+
+
+
+
+
+
 /* TSEA_UNIDADES_MEDIDA_CSS_START */
-.unitLegend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  border: 1px solid var(--line);
-  background: var(--surfaceSoft);
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin: 10px 0 14px;
-  font-size: .82rem;
-}
-
-.unitLegend strong {
-  margin-right: 6px;
-  color: var(--text);
-}
-
-.unitLegend span {
+.unitTableBlock {
+  margin-top: 16px;
   border: 1px solid var(--line);
   background: var(--surface);
-  border-radius: 999px;
-  padding: 5px 8px;
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.unitTableBlock h3 {
+  margin: 0;
+}
+
+.unitTableBlock p {
+  margin: 0 0 4px;
   color: var(--muted);
 }
 
-.unitLegend b {
-  color: var(--green);
-}
-
-html[data-theme="dark"] .unitLegend {
+html[data-theme="dark"] .unitTableBlock {
   background: #050505 !important;
   border-color: #1b211f !important;
 }
 
-html[data-theme="dark"] .unitLegend span {
+html[data-theme="dark"] .unitTableBlock p {
+  color: #a7b0ac !important;
+}
+/* TSEA_UNIDADES_MEDIDA_CSS_END */
+
+
+/* TSEA_RESPONSIVIDADE_GERAL_START */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.screen,
+.content,
+main {
+  min-width: 0;
+}
+
+.section,
+.metric,
+.tankCard,
+.scenarioCard,
+.twinScenarioCard,
+.twin10Panel,
+.twin10Result,
+.twin10History,
+.hrDetailPanel,
+.hrBlock,
+.operationWordDetail,
+.detailPanel,
+.reportBox,
+.infoCard,
+.machineCard,
+.chartBox,
+.tableWrap {
+  min-width: 0;
+}
+
+.metrics,
+.grid,
+.grid2,
+.grid3,
+.dashboardGrid,
+.operationGrid,
+.parameterGrid,
+.reportsGrid,
+.machineGrid,
+.componentGrid,
+.twin10Grid,
+.twinForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+  gap: 14px;
+  min-width: 0;
+}
+
+.twin10Tabs,
+.hrTabs,
+.actions,
+.hrActions,
+.twinScenarioActions,
+.twinChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.twin10Tabs button,
+.hrTabs button,
+.actions button,
+.hrActions button {
+  white-space: normal;
+}
+
+.tableWrap,
+table {
+  max-width: 100%;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+table {
+  min-width: 760px;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+p,
+span,
+small,
+strong,
+td,
+th,
+button {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1366px) {
+  .screen {
+    padding: 14px !important;
+  }
+
+  .section {
+    padding: 14px !important;
+  }
+
+  .metrics,
+  .grid,
+  .grid2,
+  .grid3,
+  .dashboardGrid,
+  .operationGrid,
+  .parameterGrid,
+  .reportsGrid,
+  .machineGrid,
+  .componentGrid,
+  .twin10Grid,
+  .twinForm {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+    gap: 12px;
+  }
+
+  .metric strong {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 84px minmax(0, 1fr) !important;
+  }
+
+  .drawer {
+    width: 84px !important;
+    min-width: 84px !important;
+  }
+
+  .drawer .brandText,
+  .drawer small,
+  .drawer .navSub,
+  .drawer .menuText {
+    display: none !important;
+  }
+
+  .drawer button,
+  .drawer a {
+    justify-content: center !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .layout {
+    display: block !important;
+  }
+
+  .drawer {
+    position: relative !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    overflow-x: auto !important;
+  }
+
+  .drawer nav,
+  .drawer .menu {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+  }
+
+  .drawer .brandText,
+  .drawer small,
+  .drawer .navSub,
+  .drawer .menuText {
+    display: none !important;
+  }
+
+  .metrics,
+  .grid,
+  .grid2,
+  .grid3,
+  .dashboardGrid,
+  .operationGrid,
+  .parameterGrid,
+  .reportsGrid,
+  .machineGrid,
+  .componentGrid,
+  .twin10Grid,
+  .twinForm,
+  .hrFilters {
+    grid-template-columns: 1fr !important;
+  }
+
+  table {
+    min-width: 680px;
+  }
+}
+/* TSEA_RESPONSIVIDADE_GERAL_END */
+
+
+/* TSEA_DARK_MENU_REFINO_START */
+html[data-theme="dark"] .drawer,
+html[data-theme="dark"] .sidebar,
+html[data-theme="dark"] aside {
+  background: #050505 !important;
+  border-color: #1b211f !important;
+}
+
+html[data-theme="dark"] .drawer button,
+html[data-theme="dark"] .drawer a,
+html[data-theme="dark"] nav button,
+html[data-theme="dark"] .menu button,
+html[data-theme="dark"] .navItem {
   background: #0b0f0d !important;
+  color: #d8dedb !important;
+  border: 1px solid #1b211f !important;
+}
+
+html[data-theme="dark"] .drawer button:hover,
+html[data-theme="dark"] .drawer a:hover,
+html[data-theme="dark"] nav button:hover,
+html[data-theme="dark"] .menu button:hover,
+html[data-theme="dark"] .navItem:hover {
+  background: #101614 !important;
+  color: #ffffff !important;
   border-color: #2f3a35 !important;
+}
+
+html[data-theme="dark"] .drawer button.active,
+html[data-theme="dark"] .drawer a.active,
+html[data-theme="dark"] nav button.active,
+html[data-theme="dark"] .menu button.active,
+html[data-theme="dark"] .navItem.active,
+html[data-theme="dark"] .active {
+  background: linear-gradient(90deg, rgba(16, 185, 129, .16), rgba(15, 23, 20, .95)) !important;
+  color: #ffffff !important;
+  border-color: rgba(16, 185, 129, .55) !important;
+  box-shadow: inset 4px 0 0 #10b981 !important;
+}
+
+html[data-theme="dark"] .drawer h1,
+html[data-theme="dark"] .drawer h2,
+html[data-theme="dark"] .drawer h3,
+html[data-theme="dark"] .drawer strong,
+html[data-theme="dark"] .topbar h1,
+html[data-theme="dark"] .topbar h2,
+html[data-theme="dark"] .topbar strong {
+  color: #f7f7f7 !important;
+}
+
+html[data-theme="dark"] .drawer p,
+html[data-theme="dark"] .drawer span,
+html[data-theme="dark"] .drawer small,
+html[data-theme="dark"] .topbar p,
+html[data-theme="dark"] .topbar span,
+html[data-theme="dark"] .topbar small {
   color: #a7b0ac !important;
 }
 
-html[data-theme="dark"] .unitLegend b {
-  color: #10b981 !important;
+html[data-theme="dark"] .section h1,
+html[data-theme="dark"] .section h2,
+html[data-theme="dark"] .section h3 {
+  color: #f7f7f7 !important;
 }
-/* TSEA_UNIDADES_MEDIDA_CSS_END */
+/* TSEA_DARK_MENU_REFINO_END */
