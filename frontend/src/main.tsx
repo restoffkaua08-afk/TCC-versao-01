@@ -1549,7 +1549,9 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 <button className={tab === "result" ? "" : "secondary"} onClick={() => setTab("result")}>Resultado</button>
         <button className={tab === "history" ? "" : "secondary"} onClick={() => setTab("history")}>Histórico</button>
         <button className={tab === "technical" ? "" : "secondary"} onClick={() => setTab("technical")}>Dados técnicos</button>
-      </div>
+      
+          <TseaUnitsTechnicalTable />
+</div>
 
       {tab === "base" && (
         <div className="twin10Grid">
@@ -2461,9 +2463,11 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
 
 
 
-/* TSEA_UNIDADES_MEDIDA_START */
 
-function TseaUnitLegend() {
+
+/* TSEA_UNIDADES_TECNICAS_FINAL_START */
+
+function TseaUnitsTechnicalTable() {
   const rows = [
     ["mbar", "Pressão / vácuo", "Pressão atual, pressão final, pressão de acionamento e limite estrutural."],
     ["s", "Tempo em segundos", "Atraso do óleo, tempo máximo, tempo estimado e duração do ciclo."],
@@ -2479,9 +2483,9 @@ function TseaUnitLegend() {
   ];
 
   return (
-    <div className="unitTableBlock">
+    <div className="unitsTechnicalTable">
       <h3>Unidades de medida utilizadas</h3>
-      <p>Referência técnica para leitura dos campos, parâmetros e indicadores.</p>
+      <p>Referência técnica para leitura dos campos, parâmetros e indicadores do sistema.</p>
       <Table
         columns={["Unidade", "Aplicação", "Descrição"]}
         rows={rows.map((item) => [<b>{item[0]}</b>, item[1], item[2]])}
@@ -2490,7 +2494,7 @@ function TseaUnitLegend() {
   );
 }
 
-/* TSEA_UNIDADES_MEDIDA_END */
+/* TSEA_UNIDADES_TECNICAS_FINAL_END */
 
 function App() {
 
@@ -3149,8 +3153,6 @@ function App() {
           </div>
         )}
       </main>
-
-          <TseaUnitLegend />
 </div>
   );
 }
