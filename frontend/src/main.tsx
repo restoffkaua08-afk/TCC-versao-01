@@ -373,19 +373,19 @@ function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
   return (
     <div className="componentTraceStack">
       <Section title="Rastreabilidade de máquinas e peças" subtitle="Status, desempenho e leitura dos principais componentes do processo.">
-        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura técnica", "Função no processo"]} rows={pumpRows} />
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho (%)", "Leitura (unidade do sensor) técnica", "Função no processo"]} rows={pumpRows} />
       </Section>
 
-      <Section title="Tanques do processo" subtitle="Leituras numéricas dos tanques usados no ciclo.">
+      <Section title="Tanques do processo" subtitle="Leitura (unidade do sensor)s numéricas dos tanques usados no ciclo.">
         <Table columns={["Tanque", "Tipo", "Pressão", "Óleo", "Risco", "Status"]} rows={tankRows} />
       </Section>
 
       <Section title="Mangueiras de vácuo" subtitle="Componentes de ligação entre bombas, tanque e processo.">
-        <Table columns={["Mangueira", "Comprimento", "Diâmetro", "Fator de perda", "Status", "Função"]} rows={hoseRows} />
+        <Table columns={["Mangueira", "Comprimento (m)", "Diâmetro (mm)", "Fator de perda (multiplicador)", "Status", "Função"]} rows={hoseRows} />
       </Section>
 
-      <Section title="Sensores do processo" subtitle="Leituras usadas para controle, diagnóstico e rastreabilidade.">
-        <Table columns={["Sensor", "Tanque", "Variável", "Leitura", "Status", "Desempenho"]} rows={sensorRows} />
+      <Section title="Sensores do processo" subtitle="Leitura (unidade do sensor)s usadas para controle, diagnóstico e rastreabilidade.">
+        <Table columns={["Sensor", "Tanque", "Variável", "Leitura (unidade do sensor)", "Status", "Desempenho (%)"]} rows={sensorRows} />
       </Section>
     </div>
   );
@@ -433,9 +433,9 @@ function SimulationTraceability({ result, state, selectedScenario, hoses, tanks,
 
   const reportRows = [
     [<b>Status final</b>, <Badge value={result.status} />, simulationStatus],
-    [<b>Pressão final</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulação."],
-    [<b>Tempo estimado</b>, fmt(estimatedTime, "s"), "Duração prevista do ciclo."],
-    [<b>Risco máximo</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restrição" : "Aprovado"],
+    [<b>Pressão final (mbar)</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulação."],
+    [<b>Tempo estimado (s)</b>, fmt(estimatedTime, "s"), "Duração (s) prevista do ciclo."],
+    [<b>Risco máximo (%)</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restrição" : "Aprovado"],
     [<b>Cenário</b>, selectedScenario || "Manual", "Origem da simulação usada no diagnóstico."]
   ];
 
@@ -451,7 +451,7 @@ function SimulationTraceability({ result, state, selectedScenario, hoses, tanks,
 
       <div className="tracePanel">
         <h3>Máquinas, peças e sensores</h3>
-        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto no processo"]} rows={componentRows} />
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto no processo"]} rows={componentRows} />
       </div>
 
       <div className="tracePanel">
@@ -657,19 +657,19 @@ function TseaComponentHealthPanel({ state, allTanks, allHoses }: any) {
   return (
     <div className="componentTraceStack">
       <Section title="Rastreabilidade de máquinas e peças" subtitle="Status, desempenho e leitura dos principais componentes do processo.">
-        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura técnica", "Função no processo"]} rows={pumpRows} />
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho (%)", "Leitura (unidade do sensor) técnica", "Função no processo"]} rows={pumpRows} />
       </Section>
 
-      <Section title="Tanques do processo" subtitle="Leituras numéricas dos tanques usados no ciclo.">
+      <Section title="Tanques do processo" subtitle="Leitura (unidade do sensor)s numéricas dos tanques usados no ciclo.">
         <Table columns={["Tanque", "Tipo", "Pressão", "Óleo", "Risco", "Status"]} rows={tankRows} />
       </Section>
 
       <Section title="Mangueiras de vácuo" subtitle="Componentes de ligação entre bombas, tanque e processo.">
-        <Table columns={["Mangueira", "Comprimento", "Diâmetro", "Fator de perda", "Status", "Função"]} rows={hoseRows} />
+        <Table columns={["Mangueira", "Comprimento (m)", "Diâmetro (mm)", "Fator de perda (multiplicador)", "Status", "Função"]} rows={hoseRows} />
       </Section>
 
-      <Section title="Sensores do processo" subtitle="Leituras usadas para controle, diagnóstico e rastreabilidade.">
-        <Table columns={["Sensor", "Tanque", "Variável", "Leitura", "Status", "Desempenho"]} rows={sensorRows} />
+      <Section title="Sensores do processo" subtitle="Leitura (unidade do sensor)s usadas para controle, diagnóstico e rastreabilidade.">
+        <Table columns={["Sensor", "Tanque", "Variável", "Leitura (unidade do sensor)", "Status", "Desempenho (%)"]} rows={sensorRows} />
       </Section>
     </div>
   );
@@ -714,9 +714,9 @@ function TseaSimulationTraceability({ result, state, hoses, tanks }: any) {
 
   const reportRows = [
     [<b>Status final</b>, <Badge value={result.status} />, simulationStatus],
-    [<b>Pressão final</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulação."],
-    [<b>Tempo estimado</b>, fmt(estimatedTime, "s"), "Duração prevista do ciclo."],
-    [<b>Risco máximo</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restrição" : "Aprovado"],
+    [<b>Pressão final (mbar)</b>, fmt(finalPressure, "mbar"), "Valor final calculado pela simulação."],
+    [<b>Tempo estimado (s)</b>, fmt(estimatedTime, "s"), "Duração (s) prevista do ciclo."],
+    [<b>Risco máximo (%)</b>, fmt(risk, "%"), risk >= 82 ? "Reprovado" : risk >= 65 ? "Aprovado com restrição" : "Aprovado"],
     [<b>Diagnóstico</b>, result.diagnosis || "--", result.recommendation || "--"]
   ];
 
@@ -732,7 +732,7 @@ function TseaSimulationTraceability({ result, state, hoses, tanks }: any) {
 
       <div className="tracePanel">
         <h3>Máquinas, peças e sensores</h3>
-        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto no processo"]} rows={componentRows} />
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto no processo"]} rows={componentRows} />
       </div>
 
       <div className="tracePanel">
@@ -842,6 +842,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
 
   return (
     <Section title="Gêmeo Digital — cenários e testes" subtitle="Cenários base, personalizados, criação de teste e resultado com rastreabilidade completa.">
+        <TseaUnitLegend />
       <div className="subTabs">
         <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>Cenários base</button>
         <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>Cenários personalizados</button>
@@ -880,15 +881,15 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
               </select>
             </Field>
 
-            <Field label="Pressão final desejada">
+            <Field label="Pressão final (mbar) desejada (mbar)">
               <input type="number" value={form.target_pressure_mbar} onChange={(e) => setForm({ ...form, target_pressure_mbar: Number(e.target.value) })} />
             </Field>
 
-            <Field label="Pressão da bomba secundária">
+            <Field label="Pressão da bomba secundária (mbar)">
               <input type="number" value={form.roots_start_pressure_mbar} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: Number(e.target.value) })} />
             </Field>
 
-            <Field label="Vazão de óleo">
+            <Field label="Vazão de óleo (L/min)">
               <input type="number" value={form.oil_flow_l_min} onChange={(e) => setForm({ ...form, oil_flow_l_min: Number(e.target.value) })} />
             </Field>
 
@@ -915,9 +916,9 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
           <div className="resultStack">
             <div className="metrics">
               <Metric label="Status da simulação" value={<Badge value={result.status} />} detail={result.scenario} />
-              <Metric label="Pressão final" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Valor calculado" />
-              <Metric label="Tempo estimado" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="Duração prevista" />
-              <Metric label="Risco máximo" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="Margem operacional" />
+              <Metric label="Pressão final (mbar)" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Valor calculado" />
+              <Metric label="Tempo estimado (s)" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="Duração (s) prevista" />
+              <Metric label="Risco máximo (%)" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="Margem operacional" />
             </div>
 
             <div className="diagnosticBox">
@@ -1172,7 +1173,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
       : risk >= 82 && config?.simulate_hose_leak
         ? "Perda simulada na mangueira elevou o risco e prejudicou a estabilidade do ciclo."
         : oilFlow < 1.5
-          ? "Vazão de óleo insuficiente reduziu a estabilidade e aumentou risco operacional."
+          ? "Vazão de óleo (L/min) insuficiente reduziu a estabilidade e aumentou risco operacional."
           : !secondaryReleased
             ? "Bomba secundária permaneceu bloqueada pela pressão fora da faixa segura."
             : config?.simulate_sensor_failure
@@ -1242,7 +1243,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         status: config?.simulate_sensor_failure ? "Falha simulada" : "Online",
         performance: config?.simulate_sensor_failure ? "35%" : "98%",
         reading: fmt(finalPressure, "mbar"),
-        impact: "Leitura usada no diagnóstico e no histórico."
+        impact: "Leitura (unidade do sensor) usada no diagnóstico e no histórico."
       },
       {
         type: "Sistema de óleo",
@@ -1394,35 +1395,35 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
           </select>
         </Field>
 
-        <Field label="Pressão final desejada">
+        <Field label="Pressão final (mbar) desejada (mbar)">
           <input type="number" value={data.target_pressure_mbar ?? 6.5} onChange={(e) => setData({ ...data, target_pressure_mbar: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Pressão da bomba secundária">
+        <Field label="Pressão da bomba secundária (mbar)">
           <input type="number" value={data.secondary_start_pressure_mbar ?? 50} onChange={(e) => setData({ ...data, secondary_start_pressure_mbar: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Vazão de óleo">
+        <Field label="Vazão de óleo (L/min)">
           <input type="number" value={data.oil_flow_l_min ?? 2} onChange={(e) => setData({ ...data, oil_flow_l_min: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Atraso do óleo">
+        <Field label="Atraso do óleo (s)">
           <input type="number" value={data.oil_delay_seconds ?? 0} onChange={(e) => setData({ ...data, oil_delay_seconds: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Tempo máximo">
+        <Field label="Tempo máximo (s)">
           <input type="number" value={data.max_cycle_seconds ?? 900} onChange={(e) => setData({ ...data, max_cycle_seconds: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Saúde bomba primária">
+        <Field label="Saúde bomba primária (0 a 1)">
           <input type="number" step="0.01" value={data.primary_pump_health ?? 1} onChange={(e) => setData({ ...data, primary_pump_health: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Saúde bomba secundária">
+        <Field label="Saúde bomba secundária (0 a 1)">
           <input type="number" step="0.01" value={data.secondary_pump_health ?? 1} onChange={(e) => setData({ ...data, secondary_pump_health: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Fator de calibração">
+        <Field label="Fator de calibração (multiplicador)">
           <input type="number" step="0.01" value={data.calibration_factor ?? 1} onChange={(e) => setData({ ...data, calibration_factor: Number(e.target.value) })} />
         </Field>
       </div>
@@ -1497,7 +1498,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         <div className="tracePanel">
           <h3>Máquinas, peças e sensores</h3>
           <Table
-            columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"]}
+            columns={["Componente", "Identificação", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto"]}
             rows={(target.components || []).map((item: any) => [
               <b>{item.type}</b>,
               item.id,
@@ -1528,10 +1529,10 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
             columns={["Item", "Valor", "Interpretação"]}
             rows={[
               [<b>Status final</b>, <Badge value={target.status} />, target.status === "success" ? "Bem-sucedida" : target.status === "warning" ? "Aprovada com restrição" : "Reprovada"],
-              [<b>Pressão final</b>, fmt(target.metrics?.final_real_pressure_mbar, "mbar"), "Valor final previsto pelo modelo."],
-              [<b>Tempo estimado</b>, fmt(target.metrics?.estimated_time_seconds, "s"), "Duração prevista do ciclo."],
-              [<b>Risco máximo</b>, fmt(target.metrics?.max_collapse_risk_pct, "%"), target.metrics?.max_collapse_risk_pct >= 82 ? "Risco crítico" : target.metrics?.max_collapse_risk_pct >= 65 ? "Atenção" : "Seguro"],
-              [<b>Margem de segurança</b>, fmt(target.metrics?.safety_margin_mbar, "mbar"), "Distância estimada até o limite do tanque."],
+              [<b>Pressão final (mbar)</b>, fmt(target.metrics?.final_real_pressure_mbar, "mbar"), "Valor final previsto pelo modelo."],
+              [<b>Tempo estimado (s)</b>, fmt(target.metrics?.estimated_time_seconds, "s"), "Duração (s) prevista do ciclo."],
+              [<b>Risco máximo (%)</b>, fmt(target.metrics?.max_collapse_risk_pct, "%"), target.metrics?.max_collapse_risk_pct >= 82 ? "Risco crítico" : target.metrics?.max_collapse_risk_pct >= 65 ? "Atenção" : "Seguro"],
+              [<b>Margem de segurança (mbar)</b>, fmt(target.metrics?.safety_margin_mbar, "mbar"), "Distância estimada até o limite do tanque."],
               [<b>Motivo principal</b>, target.probableCause || "--", target.recommendation || "--"]
             ]}
           />
@@ -1542,6 +1543,8 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 
   return (
     <Section title="Gêmeo Digital do processo de vácuo" subtitle="Simulação operacional com cenários, criação de testes, diagnóstico, rastreabilidade e histórico técnico.">
+      <TseaUnitLegend />
+
       <div className="twin10Tabs">
         <button className={tab === "base" ? "" : "secondary"} onClick={() => setTab("base")}>Cenários base</button>
         <button className={tab === "custom" ? "" : "secondary"} onClick={() => setTab("custom")}>Personalizados</button>
@@ -1602,9 +1605,9 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
           <div className="twin10Result">
             <div className="metrics">
               <Metric label="Status" value={<Badge value={result.status} />} detail={result.scenario} />
-              <Metric label="Pressão final" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Resultado previsto" />
-              <Metric label="Tempo estimado" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="Duração do ciclo" />
-              <Metric label="Risco máximo" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="Avaliação estrutural" />
+              <Metric label="Pressão final (mbar)" value={fmt(result.metrics?.final_real_pressure_mbar, "mbar")} detail="Resultado previsto" />
+              <Metric label="Tempo estimado (s)" value={fmt(result.metrics?.estimated_time_seconds, "s")} detail="Duração (s) do ciclo" />
+              <Metric label="Risco máximo (%)" value={fmt(result.metrics?.max_collapse_risk_pct, "%")} detail="Avaliação estrutural" />
             </div>
 
             <div className="diagnosticBox">
@@ -1664,7 +1667,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
             rows={[
               ["Bomba primária", "Leybold SOGEVAC SV 630 B", "640 m³/h · ≤ 0,08 mbar · 20 L óleo · 15 kW", "Evacuação inicial e sustentação do vácuo."],
               ["Bomba secundária", "Leybold RUVAC WSU 2001", "2050 m³/h · < 4 × 10⁻² mbar · ΔP 50 mbar", "Reforço após faixa segura de pressão."],
-              ["Mangueira", "MG-VAC", "Comprimento, diâmetro e fator de perda", "Impacta perda de carga e tempo de ciclo."],
+              ["Mangueira", "MG-VAC", "Comprimento (m), diâmetro e fator de perda", "Impacta perda de carga e tempo de ciclo."],
               ["Tanque", "TQ-REG", "Volume, pressão final e limite estrutural", "Base para cálculo de risco e margem."],
               ["Sensor", "SP-TQ", "Pressão, status e confiabilidade", "Alimenta diagnóstico e rastreabilidade."]
             ]}
@@ -1686,10 +1689,10 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 
 function tseaHRText(value: any) {
   return String(value ?? "--")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function tseaHRDate(value?: any) {
@@ -1966,7 +1969,7 @@ function tseaHRComponentRows(record: any, allTanks: any[], allHoses: any[]) {
     ["Bomba secundária", "Leybold RUVAC WSU 2001", "Conforme intertravamento", "96%", "2050 m³/h", "Reforço do vácuo após faixa segura."],
     ["Mangueira de vácuo", hoseCode, "Operacional", "Conforme fator de perda", String(config?.hose_loss_factor || config?.loss_factor || record?.metrics?.hose_loss_factor || "--"), "Perda de carga e ligação entre bomba/tanque."],
     ["Tanque de processo", tankCode, tseaHRStatusLabel(record?.status), "--", tseaHRNumber(pressure, "mbar"), "Volume, pressão e margem estrutural."],
-    ["Sensor de pressão", `SP-${tankCode}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", tseaHRNumber(pressure, "mbar"), "Leitura usada no controle e rastreabilidade."],
+    ["Sensor de pressão", `SP-${tankCode}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", tseaHRNumber(pressure, "mbar"), "Leitura (unidade do sensor) usada no controle e rastreabilidade."],
     ["Sistema de óleo", "Injeção de óleo", Number(config?.oil_flow_l_min || config?.vazaoOleo || 2) < 1.5 ? "Vazão baixa" : "Operacional", "--", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min || 2, "L/min"), "Vedação, estabilidade e proteção do conjunto."]
   ];
 }
@@ -2004,10 +2007,10 @@ function tseaHRInfoRows(record: any) {
     ["Lote / ordem", record?.lot || record?.lote || config?.lot || "--"],
     ["Tanque", record?.tank || record?.tanque || config?.tank_type || "--"],
     ["Mangueira", record?.hose || record?.mangueira || config?.hose_id || "--"],
-    ["Pressão final", tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || config?.target_pressure_mbar || config?.pressaoFinal, "mbar")],
-    ["Tempo estimado", tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || config?.max_cycle_seconds, "s")],
-    ["Risco máximo", tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")],
-    ["Vazão de óleo", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min, "L/min")],
+    ["Pressão final (mbar)", tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || config?.target_pressure_mbar || config?.pressaoFinal, "mbar")],
+    ["Tempo estimado (s)", tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || config?.max_cycle_seconds, "s")],
+    ["Risco máximo (%)", tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")],
+    ["Vazão de óleo (L/min)", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min, "L/min")],
     ["Status", tseaHRStatusLabel(record?.status)],
     ["Diagnóstico", record?.diagnosis || record?.diagnostico || "--"],
     ["Recomendação", record?.recommendation || record?.recomendacao || "--"]
@@ -2057,7 +2060,7 @@ function tseaHRBuildWordRecord(record: any, kind: string, allTanks: any[], allHo
       <p class="caption">Figura 1 — Curva da rampa de vácuo: pressão simulada/real, curva esperada e carga estrutural.</p>
 
       <h1>3. Rastreabilidade de máquinas e peças</h1>
-      ${tseaHRTable(["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"], componentRows)}
+      ${tseaHRTable(["Componente", "Identificação", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto"], componentRows)}
 
       <h1>4. Ações registradas</h1>
       ${tseaHRTable(["Etapa", "Status", "Referência", "Registro técnico"], actionRows)}
@@ -2134,7 +2137,7 @@ function tseaHRBuildWordGeneral(operations: any[], simulations: any[]) {
       ${tseaHRTable(["ID", "Data", "Operador", "Tanque", "Mangueira", "Status"], opRows)}
 
       <h1>4. Simulações do Gêmeo Digital</h1>
-      ${tseaHRTable(["ID", "Data", "Cenário", "Status", "Risco", "Pressão final"], simRows)}
+      ${tseaHRTable(["ID", "Data", "Cenário", "Status", "Risco", "Pressão final (mbar)"], simRows)}
 
       <h1>5. Conclusão técnica</h1>
       <p>
@@ -2174,8 +2177,8 @@ function TseaRecordDetail({ record, kind, allTanks, allHoses, onClose }: any) {
 
       <div className="metrics">
         <Metric label="Status" value={<Badge value={tseaHRStatusBadge(record?.status)} />} detail={tseaHRStatusLabel(record?.status)} />
-        <Metric label="Pressão final" value={tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || record?.config?.target_pressure_mbar, "mbar")} detail="Valor registrado/calculado" />
-        <Metric label="Tempo" value={tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || record?.config?.max_cycle_seconds, "s")} detail="Duração ou estimativa" />
+        <Metric label="Pressão final (mbar)" value={tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || record?.config?.target_pressure_mbar, "mbar")} detail="Valor registrado/calculado" />
+        <Metric label="Tempo" value={tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || record?.config?.max_cycle_seconds, "s")} detail="Duração (s) ou estimativa" />
         <Metric label="Risco" value={tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")} detail="Avaliação técnica" />
       </div>
 
@@ -2186,7 +2189,7 @@ function TseaRecordDetail({ record, kind, allTanks, allHoses, onClose }: any) {
 
       <div className="hrBlock">
         <h3>Rastreabilidade de máquinas e peças</h3>
-        <Table columns={["Componente", "Identificação", "Status", "Desempenho", "Leitura", "Impacto"]} rows={componentRows} />
+        <Table columns={["Componente", "Identificação", "Status", "Desempenho (%)", "Leitura (unidade do sensor)", "Impacto"]} rows={componentRows} />
       </div>
 
       <div className="hrBlock">
@@ -2464,6 +2467,26 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
 
 /* TSEA_HISTORY_REPORTS_REDESIGN_END */
 
+
+/* TSEA_UNIDADES_MEDIDA_START */
+
+function TseaUnitLegend() {
+  return (
+    <div className="unitLegend">
+      <strong>Unidades utilizadas no sistema</strong>
+      <span><b>mbar</b> — pressão/vácuo</span>
+      <span><b>s</b> — tempo em segundos</span>
+      <span><b>L/min</b> — vazão de óleo</span>
+      <span><b>%</b> — risco, desempenho ou eficiência</span>
+      <span><b>0 a 1</b> — saúde relativa do equipamento</span>
+      <span><b>m / mm</b> — comprimento e diâmetro da mangueira</span>
+      <span><b>m³/h</b> — vazão nominal das bombas</span>
+    </div>
+  );
+}
+
+/* TSEA_UNIDADES_MEDIDA_END */
+
 function App() {
 
   const [tseaDarkTheme, setTseaDarkTheme] = useState(() => localStorage.getItem("tsea.theme") === "dark");
@@ -2706,7 +2729,7 @@ function App() {
     const risk = simulationResult?.metrics?.max_collapse_risk_pct;
     const pressure = simulationResult?.metrics?.final_real_pressure_mbar;
 
-    let answer = `Estado atual: ${status}. Risco máximo: ${fmt(risk, "%")}. Pressão final: ${fmt(pressure, "mbar")}.`;
+    let answer = `Estado atual: ${status}. Risco máximo (%): ${fmt(risk, "%")}. Pressão final (mbar): ${fmt(pressure, "mbar")}.`;
 
     if (q.includes("óleo") || q.includes("oleo")) {
       answer += " Verifique vazão de injeção, atraso de entrada e compensação de óleo. Baixa vazão ou atraso elevam a carga estrutural.";
@@ -2945,19 +2968,19 @@ function App() {
                   </select>
                 </Field>
 
-                <Field label="Pressão final do processo">
+                <Field label="Pressão final (mbar) do processo">
                   <input type="number" value={operationConfig.target_pressure_mbar} onChange={(e) => setOp("target_pressure_mbar", Number(e.target.value))} />
                 </Field>
 
-                <Field label="Pressão de acionamento da bomba secundária">
+                <Field label="Pressão de acionamento (mbar) da bomba secundária">
                   <input type="number" value={operationConfig.roots_start_pressure_mbar} onChange={(e) => setOp("roots_start_pressure_mbar", Number(e.target.value))} />
                 </Field>
 
-                <Field label="Vazão de óleo">
+                <Field label="Vazão de óleo (L/min)">
                   <input type="number" value={operationConfig.oil_flow_l_min} onChange={(e) => setOp("oil_flow_l_min", Number(e.target.value))} />
                 </Field>
 
-                <Field label="Tempo máximo do ciclo">
+                <Field label="Tempo máximo (s) do ciclo">
                   <input type="number" value={operationConfig.max_cycle_seconds} onChange={(e) => setOp("max_cycle_seconds", Number(e.target.value))} />
                 </Field>
 
@@ -2976,6 +2999,7 @@ function App() {
             </Section>
 
             <Section title="Operação em tempo real" subtitle="Pressão, óleo, mangueira de vácuo e risco estrutural por tanque.">
+        <TseaUnitLegend />
               <div className="tankGrid">
                 {tanksState.map((item: any, index: number) => (
                   <TankCard key={item?.tank?.id || index} item={item} />
@@ -3050,7 +3074,7 @@ function App() {
                     <Field label="Código"><input value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value })} /></Field>
                     <Field label="Comprimento (m)"><input type="number" value={form.length_m || ""} onChange={(e) => setForm({ ...form, length_m: e.target.value })} /></Field>
                     <Field label="Diâmetro (pol)"><input type="number" value={form.diameter_in || ""} onChange={(e) => setForm({ ...form, diameter_in: e.target.value })} /></Field>
-                    <Field label="Fator de perda"><input type="number" value={form.loss_factor || ""} onChange={(e) => setForm({ ...form, loss_factor: e.target.value })} /></Field>
+                    <Field label="Fator de perda (multiplicador)"><input type="number" value={form.loss_factor || ""} onChange={(e) => setForm({ ...form, loss_factor: e.target.value })} /></Field>
                   </>
                 )}
 
@@ -3058,9 +3082,9 @@ function App() {
                   <>
                     <Field label="Nome da receita"><input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
                     <Field label="Tipo de tanque"><input value={form.tank_type || ""} onChange={(e) => setForm({ ...form, tank_type: e.target.value })} /></Field>
-                    <Field label="Pressão final"><input type="number" value={form.target_pressure_mbar || ""} onChange={(e) => setForm({ ...form, target_pressure_mbar: e.target.value })} /></Field>
+                    <Field label="Pressão final (mbar)"><input type="number" value={form.target_pressure_mbar || ""} onChange={(e) => setForm({ ...form, target_pressure_mbar: e.target.value })} /></Field>
                     <Field label="Acionamento da bomba secundária"><input type="number" value={form.roots_start_pressure_mbar || ""} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: e.target.value })} /></Field>
-                    <Field label="Tempo máximo"><input type="number" value={form.max_cycle_seconds || ""} onChange={(e) => setForm({ ...form, max_cycle_seconds: e.target.value })} /></Field>
+                    <Field label="Tempo máximo (s)"><input type="number" value={form.max_cycle_seconds || ""} onChange={(e) => setForm({ ...form, max_cycle_seconds: e.target.value })} /></Field>
                     <Field label="Vazão mínima de óleo"><input type="number" value={form.min_oil_flow_l_min || ""} onChange={(e) => setForm({ ...form, min_oil_flow_l_min: e.target.value })} /></Field>
                   </>
                 )}
@@ -3097,7 +3121,7 @@ function App() {
 
             {paramTab === "hoses" && (
               <Section title="Mangueiras cadastradas">
-                <Table columns={["Código", "Comprimento", "Diâmetro", "Fator", "Estado"]} rows={allHoses.map((hose: any) => [<b>{hose.code}</b>, fmt(hose.length_m, "m"), fmt(hose.diameter_in, "pol"), fmt(hose.loss_factor), hose.status || "--"])} />
+                <Table columns={["Código", "Comprimento (m)", "Diâmetro (mm)", "Fator", "Estado"]} rows={allHoses.map((hose: any) => [<b>{hose.code}</b>, fmt(hose.length_m, "m"), fmt(hose.diameter_in, "pol"), fmt(hose.loss_factor), hose.status || "--"])} />
               </Section>
             )}
 

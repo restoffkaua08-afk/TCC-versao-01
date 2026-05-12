@@ -1267,3 +1267,51 @@ html[data-theme="dark"] .hrRamp {
   }
 }
 /* TSEA_HISTORY_REPORTS_REDESIGN_CSS_END */
+
+
+/* TSEA_UNIDADES_MEDIDA_CSS_START */
+.unitLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: var(--surfaceSoft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 10px 0 14px;
+  font-size: .82rem;
+}
+
+.unitLegend strong {
+  margin-right: 6px;
+  color: var(--text);
+}
+
+.unitLegend span {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: var(--muted);
+}
+
+.unitLegend b {
+  color: var(--green);
+}
+
+html[data-theme="dark"] .unitLegend {
+  background: #050505 !important;
+  border-color: #1b211f !important;
+}
+
+html[data-theme="dark"] .unitLegend span {
+  background: #0b0f0d !important;
+  border-color: #2f3a35 !important;
+  color: #a7b0ac !important;
+}
+
+html[data-theme="dark"] .unitLegend b {
+  color: #10b981 !important;
+}
+/* TSEA_UNIDADES_MEDIDA_CSS_END */
