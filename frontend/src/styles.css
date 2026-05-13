@@ -1362,8 +1362,19 @@ html[data-theme="dark"] .topbar small {
 
 
 
+
+
 /* TSEA_TABELAS_TECNICAS_MARGEM_CSS_START */
 .technicalReferenceTables {
+  position: static !important;
+  inset: auto !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  z-index: auto !important;
+
   width: 100%;
   max-width: 1120px;
   margin: 22px auto 0 auto;

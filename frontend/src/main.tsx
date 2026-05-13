@@ -1657,7 +1657,9 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
               ["Sensor", "SP-TQ", "Pressão, status e confiabilidade", "Alimenta diagnóstico e rastreabilidade."]
             ]}
           />
-        </div>
+        
+          <TseaTechnicalReferenceTables />
+</div>
       )}
     </Section>
   );
@@ -3193,8 +3195,6 @@ function App() {
           </div>
         )}
       </main>
-
-          <TseaTechnicalReferenceTables />
 </div>
   );
 }
