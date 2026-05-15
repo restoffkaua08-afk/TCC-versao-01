@@ -764,3 +764,298 @@ def tsea_digital_twin_simulate_safe(payload: dict = _TSEA_Body(default={})):
 def tsea_records_simulations_safe():
     return {"items": _TSEA_SIMULATIONS_MEMORY}
 # TSEA_BACKEND_SIMULATION_FALLBACK_END
+
+# TSEA_PLC_KIT_IOT_START
+# Integração física simplificada para bancada SENAI / Kit IoT / ESP32.
+# Configure a variável de ambiente TSEA_PLC_BASE_URL com o IP do kit:
+# Exemplo PowerShell:
+# $env:TSEA_PLC_BASE_URL="http://192.168.0.50"
+
+import os as _tsea_os
+import time as _tsea_time
+import json as _tsea_json
+import urllib.request as _tsea_urllib_request
+import urllib.error as _tsea_urllib_error
+
+_tsea_plc_state = {
+    "running": False,
+    "finished": False,
+    "emergency": False,
+    "motor1_on": False,
+    "motor2_on": False,
+    "green_light": False,
+    "yellow_light": False,
+    "red_light": False,
+    "alarm_on": False,
+    "pressure_actual": 1000.0,
+    "pressure_target": 10.0,
+    "motor2_start_pressure": 50.0,
+    "cycle_time": 0,
+    "system_state": 0,
+    "status": "Parado",
+    "risk_percent": 0.0,
+    "source": "simulado_backend",
+    "_last_tick": _tsea_time.time(),
+}
+
+def _tsea_plc_tick():
+    now = _tsea_time.time()
+    elapsed = now - float(_tsea_plc_state.get("_last_tick", now))
+
+    if elapsed < 1:
+        return
+
+    _tsea_plc_state["_last_tick"] = now
+
+    if not _tsea_plc_state["running"] or _tsea_plc_state["finished"] or _tsea_plc_state["emergency"]:
+        return
+
+    _tsea_plc_state["cycle_time"] = int(_tsea_plc_state.get("cycle_time", 0)) + int(elapsed)
+
+    _tsea_plc_state["motor1_on"] = True
+    _tsea_plc_state["green_light"] = True
+    _tsea_plc_state["yellow_light"] = False
+    _tsea_plc_state["red_light"] = False
+    _tsea_plc_state["alarm_on"] = False
+    _tsea_plc_state["status"] = "Operacional"
+    _tsea_plc_state["system_state"] = 1
+
+    if float(_tsea_plc_state["pressure_actual"]) <= float(_tsea_plc_state["motor2_start_pressure"]):
+        _tsea_plc_state["motor2_on"] = True
+        _tsea_plc_state["system_state"] = 2
+
+    if _tsea_plc_state["motor1_on"] and not _tsea_plc_state["motor2_on"]:
+        _tsea_plc_state["pressure_actual"] = float(_tsea_plc_state["pressure_actual"]) - (12.0 * elapsed)
+
+    if _tsea_plc_state["motor1_on"] and _tsea_plc_state["motor2_on"]:
+        _tsea_plc_state["pressure_actual"] = float(_tsea_plc_state["pressure_actual"]) - (37.0 * elapsed)
+
+    if float(_tsea_plc_state["pressure_actual"]) <= float(_tsea_plc_state["pressure_target"]):
+        _tsea_plc_state["pressure_actual"] = float(_tsea_plc_state["pressure_target"])
+        _tsea_plc_state["running"] = False
+        _tsea_plc_state["finished"] = True
+        _tsea_plc_state["motor1_on"] = False
+        _tsea_plc_state["motor2_on"] = False
+        _tsea_plc_state["green_light"] = True
+        _tsea_plc_state["yellow_light"] = False
+        _tsea_plc_state["red_light"] = False
+        _tsea_plc_state["alarm_on"] = False
+        _tsea_plc_state["status"] = "Finalizado"
+        _tsea_plc_state["system_state"] = 3
+        _tsea_plc_state["risk_percent"] = 0.0
+
+def _tsea_plc_external_call(action: str):
+    base_url = _tsea_os.getenv("TSEA_PLC_BASE_URL", "").strip().rstrip("/")
+
+    if not base_url:
+        return None
+
+    endpoint = f"{base_url}/{action}"
+
+    try:
+        with _tsea_urllib_request.urlopen(endpoint, timeout=3) as response:
+            raw = response.read().decode("utf-8")
+            data = _tsea_json.loads(raw)
+            if isinstance(data, dict):
+                data["source"] = "kit_iot"
+            return data
+    except Exception as exc:
+        return {
+            "source": "kit_iot_indisponivel",
+            "error": str(exc),
+            "fallback": True,
+            **{k: v for k, v in _tsea_plc_state.items() if not k.startswith("_")},
+        }
+
+def _tsea_plc_local_action(action: str):
+    _tsea_plc_tick()
+
+    if action == "start":
+        _tsea_plc_state["running"] = True
+        _tsea_plc_state["finished"] = False
+        _tsea_plc_state["emergency"] = False
+        _tsea_plc_state["motor1_on"] = True
+        _tsea_plc_state["motor2_on"] = False
+        _tsea_plc_state["green_light"] = True
+        _tsea_plc_state["yellow_light"] = False
+        _tsea_plc_state["red_light"] = False
+        _tsea_plc_state["alarm_on"] = False
+        _tsea_plc_state["status"] = "Operacional"
+        _tsea_plc_state["system_state"] = 1
+        _tsea_plc_state["_last_tick"] = _tsea_time.time()
+
+    elif action == "stop":
+        _tsea_plc_state["running"] = False
+        _tsea_plc_state["motor1_on"] = False
+        _tsea_plc_state["motor2_on"] = False
+        _tsea_plc_state["green_light"] = False
+        _tsea_plc_state["yellow_light"] = False
+        _tsea_plc_state["red_light"] = False
+        _tsea_plc_state["alarm_on"] = False
+        _tsea_plc_state["status"] = "Parado"
+        _tsea_plc_state["system_state"] = 0
+
+    elif action == "reset":
+        _tsea_plc_state.update({
+            "running": False,
+            "finished": False,
+            "emergency": False,
+            "motor1_on": False,
+            "motor2_on": False,
+            "green_light": False,
+            "yellow_light": False,
+            "red_light": False,
+            "alarm_on": False,
+            "pressure_actual": 1000.0,
+            "cycle_time": 0,
+            "system_state": 0,
+            "status": "Parado",
+            "risk_percent": 0.0,
+            "_last_tick": _tsea_time.time(),
+        })
+
+    elif action == "emergency":
+        _tsea_plc_state["running"] = False
+        _tsea_plc_state["emergency"] = True
+        _tsea_plc_state["motor1_on"] = False
+        _tsea_plc_state["motor2_on"] = False
+        _tsea_plc_state["green_light"] = False
+        _tsea_plc_state["yellow_light"] = False
+        _tsea_plc_state["red_light"] = True
+        _tsea_plc_state["alarm_on"] = True
+        _tsea_plc_state["status"] = "Crítico"
+        _tsea_plc_state["system_state"] = 5
+        _tsea_plc_state["risk_percent"] = 100.0
+
+    return {k: v for k, v in _tsea_plc_state.items() if not k.startswith("_")}
+
+def _tsea_plc_action(action: str):
+    external = _tsea_plc_external_call(action)
+    if external is not None and not external.get("fallback"):
+        return external
+    local = _tsea_plc_local_action(action)
+    if external is not None and external.get("fallback"):
+        local["kit_iot_error"] = external.get("error")
+    return local
+
+@app.get("/api/plc/status")
+def tsea_plc_status():
+    external = _tsea_plc_external_call("status")
+    if external is not None and not external.get("fallback"):
+        return external
+
+    _tsea_plc_tick()
+    local = {k: v for k, v in _tsea_plc_state.items() if not k.startswith("_")}
+    if external is not None and external.get("fallback"):
+        local["kit_iot_error"] = external.get("error")
+    return local
+
+@app.post("/api/plc/start")
+def tsea_plc_start():
+    return _tsea_plc_action("start")
+
+@app.post("/api/plc/stop")
+def tsea_plc_stop():
+    return _tsea_plc_action("stop")
+
+@app.post("/api/plc/reset")
+def tsea_plc_reset():
+    return _tsea_plc_action("reset")
+
+@app.post("/api/plc/emergency")
+def tsea_plc_emergency():
+    return _tsea_plc_action("emergency")
+
+@app.get("/api/technical/margin-rules")
+def tsea_margin_rules():
+    return {
+        "formula": "desvio_percentual = abs(valor_medido - valor_esperado) / valor_esperado * 100",
+        "rules": [
+            {
+                "status": "Operacional",
+                "color": "verde",
+                "condition": "desvio <= margem_permitida",
+                "description": "Valor dentro da tolerância definida."
+            },
+            {
+                "status": "Atenção",
+                "color": "amarelo",
+                "condition": "margem_permitida < desvio <= 2 * margem_permitida",
+                "description": "Valor fora da margem, mas ainda em faixa de verificação."
+            },
+            {
+                "status": "Crítico",
+                "color": "vermelho",
+                "condition": "desvio > 2 * margem_permitida",
+                "description": "Valor fora do limite aceitável."
+            }
+        ],
+        "general_status_rule": "Se qualquer parâmetro essencial estiver crítico, o status geral deve ser crítico."
+    }
+
+@app.get("/api/technical/evaluate-margin")
+def tsea_evaluate_margin(expected: float, measured: float, margin: float = 5.0):
+    if expected == 0:
+        return {
+            "expected": expected,
+            "measured": measured,
+            "margin": margin,
+            "deviation_percent": 0,
+            "status": "Indefinido",
+            "message": "Valor esperado igual a zero não permite cálculo percentual."
+        }
+
+    deviation = abs(measured - expected) / abs(expected) * 100
+
+    if deviation <= margin:
+        status = "Operacional"
+        color = "verde"
+    elif deviation <= margin * 2:
+        status = "Atenção"
+        color = "amarelo"
+    else:
+        status = "Crítico"
+        color = "vermelho"
+
+    return {
+        "expected": expected,
+        "measured": measured,
+        "margin": margin,
+        "deviation_percent": round(deviation, 2),
+        "status": status,
+        "color": color
+    }
+
+@app.get("/api/technical/event-markers")
+def tsea_event_markers():
+    return {
+        "markers": [
+            {
+                "event": "Bomba primária ligada",
+                "condition": "início do ciclo",
+                "visual": "marcador no início da curva"
+            },
+            {
+                "event": "Bomba secundária ligada",
+                "condition": "pressão <= pressão de acionamento",
+                "visual": "marcador no ponto de entrada da segunda bomba"
+            },
+            {
+                "event": "Óleo iniciado",
+                "condition": "tempo >= atraso do óleo",
+                "visual": "marcador na curva de vácuo"
+            },
+            {
+                "event": "Risco detectado",
+                "condition": "risco operacional acima do limite configurado",
+                "visual": "marcador crítico"
+            },
+            {
+                "event": "Pressão alvo atingida",
+                "condition": "pressão atual <= pressão final desejada",
+                "visual": "marcador de conclusão"
+            }
+        ]
+    }
+# TSEA_PLC_KIT_IOT_END
+

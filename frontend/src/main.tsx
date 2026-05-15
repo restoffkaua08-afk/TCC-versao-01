@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -2538,6 +2538,117 @@ function TseaTechnicalReferenceTables() {
 
 /* TSEA_TABELAS_TECNICAS_MARGEM_END */
 
+
+/* TSEA_PLC_PANEL_START */
+
+function TseaPlcBridgePanel() {
+  const [plc, setPlc] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function plcCall(action: string) {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/plc/${action}`, {
+        method: action === "status" ? "GET" : "POST"
+      });
+
+      if (!response.ok) {
+        throw new Error(`Falha na comunicação com /api/plc/${action}`);
+      }
+
+      const data = await response.json();
+      setPlc(data);
+    } catch (err: any) {
+      setError(err?.message || "Falha ao comunicar com a bancada física.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    plcCall("status");
+    const timer = window.setInterval(() => plcCall("status"), 1500);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const status = plc?.status || "Indisponível";
+  const source = plc?.source === "kit_iot" ? "Kit IoT físico" : "Simulação backend";
+
+  return (
+    <section className="plcBridgePanel">
+      <div className="plcBridgeHeader">
+        <div>
+          <h2>Integração física — Kit IoT / CLP simples</h2>
+          <p>Duas saídas físicas podem representar o acionamento da bomba primária e da bomba secundária.</p>
+        </div>
+        <span className={`plcStatusBadge state-${plc?.system_state ?? 0}`}>
+          {status}
+        </span>
+      </div>
+
+      <div className="plcBridgeGrid">
+        <div className="plcMetric">
+          <span>Fonte</span>
+          <strong>{source}</strong>
+        </div>
+
+        <div className="plcMetric">
+          <span>Pressão atual</span>
+          <strong>{Number(plc?.pressure_actual ?? 0).toFixed(1)} mbar</strong>
+        </div>
+
+        <div className="plcMetric">
+          <span>Tempo de ciclo</span>
+          <strong>{plc?.cycle_time ?? 0} s</strong>
+        </div>
+
+        <div className="plcMetric">
+          <span>Risco</span>
+          <strong>{Number(plc?.risk_percent ?? 0).toFixed(1)}%</strong>
+        </div>
+      </div>
+
+      <div className="plcLamps">
+        <div className={`plcLamp ${plc?.motor1_on ? "on" : ""}`}>
+          <b>Lâmpada 1</b>
+          <span>Bomba primária</span>
+          <small>{plc?.motor1_on ? "Ligada" : "Desligada"}</small>
+        </div>
+
+        <div className={`plcLamp ${plc?.motor2_on ? "on" : ""}`}>
+          <b>Lâmpada 2</b>
+          <span>Bomba secundária</span>
+          <small>{plc?.motor2_on ? "Ligada" : "Desligada"}</small>
+        </div>
+
+        <div className={`plcLamp ${plc?.green_light ? "green" : plc?.yellow_light ? "yellow" : plc?.red_light ? "red" : ""}`}>
+          <b>Semáforo</b>
+          <span>Status operacional</span>
+          <small>
+            {plc?.red_light ? "Crítico" : plc?.yellow_light ? "Atenção" : plc?.green_light ? "Operacional" : "Parado"}
+          </small>
+        </div>
+      </div>
+
+      <div className="plcActions">
+        <button type="button" onClick={() => plcCall("start")} disabled={loading}>Iniciar bancada</button>
+        <button type="button" className="secondary" onClick={() => plcCall("status")} disabled={loading}>Atualizar</button>
+        <button type="button" className="secondary" onClick={() => plcCall("stop")} disabled={loading}>Parar</button>
+        <button type="button" className="secondary" onClick={() => plcCall("reset")} disabled={loading}>Resetar</button>
+        <button type="button" className="danger" onClick={() => plcCall("emergency")} disabled={loading}>Emergência</button>
+      </div>
+
+      {error && <div className="plcError">{error}</div>}
+      {plc?.kit_iot_error && <div className="plcWarn">Kit físico indisponível. Usando simulação backend: {plc.kit_iot_error}</div>}
+    </section>
+  );
+}
+
+/* TSEA_PLC_PANEL_END */
+
 function App() {
 
   const [tseaDarkTheme, setTseaDarkTheme] = useState(() => localStorage.getItem("tsea.theme") === "dark");
@@ -3050,6 +3161,8 @@ function App() {
             </Section>
 
             <Section title="Operação em tempo real" subtitle="Pressão, óleo, mangueira de vácuo e risco estrutural por tanque.">
+        <TseaPlcBridgePanel />
+
 <div className="tankGrid">
                 {tanksState.map((item: any, index: number) => (
                   <TankCard key={item?.tank?.id || index} item={item} />
