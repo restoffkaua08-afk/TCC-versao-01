@@ -3513,3 +3513,160 @@ html[data-theme="dark"] .technicalReferenceBlock p {
 
 /* TSEA_MAIN_SIDEBAR_COLLAPSE_END */
 
+/* TSEA_PAGE_SUBMENU_DRAWER_SHARED_START */
+
+/* Botão e drawer lateral de submenus internos: Operação e Gêmeo Digital */
+.page-subnav-shell {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 0 0 16px;
+  min-height: 42px;
+}
+
+.page-subnav-toggle {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.page-subnav-toggle:hover {
+  background: #f8fafc;
+  border-color: rgba(22, 163, 74, 0.42);
+  transform: translateY(-1px);
+}
+
+.page-subnav-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: #0f172a;
+}
+
+.page-subnav-toggle span + span {
+  margin-top: 4px;
+}
+
+.page-subnav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99980;
+  border: 0;
+  outline: none;
+  background: rgba(15, 23, 42, 0.28);
+  cursor: default;
+}
+
+.page-subnav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 99990;
+  width: min(330px, 88vw);
+  height: 100vh;
+  padding: 18px;
+  background: #ffffff;
+  border-left: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: -18px 0 42px rgba(15, 23, 42, 0.16);
+  transform: translate3d(105%, 0, 0);
+  transition: transform 0.24s ease;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 18px;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.page-subnav-drawer.open {
+  transform: translate3d(0, 0, 0);
+}
+
+.page-subnav-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.page-subnav-drawer-header span {
+  display: block;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.page-subnav-drawer-header strong {
+  display: block;
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.page-subnav-drawer-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.page-subnav-drawer-list button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.page-subnav-drawer-list button:hover {
+  background: #ffffff;
+  border-color: rgba(22, 163, 74, 0.34);
+  transform: translateX(-2px);
+}
+
+.page-subnav-drawer-list button.active {
+  background: rgba(22, 163, 74, 0.08);
+  border-color: rgba(22, 163, 74, 0.38);
+}
+
+.page-subnav-drawer-list button strong {
+  display: block;
+  color: #0f172a;
+  font-size: 0.94rem;
+}
+
+.page-subnav-drawer-list button span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 640px) {
+  .page-subnav-drawer {
+    width: min(360px, 94vw);
+    padding: 14px;
+  }
+
+  .page-subnav-shell {
+    justify-content: flex-end;
+  }
+}
+
+/* TSEA_PAGE_SUBMENU_DRAWER_SHARED_END */
+
