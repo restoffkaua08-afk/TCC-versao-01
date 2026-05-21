@@ -622,6 +622,166 @@ p {
   color: var(--ink);
 }
 
+.operationScreen {
+  gap: 16px;
+}
+
+.operationTabs {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.operationTabs button {
+  min-height: 34px;
+  white-space: nowrap;
+}
+
+.operationCommandBar {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.operationIhmArea {
+  align-items: start;
+}
+
+.operationInfoStack {
+  display: grid;
+  gap: 16px;
+}
+
+.operationConfigSummary,
+.operationRecipeDetails,
+.operationReviewGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.operationConfigSummary div,
+.operationRecipeDetails div,
+.operationReviewGrid div,
+.operationStepPanel,
+.operationEmpty {
+  background: var(--surfaceSoft);
+  border: 1px solid #e3e8e4;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.operationConfigSummary span,
+.operationRecipeDetails span,
+.operationReviewGrid span {
+  display: block;
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+
+.operationConfigSummary b,
+.operationRecipeDetails b,
+.operationReviewGrid b {
+  display: block;
+  margin-top: 4px;
+  line-height: 1.25;
+}
+
+.operationModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(14, 22, 18, .42);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.operationModal {
+  width: min(980px, 100%);
+  max-height: min(86vh, 820px);
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--lineStrong);
+  border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(25, 34, 30, .22);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.operationModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+
+.operationModalHeader strong {
+  display: block;
+  font-size: 1.08rem;
+}
+
+.operationModalHeader span,
+.operationStepPanel p {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.operationConfigChoice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.operationConfigChoice button {
+  min-height: 96px;
+  font-size: 1rem;
+}
+
+.operationRecipeList,
+.operationWizard,
+.operationStepPanel {
+  display: grid;
+  gap: 12px;
+}
+
+.operationRecipeGrid,
+.operationSteps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.operationRecipeGrid button,
+.operationSteps button {
+  min-height: 34px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .formGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -993,6 +1153,12 @@ th {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .operationConfigSummary,
+  .operationRecipeDetails,
+  .operationReviewGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .content {
     padding: 12px;
   }
@@ -1017,8 +1183,27 @@ th {
   .pumpReadings,
   .sideReadings,
   .dashboardMetrics,
+  .operationConfigChoice,
+  .operationConfigSummary,
+  .operationRecipeDetails,
+  .operationReviewGrid,
   .dashboardSide {
     grid-template-columns: 1fr;
+  }
+
+  .operationModal {
+    max-height: 92vh;
+    padding: 12px;
+  }
+
+  .operationModalHeader {
+    display: grid;
+  }
+
+  .operationTabs,
+  .operationCommandBar,
+  .modalActions {
+    width: 100%;
   }
 }
 
@@ -1054,6 +1239,9 @@ html[data-theme="dark"] .tankCard,
 html[data-theme="dark"] .dashboardTankCard,
 html[data-theme="dark"] .pumpCard,
 html[data-theme="dark"] .sensorOilCard,
+html[data-theme="dark"] .operationTabs,
+html[data-theme="dark"] .operationCommandBar,
+html[data-theme="dark"] .operationModal,
 html[data-theme="dark"] .metric,
 html[data-theme="dark"] .scenarioCard,
 html[data-theme="dark"] .chartBox,
@@ -1152,7 +1340,12 @@ html[data-theme="dark"] .pumpBody,
 html[data-theme="dark"] .dashboardReadings div,
 html[data-theme="dark"] .dashboardTankFooter div,
 html[data-theme="dark"] .pumpReadings div,
-html[data-theme="dark"] .sideReadings div {
+html[data-theme="dark"] .sideReadings div,
+html[data-theme="dark"] .operationConfigSummary div,
+html[data-theme="dark"] .operationRecipeDetails div,
+html[data-theme="dark"] .operationReviewGrid div,
+html[data-theme="dark"] .operationStepPanel,
+html[data-theme="dark"] .operationEmpty {
   background: #0b0f0d !important;
   border-color: #2f3a35 !important;
   color: #f7f7f7 !important;
