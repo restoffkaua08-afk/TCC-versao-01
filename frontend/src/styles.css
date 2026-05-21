@@ -782,6 +782,99 @@ p {
   gap: 8px;
 }
 
+.twinWorkspace,
+.twinTabStack,
+.twinTechnicalGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.twinTabs {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.twinScenarioProGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.twinScenarioProCard {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--green);
+  border-radius: 10px;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  box-shadow: 0 12px 32px rgba(31, 45, 39, .06);
+}
+
+.twinScenarioCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.twinScenarioCardHeader strong {
+  display: block;
+  font-size: 1.02rem;
+}
+
+.twinScenarioCardHeader span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.twinScenarioCardGrid,
+.twinSimulationSummary,
+.twinTechnicalGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.twinInfoCell {
+  background: var(--surfaceSoft);
+  border: 1px solid #e3e8e4;
+  border-radius: 8px;
+  padding: 9px;
+  min-width: 0;
+}
+
+.twinInfoCell span {
+  display: block;
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+
+.twinInfoCell b {
+  display: block;
+  margin-top: 4px;
+  line-height: 1.25;
+}
+
+.twinScenarioActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.twinScenarioModal {
+  width: min(1040px, 100%);
+}
+
+.twinTechnicalGrid {
+  grid-template-columns: 1fr;
+}
+
 .formGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1155,7 +1248,10 @@ th {
 
   .operationConfigSummary,
   .operationRecipeDetails,
-  .operationReviewGrid {
+  .operationReviewGrid,
+  .twinScenarioProGrid,
+  .twinScenarioCardGrid,
+  .twinSimulationSummary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1187,6 +1283,9 @@ th {
   .operationConfigSummary,
   .operationRecipeDetails,
   .operationReviewGrid,
+  .twinScenarioProGrid,
+  .twinScenarioCardGrid,
+  .twinSimulationSummary,
   .dashboardSide {
     grid-template-columns: 1fr;
   }
@@ -1242,6 +1341,7 @@ html[data-theme="dark"] .sensorOilCard,
 html[data-theme="dark"] .operationTabs,
 html[data-theme="dark"] .operationCommandBar,
 html[data-theme="dark"] .operationModal,
+html[data-theme="dark"] .twinScenarioProCard,
 html[data-theme="dark"] .metric,
 html[data-theme="dark"] .scenarioCard,
 html[data-theme="dark"] .chartBox,
@@ -1345,7 +1445,8 @@ html[data-theme="dark"] .operationConfigSummary div,
 html[data-theme="dark"] .operationRecipeDetails div,
 html[data-theme="dark"] .operationReviewGrid div,
 html[data-theme="dark"] .operationStepPanel,
-html[data-theme="dark"] .operationEmpty {
+html[data-theme="dark"] .operationEmpty,
+html[data-theme="dark"] .twinInfoCell {
   background: #0b0f0d !important;
   border-color: #2f3a35 !important;
   color: #f7f7f7 !important;
