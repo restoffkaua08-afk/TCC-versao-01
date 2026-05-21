@@ -2,6 +2,7 @@
 import { createRoot } from "react-dom/client";
 import { AppShell, type View } from "./components/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
+import { DigitalTwinPage } from "./pages/DigitalTwinPage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { ParametersPage } from "./pages/ParametersPage";
 import { ReportsPage } from "./pages/ReportsPage";
@@ -3000,13 +3001,12 @@ function App() {
         )}
 
         {view === "twin" && (
-          <div className="screen">
-            <TseaDigitalTwin10
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-          </div>
+          <DigitalTwinPage
+            DigitalTwin={TseaDigitalTwin10}
+            state={state}
+            allTanks={allTanks}
+            allHoses={allHoses}
+          />
         )}
 
         {view === "history" && (
