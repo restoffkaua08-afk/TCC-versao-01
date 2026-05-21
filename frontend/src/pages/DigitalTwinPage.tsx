@@ -432,6 +432,138 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
     );
   }
 
+  function renderSimulationVisual(target: any) {
+    const config = scenarioConfig(target || selectedScenario || {});
+    const tank = target?.tank || findTank(config);
+    const hose = target?.hose || findHose(config);
+    const risk = Number(target?.metrics?.max_collapse_risk_pct || 0);
+    const pressure = Number(target?.metrics?.final_real_pressure_mbar || config.target_pressure_mbar || 0);
+    const expected = Number(config.target_pressure_mbar || pressure || 0);
+    const oil = Number(config.estimated_oil_volume_liters || target?.metrics?.oil_flow_l_min || config.oil_flow_l_min || 0);
+    const status = statusFromRisk(risk);
+    const gasHeight = Math.max(16, Math.min(70, 74 - risk * 0.22));
+    const pressureHeight = Math.max(8, Math.min(66, risk || 18));
+    const oilHeight = Math.max(5, Math.min(40, oil * 5));
+    const primaryRunning = Boolean(target);
+    const secondaryRunning = Boolean(target && pressure <= Number(config.secondary_start_pressure_mbar || 50));
+
+    return (
+      <Section title="Visual operacional da simulação" subtitle="Representação visual dos tanques e bombas considerados no cenário simulado.">
+        <div className="dashboardWorkArea twinSimulationVisual">
+          <div className="dashboardTankList">
+            <article className={`dashboardTankCard ${status}`}>
+              <div className="dashboardTankVisual">
+                <div className="industrialTankShell" aria-hidden="true">
+                  <div className="tankFill gas" style={{ height: `${gasHeight}%` }} />
+                  <div className="tankFill pressure" style={{ height: `${pressureHeight}%` }} />
+                  <div className="tankFill oil" style={{ height: `${oilHeight}%` }} />
+                </div>
+                <div className="dashboardTankLegend">
+                  <span><i className="gasDot" />Gás</span>
+                  <span><i className="pressureDot" />Pressão</span>
+                  <span><i className="oilDot" />Óleo</span>
+                </div>
+              </div>
+
+              <div className="dashboardTankInfo">
+                <div className="dashboardTankHeader">
+                  <div>
+                    <strong>{tank?.code || config.tank_type || "Tanque simulado"}</strong>
+                    <span>{tank?.type || "Cenário do Gêmeo Digital"}</span>
+                  </div>
+                  <Badge value={status} />
+                </div>
+
+                <div className="dashboardReadings">
+                  <div><span>Pressão atual</span><b>{fmt(pressure, "mbar")}</b></div>
+                  <div><span>Pressão alvo</span><b>{fmt(expected, "mbar")}</b></div>
+                  <div><span>Volume de óleo</span><b>{fmt(oil, "L")}</b></div>
+                  <div><span>Risco estrutural</span><b>{fmt(risk, "%")}</b></div>
+                </div>
+
+                <div className="dashboardTankFooter">
+                  <div><span>Mangueira vinculada</span><b>{hose?.code || config.hose_id || "--"}</b></div>
+                  <div><span>Sinal operacional</span><b><i className={`signalDot ${status === "success" ? "ok" : status === "warning" ? "warn" : "bad"}`} />{statusText(status)}</b></div>
+                  <div><span>Estado do cenário</span><b>{target ? "Simulado" : "Aguardando simulação"}</b></div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <aside className="dashboardSide">
+            <article className="pumpCard">
+              <div className="pumpGraphic" aria-hidden="true">
+                <div className="pumpMotor">B1</div>
+                <div className="pumpBody" />
+                <div className="pumpBase" />
+              </div>
+              <div className="pumpInfo">
+                <div className="pumpHeader">
+                  <strong>Bomba Primária</strong>
+                  <Badge value={primaryRunning ? "success" : "neutral"} />
+                </div>
+                <span>Leybold SOGEVAC SV 630 B</span>
+                <div className="pumpReadings">
+                  <div><span>Estado</span><b>{primaryRunning ? "Ligada" : "Em espera"}</b></div>
+                  <div><span>Desempenho</span><b>{fmt((config.primary_pump_health ?? 1) * 100, "%")}</b></div>
+                  <div><span>Conexão</span><b>{primaryRunning ? "Conectada" : "Em espera"}</b></div>
+                </div>
+              </div>
+            </article>
+
+            <article className="pumpCard">
+              <div className="pumpGraphic" aria-hidden="true">
+                <div className="pumpMotor">B2</div>
+                <div className="pumpBody" />
+                <div className="pumpBase" />
+              </div>
+              <div className="pumpInfo">
+                <div className="pumpHeader">
+                  <strong>Bomba Secundária / Roots</strong>
+                  <Badge value={secondaryRunning ? "success" : "warning"} />
+                </div>
+                <span>Leybold RUVAC WSU 2001</span>
+                <div className="pumpReadings">
+                  <div><span>Estado</span><b>{secondaryRunning ? "Ligada" : "Bloqueada"}</b></div>
+                  <div><span>Desempenho</span><b>{fmt((config.secondary_pump_health ?? 1) * 100, "%")}</b></div>
+                  <div><span>Conexão</span><b>{secondaryRunning ? "Conectada" : "Em espera"}</b></div>
+                </div>
+              </div>
+            </article>
+
+            <article className="sensorOilCard">
+              <div className="sideCardHeader">
+                <div>
+                  <strong>Sensores e Óleo</strong>
+                  <span>Condições consideradas na simulação</span>
+                </div>
+                <Badge value={target ? "success" : "neutral"} />
+              </div>
+              <div className="sensorOilGroup">
+                <h3>Sensores</h3>
+                <div className="sideReadings">
+                  <div><span>Sensor de pressão</span><b>SP-{tank?.code || "SIM"}</b></div>
+                  <div><span>Status do sensor</span><b>{config.simulate_sensor_failure ? "Falha simulada" : "Simulado"}</b></div>
+                  <div><span>Última leitura</span><b>{fmt(pressure, "mbar")}</b></div>
+                  <div><span>Comunicação</span><b>Simulado</b></div>
+                </div>
+              </div>
+              <div className="sensorOilGroup">
+                <h3>Óleo</h3>
+                <div className="sideReadings">
+                  <div><span>Vazão de óleo</span><b>{fmt(config.oil_flow_l_min, "L/min")}</b></div>
+                  <div><span>Volume estimado</span><b>{fmt(oil, "L")}</b></div>
+                  <div><span>Atraso do óleo</span><b>{fmt(config.oil_delay_seconds, "s")}</b></div>
+                  <div><span>Status</span><b>{Number(config.oil_flow_l_min || 0) > 0 ? "Ativo" : "Aguardando"}</b></div>
+                </div>
+              </div>
+            </article>
+          </aside>
+        </div>
+      </Section>
+    );
+  }
+
   function renderScenarioModal() {
     if (!modalMode) return null;
     const scenario = selectedScenario || scenarioForm;
@@ -630,9 +762,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
         <Section title="Alertas gerados" subtitle="Alertas técnicos derivados do cenário executado.">
           <Table columns={["Alerta", "Severidade", "Causa provável", "Ação sugerida"]} rows={alertRows} />
         </Section>
-        <Section title="Fluxo atual preservado" subtitle="Componente anterior mantido disponível para preservar funcionamento existente.">
-          <DigitalTwin state={state} allTanks={allTanks} allHoses={allHoses} />
-        </Section>
+        {renderSimulationVisual(target)}
       </div>
     );
   }
