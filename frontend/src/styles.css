@@ -1891,6 +1891,387 @@ html[data-theme="dark"] .hrRamp {
 }
 /* TSEA_HISTORY_REPORTS_REDESIGN_CSS_END */
 
+.traceabilityScreen {
+  position: relative;
+}
+
+.traceLead {
+  max-width: 760px;
+}
+
+.traceMenuButton {
+  width: 42px;
+  min-height: 38px;
+  padding: 0;
+  font-size: 1.1rem;
+}
+
+.traceSearchBlock {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.traceSearchRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.traceSearchInput {
+  min-height: 46px;
+  font-size: .98rem;
+}
+
+.traceFilterPanel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 12px;
+  border: 1px solid var(--line);
+  background: var(--surfaceSoft);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.traceError,
+.traceInfo {
+  grid-column: 1 / -1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-weight: 800;
+}
+
+.traceError {
+  background: #f3e2df;
+  color: #86372f;
+  border: 1px solid #e1b8b1;
+}
+
+.traceInfo {
+  background: #e7eee9;
+  color: #214f40;
+  border: 1px solid #c6d9ce;
+}
+
+.traceMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.traceMetricGrid.indicators {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 14px;
+}
+
+.traceResultList {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.traceResultCard {
+  display: grid;
+  grid-template-columns: 108px 100px minmax(180px, 1.4fr) minmax(150px, .9fr) minmax(130px, .8fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--lineStrong);
+  border-radius: 9px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.traceResultCard.active {
+  border-left-color: var(--green);
+  background: #fbfcfb;
+}
+
+.traceResultCard > span,
+.traceResultCard > b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.traceType {
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: var(--surfaceSoft);
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.traceDetailPanel,
+.traceLogDay,
+.traceReportCard,
+.traceReportPreview {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 10px;
+}
+
+.traceDetailPanel {
+  display: grid;
+  gap: 13px;
+  padding: 14px;
+}
+
+.traceDetailHeader,
+.traceLogSummary,
+.traceSideHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.traceDetailHeader span,
+.traceSideHeader span {
+  display: block;
+  color: var(--green);
+  font-size: .75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.traceDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.traceDetailGrid div,
+.traceUserLog {
+  background: var(--surfaceSoft);
+  border: 1px solid #e3e8e4;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.traceDetailGrid span,
+.traceUserLog span {
+  display: block;
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 850;
+  margin-bottom: 4px;
+}
+
+.traceLogList,
+.traceUserLogs {
+  display: grid;
+  gap: 12px;
+}
+
+.traceLogDay {
+  padding: 12px;
+}
+
+.traceLogSummary {
+  align-items: center;
+}
+
+.traceLogSummary span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.traceUserLogs {
+  margin-top: 12px;
+}
+
+.traceUserLog ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--ink);
+}
+
+.traceReportControls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.traceReportGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.traceReportCard {
+  padding: 13px;
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  border-left: 4px solid var(--lineStrong);
+}
+
+.traceReportCard.active {
+  border-left-color: var(--green);
+  background: #fbfcfb;
+}
+
+.traceReportCard span {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.traceActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.traceActions.inline {
+  margin-top: 0;
+  flex-wrap: nowrap;
+}
+
+.traceReportPreview {
+  margin-top: 14px;
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.traceReportPreview h4 {
+  margin: 8px 0 0;
+  color: var(--ink);
+}
+
+.traceSideOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(20, 28, 25, .18);
+}
+
+.traceSideNav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  width: min(360px, 92vw);
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: -18px 0 48px rgba(25, 34, 30, .14);
+  transform: translateX(105%);
+  transition: transform .18s ease;
+  padding: 16px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 18px;
+}
+
+.traceSideNav.open {
+  transform: translateX(0);
+}
+
+.traceSideNav nav {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.traceSideNav nav button {
+  width: 100%;
+  text-align: left;
+}
+
+.traceSideNav nav button.active {
+  background: #edf3ee;
+  color: var(--ink);
+  border: 1px solid #c8d8cf;
+}
+
+html[data-theme="dark"] .traceFilterPanel,
+html[data-theme="dark"] .traceResultCard,
+html[data-theme="dark"] .traceDetailPanel,
+html[data-theme="dark"] .traceDetailGrid div,
+html[data-theme="dark"] .traceLogDay,
+html[data-theme="dark"] .traceUserLog,
+html[data-theme="dark"] .traceReportCard,
+html[data-theme="dark"] .traceReportPreview,
+html[data-theme="dark"] .traceSideNav {
+  background: #050505 !important;
+  border-color: #1b211f !important;
+  color: #f7f7f7 !important;
+}
+
+html[data-theme="dark"] .traceType,
+html[data-theme="dark"] .traceSideNav nav button.active {
+  background: #0b0f0d !important;
+  border-color: #2f3a35 !important;
+  color: #f7f7f7 !important;
+}
+
+html[data-theme="dark"] .traceInfo {
+  background: #0f1714;
+  color: #10b981;
+  border-color: rgba(16, 185, 129, .35);
+}
+
+html[data-theme="dark"] .traceError {
+  background: #1d0d0d;
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, .35);
+}
+
+@media (max-width: 1180px) {
+  .traceMetricGrid,
+  .traceMetricGrid.indicators,
+  .traceReportGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .traceResultCard {
+    grid-template-columns: 92px 90px minmax(160px, 1fr) minmax(130px, .8fr);
+  }
+
+  .traceResultCard .badge,
+  .traceResultCard button {
+    width: max-content;
+  }
+
+  .traceFilterPanel,
+  .traceReportControls,
+  .traceDetailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .traceSearchRow,
+  .traceFilterPanel,
+  .traceMetricGrid,
+  .traceMetricGrid.indicators,
+  .traceResultCard,
+  .traceReportControls,
+  .traceReportGrid,
+  .traceDetailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .traceLogSummary,
+  .traceDetailHeader {
+    display: grid;
+  }
+
+  .traceActions.inline {
+    flex-wrap: wrap;
+  }
+}
+
 
 
 

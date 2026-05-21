@@ -1,13 +1,12 @@
 import type { ReactNode } from "react";
 
-export type View = "dashboard" | "operation" | "twin" | "history" | "reports" | "parameters";
+export type View = "dashboard" | "operation" | "twin" | "traceability" | "parameters";
 
 const menu: { key: View; label: string; sub: string }[] = [
   { key: "dashboard", label: "Painel", sub: "Resumo operacional" },
   { key: "operation", label: "Operação", sub: "Configuração e execução" },
   { key: "twin", label: "Gêmeo Digital", sub: "Simulação operacional" },
-  { key: "history", label: "Histórico", sub: "Ciclos e simulações" },
-  { key: "reports", label: "Relatórios", sub: "Filtros e auditoria" },
+  { key: "traceability", label: "Rastreabilidade", sub: "Histórico e relatórios" },
   { key: "parameters", label: "Parâmetros", sub: "Cadastros técnicos" },
 ];
 

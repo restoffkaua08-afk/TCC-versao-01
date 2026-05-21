@@ -3,10 +3,9 @@ import { createRoot } from "react-dom/client";
 import { AppShell, type View } from "./components/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
 import { DigitalTwinPage } from "./pages/DigitalTwinPage";
-import { HistoryPage } from "./pages/HistoryPage";
 import { OperationPage } from "./pages/OperationPage";
 import { ParametersPage } from "./pages/ParametersPage";
-import { ReportsPage } from "./pages/ReportsPage";
+import { TraceabilityPage } from "./pages/TraceabilityPage";
 import "./styles.css";
 
 const API = "http://127.0.0.1:8000/api";
@@ -2921,23 +2920,11 @@ function App() {
           />
         )}
 
-        {view === "history" && (
-          <HistoryPage
-            HistoryMenu={TseaHistoryMenuV2}
+        {view === "traceability" && (
+          <TraceabilityPage
+            alarms={alarms}
             operations={operations}
-            state={state}
-            allTanks={allTanks}
-            allHoses={allHoses}
-          />
-        )}
-
-        {view === "reports" && (
-          <ReportsPage
-            ReportsMenu={TseaReportsMenuV2}
-            operations={operations}
-            state={state}
-            allTanks={allTanks}
-            allHoses={allHoses}
+            simulations={simulations}
           />
         )}
 
