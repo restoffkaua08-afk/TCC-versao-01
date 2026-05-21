@@ -1,22 +1,13 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { AppShell, type View } from "./components/AppShell";
 import "./styles.css";
 
 const API = "http://127.0.0.1:8000/api";
 
-type View = "dashboard" | "operation" | "twin" | "history" | "reports" | "parameters";
 type TwinTab = "scenarios" | "manual" | "result" | "assistant" | "technical";
 type ParamTab = "tanks" | "hoses" | "recipes" | "formulas" | "operators";
 type ReportTab = "operations" | "simulations";
-
-const menu: { key: View; label: string; sub: string }[] = [
-  { key: "dashboard", label: "Painel", sub: "Resumo operacional" },
-  { key: "operation", label: "Operação", sub: "Configuração e execução" },
-  { key: "twin", label: "Gêmeo Digital", sub: "Simulação operacional" },
-  { key: "history", label: "Histórico", sub: "Ciclos e simulações" },
-  { key: "reports", label: "Relatórios", sub: "Filtros e auditoria" },
-  { key: "parameters", label: "Parâmetros", sub: "Cadastros técnicos" },
-];
 
 async function request(path: string, options: RequestInit = {}) {
   const response = await fetch(API + path, {
@@ -2703,8 +2694,6 @@ function App() {
   const filteredOperations = operations.filter((op: any) => inPeriod(op.created_at, reportPeriod));
   const filteredSimulations = simulations.filter((sim: any) => inPeriod(sim.created_at, reportPeriod));
 
-  const pageTitle = useMemo(() => menu.find((item) => item.key === view)?.label || "Painel", [view]);
-
   function setOp(key: string, value: any) {
     setOperationConfig((current: any) => ({ ...current, [key]: value }));
   }
@@ -2875,54 +2864,14 @@ function App() {
   }
 
   return (
-    <div className={`layout ${menuOpen ? "drawerOpen" : ""}`}>
-      <aside className="drawer">
-        <div className="brandBlock">
-          <span>TSEA</span>
-          <strong>Supervisório Digital</strong>
-          <small>Vácuo · Rastreabilidade · Gêmeo Digital</small>
-        </div>
-
-        <nav className="navList">
-          {menu.map((item) => (
-            <button
-              key={item.key}
-              className={view === item.key ? "active" : ""}
-              onClick={() => {
-                setView(item.key);
-                setMenuOpen(false);
-              }}
-            >
-              <span>{item.label}</span>
-              <small>{item.sub}</small>
-            </button>
-          ))}
-        </nav>
-
-        <div className="drawerFooter">
-          <span className={`dot ${apiOnline ? "on" : "off"}`} />
-          <small>{apiOnline ? "API conectada" : "API desconectada"}</small>
-        </div>
-      </aside>
-
-      <div className="overlay" onClick={() => setMenuOpen(false)} />
-
-      <main className="content">
-        <header className="topbar">
-          <button className="hamburger" onClick={() => setMenuOpen(true)} aria-label="Abrir menu">
-            <span />
-            <span />
-            <span />
-          </button>
-
-          <div>
-            <span className="moduleLabel">TSEA · {pageTitle}</span>
-            <h1>{pageTitle}</h1>
-            <p>Supervisão técnica do processo de vácuo, rastreabilidade e validação operacional.</p>
-          </div>
-
-          <Badge value={apiOnline ? "success" : "critical"} />
-        </header>
+    <AppShell
+      apiOnline={apiOnline}
+      menuOpen={menuOpen}
+      setMenuOpen={setMenuOpen}
+      setView={setView}
+      statusBadge={<Badge value={apiOnline ? "success" : "critical"} />}
+      view={view}
+    >
 
         {error && (
           <div className="errorPanel">
@@ -3191,8 +3140,7 @@ function App() {
             )}
           </div>
         )}
-      </main>
-</div>
+    </AppShell>
   );
 }
 
