@@ -2,6 +2,7 @@
 import { createRoot } from "react-dom/client";
 import { AppShell, type View } from "./components/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
+import { HistoryPage } from "./pages/HistoryPage";
 import "./styles.css";
 
 const API = "http://127.0.0.1:8000/api";
@@ -3007,14 +3008,13 @@ function App() {
         )}
 
         {view === "history" && (
-          <div className="screen">
-            <TseaHistoryMenuV2
-              operations={operations}
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-          </div>
+          <HistoryPage
+            HistoryMenu={TseaHistoryMenuV2}
+            operations={operations}
+            state={state}
+            allTanks={allTanks}
+            allHoses={allHoses}
+          />
         )}
 
         {view === "reports" && (
