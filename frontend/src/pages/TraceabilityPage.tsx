@@ -1,138 +1,293 @@
-import { useEffect, useMemo, useState } from "react";
-import { Badge, Empty, Field, fmt, Metric, Section, Table } from "../components/ui";
+﻿import { useMemo, useState } from "react";
+import { Badge, Empty, fmt, Metric, Section, Table } from "../components/ui";
 
-type TraceSection = "records" | "logs" | "audit" | "reports" | "indicators" | "exports";
-type TraceType = "Operação" | "Simulação" | "Log" | "Auditoria" | "Alerta" | "Relatório" | "Exportação" | "Parâmetro";
+type TraceTab = "records" | "logs" | "reports";
+type TraceType = "Operação" | "Simulação";
+type ReportExportType = "menu" | "general" | "operations" | "simulations" | "individualType" | "individualList" | "individualConfirm";
 
-type DateRange = {
-  period: "all" | "today" | "7" | "30" | "custom";
+type Filters = {
+  type: "Todos" | "Operações" | "Simulações";
+  status: string;
   start: string;
   end: string;
 };
 
-type TraceRecord = {
+type TraceItem = {
   id: string;
   type: TraceType;
-  name: string;
+  title: string;
   date: string;
   user: string;
   status: string;
-  description: string;
-  related: string;
-  notes: string;
-  raw?: any;
+  tank: string;
+  hose: string;
+  pressureInitial: number;
+  pressureFinal: number;
+  pressureTarget: number;
+  cycleTime: string;
+  oil: string;
+  risk: number;
+  result: string;
+  observations: string;
+  events: string[];
+  scenario?: string;
+  pump?: string;
+  diagnosis?: string;
+  recommendation?: string;
+  parameters?: string[];
+};
+
+type LogUser = {
+  user: string;
+  role: string;
+  entry: string;
+  exit: string;
+  actions: string[];
+};
+
+type LogDay = {
+  date: string;
+  lastAccess: string;
+  users: LogUser[];
+};
+
+const BASE_FILTERS: Filters = {
+  type: "Todos",
+  status: "Todos",
+  start: "",
+  end: "",
 };
 
 const USERS = [
-  { name: "João Martins", role: "Operador" },
-  { name: "Maria Souza", role: "Supervisora" },
-  { name: "Carlos Lima", role: "Manutenção" },
-  { name: "Admin TSEA", role: "Administrador" },
+  "João Martins",
+  "Maria Souza",
+  "Carlos Lima",
+  "Admin TSEA",
 ];
 
-const SECTION_LABELS: { key: TraceSection; label: string }[] = [
-  { key: "records", label: "Registros" },
-  { key: "logs", label: "Logs de Acesso" },
-  { key: "audit", label: "Auditoria" },
-  { key: "reports", label: "Relatórios" },
-  { key: "indicators", label: "Indicadores" },
-  { key: "exports", label: "Exportações" },
-];
-
-const DEMO_LOG_DAYS = [
+const DEMO_OPERATIONS: TraceItem[] = [
   {
-    date: "2026-03-05T08:12:00",
+    id: "OP-0007",
+    type: "Operação",
+    title: "Ciclo regulador TQ-02",
+    date: "2026-03-05T14:20:00",
+    user: "João Martins",
+    status: "Operacional",
+    tank: "TQ-02",
+    hose: "MG-02",
+    pressureInitial: 1013,
+    pressureFinal: 6.2,
+    pressureTarget: 8,
+    cycleTime: "55 min",
+    oil: "52 L · 2,2 L/min",
+    risk: 18,
+    result: "Ciclo concluído dentro da faixa operacional.",
+    observations: "Operação sem restrições críticas. Curva compatível com o cenário esperado.",
+    events: [
+      "Operação iniciada pelo operador.",
+      "Bomba primária acionada.",
+      "Bomba Roots liberada após faixa segura.",
+      "Injeção de óleo concluída.",
+    ],
+  },
+  {
+    id: "OP-0008",
+    type: "Operação",
+    title: "Ciclo regulador TQ-03",
+    date: "2026-03-06T09:45:00",
+    user: "Maria Souza",
+    status: "Atenção",
+    tank: "TQ-03",
+    hose: "MG-03",
+    pressureInitial: 1012,
+    pressureFinal: 11.8,
+    pressureTarget: 8,
+    cycleTime: "61 min",
+    oil: "48 L · 1,8 L/min",
+    risk: 63,
+    result: "Ciclo concluído com acompanhamento recomendado.",
+    observations: "Vazão de óleo abaixo da referência e pressão final acima do alvo.",
+    events: [
+      "Operação iniciada.",
+      "Curva de pressão apresentou desaceleração.",
+      "Sistema de óleo exigiu acompanhamento.",
+      "Operação finalizada com atenção.",
+    ],
+  },
+];
+
+const DEMO_SIMULATIONS: TraceItem[] = [
+  {
+    id: "SIM-0012",
+    type: "Simulação",
+    title: "Atraso do óleo",
+    scenario: "Atraso do óleo",
+    date: "2026-03-05T15:10:00",
+    user: "Maria Souza",
+    status: "Atenção",
+    tank: "TQ-02",
+    hose: "MG-02",
+    pressureInitial: 1013,
+    pressureFinal: 9.4,
+    pressureTarget: 8,
+    cycleTime: "58 min estimados",
+    oil: "Atraso de 120 s · 1,7 L/min",
+    risk: 68,
+    pump: "B1/B2",
+    diagnosis: "Atraso no óleo aumentou a instabilidade da curva e reduziu a margem operacional.",
+    recommendation: "Revisar vazão de óleo, sensor de volume e condição da mangueira antes da operação.",
+    result: "Simulação aprovada com restrição.",
+    observations: "Cenário útil para validar resposta do sistema em condição de óleo abaixo do ideal.",
+    events: [
+      "Cenário selecionado.",
+      "Parâmetros de pressão carregados.",
+      "Atraso do óleo aplicado.",
+      "Diagnóstico gerado com atenção.",
+    ],
+    parameters: [
+      "Pressão alvo: 8 mbar",
+      "Roots: 50 mbar",
+      "Vazão de óleo: 1,7 L/min",
+      "Margem de erro: 8%",
+    ],
+  },
+  {
+    id: "SIM-0013",
+    type: "Simulação",
+    title: "Tanque com geometria crítica",
+    scenario: "Tanque com geometria crítica",
+    date: "2026-03-06T10:30:00",
+    user: "Carlos Lima",
+    status: "Crítico",
+    tank: "TQ-CRIT",
+    hose: "MG-02",
+    pressureInitial: 1013,
+    pressureFinal: 5.8,
+    pressureTarget: 8,
+    cycleTime: "64 min estimados",
+    oil: "50 L · 2,0 L/min",
+    risk: 87,
+    pump: "B1",
+    diagnosis: "A combinação de queda rápida de pressão e geometria crítica elevou o risco estrutural.",
+    recommendation: "Bloquear execução e revisar parâmetros de rampa, geometria e limite estrutural.",
+    result: "Simulação reprovada.",
+    observations: "Cenário baseado em condição crítica para análise de risco estrutural.",
+    events: [
+      "Cenário crítico executado.",
+      "Risco estrutural acima do limite.",
+      "Recomendação de bloqueio gerada.",
+    ],
+    parameters: [
+      "Diâmetro acima da referência",
+      "Chapa crítica",
+      "Queda de pressão rápida",
+      "Risco estrutural elevado",
+    ],
+  },
+];
+
+const LOG_DAYS: LogDay[] = [
+  {
+    date: "2026-03-05",
+    lastAccess: "17:42",
     users: [
       {
         user: "João Martins",
         role: "Operador",
         entry: "08:12",
         exit: "11:40",
-        actions: ["Iniciou operação OP-0007", "Executou simulação SIM-0012", "Alterou parâmetro de pressão alvo", "Exportou relatório REL-0004"],
+        actions: [
+          "Acessou o sistema.",
+          "Iniciou operação OP-0007.",
+          "Visualizou simulação SIM-0012.",
+          "Exportou relatório da operação OP-0007.",
+        ],
       },
       {
         user: "Maria Souza",
         role: "Supervisora",
-        entry: "13:05",
-        exit: "17:20",
-        actions: ["Revisou alertas críticos", "Gerou relatório geral diário", "Validou simulação de atraso do óleo"],
+        entry: "13:20",
+        exit: "16:10",
+        actions: [
+          "Acessou o sistema.",
+          "Criou simulação SIM-0012.",
+          "Alterou parâmetro de pressão alvo.",
+          "Visualizou relatório geral.",
+        ],
       },
       {
         user: "Carlos Lima",
         role: "Manutenção",
         entry: "15:22",
-        exit: "16:10",
-        actions: ["Consultou perda de mangueira MG-02", "Registrou observação de manutenção"],
+        exit: "17:42",
+        actions: [
+          "Consultou perda de carga da mangueira MG-02.",
+          "Visualizou detalhes de máquinas.",
+          "Registrou observação técnica demonstrativa.",
+        ],
       },
     ],
   },
   {
-    date: "2026-03-06T07:58:00",
+    date: "2026-03-06",
+    lastAccess: "16:18",
     users: [
       {
         user: "João Martins",
         role: "Operador",
         entry: "07:58",
         exit: "12:05",
-        actions: ["Consultou registros de operação", "Iniciou ciclo de vácuo TQ-01", "Visualizou relatório de simulação"],
+        actions: [
+          "Acessou o sistema.",
+          "Consultou registros de operação.",
+          "Visualizou detalhes da operação OP-0008.",
+        ],
       },
       {
         user: "Admin TSEA",
         role: "Administrador",
-        entry: "09:10",
-        exit: "09:42",
-        actions: ["Revisou permissões previstas", "Exportou rastreabilidade mensal"],
+        entry: "13:30",
+        exit: "16:18",
+        actions: [
+          "Acessou o sistema.",
+          "Visualizou logs de acesso.",
+          "Preparou relatório geral demonstrativo.",
+        ],
       },
     ],
   },
 ];
 
-const AUDIT_ROWS = [
-  ["2026-03-05T14:30:00", "João Martins", "Alterou pressão alvo", "Operação", "8 mbar", "10 mbar", "Ajuste solicitado para validação do ciclo TQ-02."],
-  ["2026-03-05T15:10:00", "Maria Souza", "Executou simulação", "Gêmeo Digital", "Cenário base", "Atraso do óleo", "Teste de resposta para vazão reduzida."],
-  ["2026-03-05T16:00:00", "Supervisor", "Exportou relatório geral", "Relatórios", "Pendente", "PDF preparado", "Documento diário de rastreabilidade."],
-  ["2026-03-06T09:25:00", "Admin TSEA", "Atualizou parâmetro", "Parâmetros", "MG-01 perda 0,8", "MG-01 perda 0,9", "Preparado para integração com cadastro auditável."],
-];
-
-const EXPORT_ROWS = [
-  ["REL-0001", "Relatório geral", "PDF", "2026-03-05T17:30:00", "Supervisor", "Dia 05/03/2026", "Exportado"],
-  ["REL-0002", "Operação OP-0007", "PDF", "2026-03-06T10:15:00", "João Martins", "Operação única", "Exportado"],
-  ["REL-0003", "Simulação SIM-0012", "Word", "2026-03-06T11:05:00", "Maria Souza", "Simulação única", "Exportado"],
-];
-
-const TYPE_FILTERS: Record<string, TraceType | "Todos"> = {
-  Todos: "Todos",
-  Operações: "Operação",
-  Simulações: "Simulação",
-  Logs: "Log",
-  Auditoria: "Auditoria",
-  Alertas: "Alerta",
-  Relatórios: "Relatório",
-};
-
-function loadLocal<T>(key: string, fallback: T): T {
+function readLocalArray(key: string) {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return fallback;
+    return [];
   }
 }
 
 function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "--";
-  return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  return date.toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
 }
 
-function onlyDate(value: string) {
+function formatOnlyDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "--";
   return date.toLocaleDateString("pt-BR");
 }
 
 function parsePtDate(value: string) {
-  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
+  const clean = value.trim();
+  if (!clean) return null;
+
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(clean);
   if (!match) return null;
 
   const day = Number(match[1]);
@@ -140,390 +295,427 @@ function parsePtDate(value: string) {
   const year = Number(match[3]);
   const date = new Date(year, month - 1, day);
 
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
   return date;
 }
 
-function validateRange(range: DateRange) {
-  if (range.period !== "custom") return "";
+function validateDateRange(filters: Filters) {
+  if (!filters.start && !filters.end) return "";
 
-  const start = parsePtDate(range.start);
-  const end = parsePtDate(range.end);
+  const start = filters.start ? parsePtDate(filters.start) : null;
+  const end = filters.end ? parsePtDate(filters.end) : null;
   const today = new Date();
   today.setHours(23, 59, 59, 999);
 
-  if (!start || !end) return "Informe datas válidas no formato dd/mm/aaaa.";
-  if (start > today || end > today) return "O período não pode conter data futura.";
-  if (end < start) return "A data final não pode ser menor que a data inicial.";
+  if (filters.start && !start) return "Data inicial inválida. Use o formato dd/mm/aaaa.";
+  if (filters.end && !end) return "Data final inválida. Use o formato dd/mm/aaaa.";
+  if (start && start > today) return "A data inicial não pode ser futura.";
+  if (end && end > today) return "A data final não pode ser futura.";
+  if (start && end && end < start) return "A data final não pode ser menor que a data inicial.";
+
   return "";
 }
 
-function inDateRange(dateValue: string, range: DateRange) {
+function inDateRange(dateValue: string, filters: Filters) {
   const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime()) || range.period === "all") return true;
+  if (Number.isNaN(date.getTime())) return true;
 
-  const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const start = filters.start ? parsePtDate(filters.start) : null;
+  const end = filters.end ? parsePtDate(filters.end) : null;
 
-  if (range.period === "today") return date >= startOfToday;
-  if (range.period === "7") return now.getTime() - date.getTime() <= 7 * 24 * 60 * 60 * 1000;
-  if (range.period === "30") return now.getTime() - date.getTime() <= 30 * 24 * 60 * 60 * 1000;
+  if (start && date < start) return false;
 
-  const start = parsePtDate(range.start);
-  const end = parsePtDate(range.end);
-  if (!start || !end) return true;
-  end.setHours(23, 59, 59, 999);
-  return date >= start && date <= end;
+  if (end) {
+    const endOfDay = new Date(end);
+    endOfDay.setHours(23, 59, 59, 999);
+    if (date > endOfDay) return false;
+  }
+
+  return true;
 }
 
-function statusBadge(status: string) {
+function statusTone(status: string) {
   const value = status.toLowerCase();
-  if (value.includes("crítico") || value.includes("falha") || value.includes("abortado")) return "critical";
-  if (value.includes("atenção") || value.includes("espera")) return "warning";
+  if (value.includes("crítico") || value.includes("abortado") || value.includes("reprov")) return "critical";
+  if (value.includes("atenção") || value.includes("restrição")) return "warning";
   return "success";
 }
 
-function operationRecord(item: any, index: number): TraceRecord {
+function operationRecord(item: any, index: number): TraceItem {
   const id = String(item?.id || `OP-${String(index + 1).padStart(4, "0")}`);
-  const date = item?.created_at || item?.started_at || item?.data || new Date().toISOString();
-  const status = item?.status || "concluido";
+  const date = item?.created_at || item?.started_at || item?.date || new Date().toISOString();
+  const status = item?.status || "Operacional";
+
   return {
     id,
     type: "Operação",
-    name: item?.name || item?.nome || `Ciclo regulador ${item?.tank || item?.config?.tank_type || "TSEA"}`,
+    title: item?.name || item?.title || `Ciclo regulador ${item?.tank || item?.config?.tank_type || "TSEA"}`,
     date,
-    user: item?.operator || item?.operador || USERS[index % USERS.length].name,
+    user: item?.operator || item?.user || USERS[index % USERS.length],
     status: status === "success" ? "Operacional" : status,
-    description: "Registro operacional de ciclo do processo de vácuo.",
-    related: `Tanque ${item?.tank || item?.config?.tank_type || "--"} · Mangueira ${item?.hose || item?.config?.hose_id || "--"}`,
-    notes: item?.notes || item?.observacoes || "Registro disponível para consulta técnica e emissão de relatório.",
-    raw: item,
+    tank: item?.tank || item?.config?.tank_type || "TQ-01",
+    hose: item?.hose || item?.config?.hose_id || "MG-01",
+    pressureInitial: Number(item?.initial_pressure_mbar || 1013),
+    pressureFinal: Number(item?.final_pressure_mbar || item?.pressure_mbar || 8),
+    pressureTarget: Number(item?.target_pressure_mbar || 8),
+    cycleTime: item?.cycle_time || item?.duration || "55 min",
+    oil: item?.oil || `${fmt(item?.oil_volume_liters || 50, "L")} · ${fmt(item?.oil_flow_l_min || 2, "L/min")}`,
+    risk: Number(item?.risk || item?.collapse_risk_pct || 18),
+    result: item?.result || "Operação registrada para consulta técnica.",
+    observations: item?.notes || item?.observations || "Registro operacional disponível para análise e relatório.",
+    events: item?.events || [
+      "Operação registrada no sistema.",
+      "Parâmetros operacionais validados.",
+      "Resultado disponível para rastreabilidade.",
+    ],
   };
 }
 
-function simulationRecord(item: any, index: number): TraceRecord {
+function simulationRecord(item: any, index: number): TraceItem {
   const id = String(item?.id || `SIM-${String(index + 1).padStart(4, "0")}`);
-  const date = item?.created_at || item?.data || new Date().toISOString();
+  const metrics = item?.metrics || {};
+  const config = item?.config || {};
+  const risk = Number(metrics?.max_collapse_risk_pct || item?.risk || 32);
+
   return {
     id,
     type: "Simulação",
-    name: item?.scenario || item?.name || item?.nome || "Simulação do Gêmeo Digital",
-    date,
-    user: item?.operator || USERS[(index + 1) % USERS.length].name,
-    status: item?.status === "warning" ? "Atenção" : item?.status === "critical" ? "Crítico" : "Operacional",
-    description: item?.diagnosis || "Simulação operacional com rastreabilidade de cenário, parâmetros e resultado.",
-    related: `Risco ${fmt(item?.metrics?.max_collapse_risk_pct, "%")} · Pressão ${fmt(item?.metrics?.final_real_pressure_mbar, "mbar")}`,
-    notes: item?.recommendation || "Dados preparados para comparação com operações reais.",
-    raw: item,
+    title: item?.scenario || item?.name || item?.title || "Simulação do Gêmeo Digital",
+    scenario: item?.scenario || item?.name || "Cenário simulado",
+    date: item?.created_at || item?.date || new Date().toISOString(),
+    user: item?.operator || item?.user || USERS[(index + 1) % USERS.length],
+    status: item?.status === "critical" ? "Crítico" : item?.status === "warning" ? "Atenção" : "Operacional",
+    tank: config?.tank_type || item?.tank || "TQ-01",
+    hose: config?.hose_id || item?.hose || "MG-01",
+    pressureInitial: Number(config?.initial_pressure_mbar || 1013),
+    pressureFinal: Number(metrics?.final_real_pressure_mbar || item?.pressureFinal || 8),
+    pressureTarget: Number(config?.target_pressure_mbar || 8),
+    cycleTime: `${fmt(metrics?.estimated_time_seconds || 900, "s")} estimados`,
+    oil: `${fmt(config?.oil_flow_l_min || metrics?.oil_flow_l_min || 2, "L/min")}`,
+    risk,
+    pump: "B1/B2",
+    diagnosis: item?.diagnosis || "Diagnóstico preparado pela simulação do Gêmeo Digital.",
+    recommendation: item?.recommendation || "Revisar parâmetros conforme status da simulação.",
+    result: item?.result || "Simulação registrada para consulta técnica.",
+    observations: item?.notes || "Cenário disponível para comparação e relatório.",
+    events: item?.events || [
+      "Cenário selecionado.",
+      "Parâmetros carregados.",
+      "Simulação executada.",
+      "Resultado registrado.",
+    ],
+    parameters: [
+      `Pressão alvo: ${fmt(config?.target_pressure_mbar || 8, "mbar")}`,
+      `Roots: ${fmt(config?.roots_start_pressure_mbar || 50, "mbar")}`,
+      `Vazão de óleo: ${fmt(config?.oil_flow_l_min || 2, "L/min")}`,
+      `Risco: ${fmt(risk, "%")}`,
+    ],
   };
 }
 
-function buildReportHtml(title: string, period: string, records: TraceRecord[]) {
-  const rows = records.map((item) => `
-    <tr>
-      <td>${item.type}</td>
-      <td>${item.id}</td>
-      <td>${item.name}</td>
-      <td>${formatDate(item.date)}</td>
-      <td>${item.user}</td>
-      <td>${item.status}</td>
-    </tr>
-  `).join("");
-
-  return `<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <title>${title}</title>
-  <style>
-    body { font-family: Arial, sans-serif; color: #1b2824; padding: 28px; line-height: 1.45; }
-    h1 { margin: 0 0 8px; font-size: 24px; }
-    h2 { margin-top: 26px; font-size: 17px; border-bottom: 1px solid #bdc8c1; padding-bottom: 6px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { border: 1px solid #d8ded8; padding: 8px; text-align: left; font-size: 12px; }
-    th { background: #f2f3ef; }
-    .meta { color: #4d5a54; }
-  </style>
-</head>
-<body>
-  <h1>${title}</h1>
-  <p class="meta"><strong>Sistema:</strong> TSEA V-Twin Supervisório Industrial</p>
-  <p class="meta"><strong>Data de emissão:</strong> ${formatDate(new Date().toISOString())}</p>
-  <p class="meta"><strong>Usuário que gerou:</strong> Supervisor</p>
-  <p class="meta"><strong>Período analisado:</strong> ${period}</p>
-  <h2>1. Identificação do relatório</h2>
-  <p>Documento técnico de rastreabilidade operacional, auditoria e documentação do processo de vácuo.</p>
-  <h2>2. Resumo geral</h2>
-  <p>Total de registros considerados: ${records.length}.</p>
-  <h2>3. Operações registradas</h2>
-  <table><thead><tr><th>Tipo</th><th>ID</th><th>Identificação</th><th>Data</th><th>Usuário</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
-  <h2>4. Simulações executadas</h2>
-  <p>As simulações do Gêmeo Digital são apresentadas com cenário, status e vínculo técnico quando disponíveis.</p>
-  <h2>5. Alertas e eventos</h2>
-  <p>Eventos de atenção e criticidade devem ser avaliados em conjunto com os parâmetros do ciclo.</p>
-  <h2>6. Logs de acesso</h2>
-  <p>Registros demonstrativos preparados para integração com login de usuários.</p>
-  <h2>7. Auditoria e alterações</h2>
-  <p>Alterações relevantes mantêm identificação de usuário, data, área afetada e valores anterior/novo.</p>
-  <h2>8. Indicadores</h2>
-  <p>Indicadores consolidados apoiam gestão operacional, manutenção e melhoria contínua.</p>
-  <h2>9. Exportações</h2>
-  <p>Exportações ficam preparadas para integração com geração real de PDF.</p>
-  <h2>10. Conclusão</h2>
-  <p>O conjunto de registros oferece base documental para consulta, auditoria e validação técnica do sistema TSEA.</p>
-</body>
-</html>`;
+function periodText(filters: Filters) {
+  if (filters.start || filters.end) {
+    return `${filters.start || "início"} a ${filters.end || "atual"}`;
+  }
+  return "Todos os registros disponíveis";
 }
 
-function downloadDoc(filename: string, html: string) {
-  const blob = new Blob([html], { type: "application/msword;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
+function buildMachineTables(item: TraceItem) {
+  const pumpRows = [
+    ["B1", "Bomba primária", "Leybold SOGEVAC SV 630 B", "Evacuação inicial", item.type === "Operação" ? "Pronta/Ligada" : "Simulada", "96%", "Atuação principal no início do ciclo."],
+    ["B2", "Bomba secundária / Roots", "Leybold RUVAC WSU 2001", "Reforço do vácuo", item.status === "Crítico" ? "Bloqueada" : "Liberada", "88%", "Acionamento condicionado à faixa segura."],
+  ];
+
+  const tankRows = [
+    [item.tank, "Tanque de processo", fmt(item.pressureFinal, "mbar"), fmt(item.pressureTarget, "mbar"), item.oil, fmt(item.risk, "%"), item.status],
+  ];
+
+  const sensorRows = [
+    ["Sensor de pressão", fmt(item.pressureFinal, "mbar"), "mbar", item.status, "Leitura associada ao tanque selecionado."],
+    ["Sistema de óleo", item.oil, "L / L/min", item.risk >= 65 ? "Atenção" : "Operacional", "Dados usados na análise de estabilidade."],
+    ["Mangueira", item.hose, "identificação", "Vinculada", "Elemento relacionado a perda de carga."],
+  ];
+
+  return { pumpRows, tankRows, sensorRows };
 }
 
-export function TraceabilityPage({ operations = [], simulations = [], alarms = [] }: { operations: any[]; simulations: any[]; alarms: any[] }) {
-  const [active, setActive] = useState<TraceSection>("records");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
+function ReportPreview({ title, countText, period }: { title: string; countText: string; period: string }) {
+  return (
+    <div className="trace-report-preview">
+      <h4>{title}</h4>
+      <p>{countText}</p>
+      <p>
+        <strong>Período:</strong> {period}
+      </p>
+      <div className="trace-report-format">
+        <strong>Estrutura prevista do documento:</strong>
+        <ol>
+          <li>Identificação do relatório</li>
+          <li>Resumo executivo</li>
+          <li>Tabelas separadas por tipo de registro</li>
+          <li>Máquinas, componentes e eventos relacionados</li>
+          <li>Conclusão técnica</li>
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+export function TraceabilityPage({
+  operations = [],
+  simulations = [],
+}: {
+  operations?: any[];
+  simulations?: any[];
+  alarms?: any[];
+}) {
+  const [active, setActive] = useState<TraceTab>("records");
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<TraceRecord | null>(null);
-  const [typeFilter, setTypeFilter] = useState("Todos");
-  const [statusFilter, setStatusFilter] = useState("Todos");
-  const [userFilter, setUserFilter] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange>({ period: "all", start: "", end: "" });
-  const [reportRange, setReportRange] = useState<DateRange>({ period: "30", start: "", end: "" });
-  const [reportType, setReportType] = useState("Relatório geral");
-  const [reportMessage, setReportMessage] = useState("");
-  const [localSimulations, setLocalSimulations] = useState<any[]>([]);
-  const [expandedLogDate, setExpandedLogDate] = useState("2026-03-05");
+  const [reportSearch, setReportSearch] = useState("");
+  const [filters, setFilters] = useState<Filters>(BASE_FILTERS);
+  const [reportFilters, setReportFilters] = useState<Filters>(BASE_FILTERS);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [reportFilterOpen, setReportFilterOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<TraceItem | null>(null);
+  const [machineMode, setMachineMode] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<LogDay | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportStep, setExportStep] = useState<ReportExportType>("menu");
+  const [individualKind, setIndividualKind] = useState<TraceType | null>(null);
+  const [individualItem, setIndividualItem] = useState<TraceItem | null>(null);
+  const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    function load() {
-      setLocalSimulations([
-        ...loadLocal<any[]>("tsea.gemeo10.history", []),
-        ...loadLocal<any[]>("tsea.simulationHistory.final", []),
-      ]);
-    }
+  const traceItems = useMemo(() => {
+    const localSimulations = [
+      ...readLocalArray("tsea.gemeo10.history"),
+      ...readLocalArray("tsea.simulationHistory.final"),
+    ];
 
-    load();
-    const timer = window.setInterval(load, 2000);
-    return () => window.clearInterval(timer);
-  }, []);
+    const opItems = operations.length ? operations.map(operationRecord) : DEMO_OPERATIONS;
+    const simSource = simulations.length || localSimulations.length ? [...simulations, ...localSimulations] : DEMO_SIMULATIONS;
+    const simItems = simSource.map(simulationRecord);
 
-  const traceRecords = useMemo(() => {
-    const opRecords = operations.map(operationRecord);
-    const simSource = [...simulations, ...localSimulations];
-    const simRecords = simSource.map(simulationRecord);
-    const alarmRecords = alarms.map((alarm: any, index: number): TraceRecord => ({
-      id: String(alarm?.id || `ALT-${String(index + 1).padStart(4, "0")}`),
-      type: "Alerta",
-      name: alarm?.title || alarm?.message || "Evento operacional",
-      date: alarm?.created_at || alarm?.date || new Date().toISOString(),
-      user: "Sistema TSEA",
-      status: alarm?.severity || "Atenção",
-      description: alarm?.description || alarm?.message || "Evento registrado pelo supervisório.",
-      related: alarm?.area || "Processo de vácuo",
-      notes: "Alerta disponível para análise operacional.",
-      raw: alarm,
-    }));
+    return [...opItems, ...simItems].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [operations, simulations]);
 
-    const logRecords = DEMO_LOG_DAYS.flatMap((day, dayIndex) => day.users.map((user, index): TraceRecord => ({
-      id: `LOG-${String(dayIndex + 1)}${String(index + 1).padStart(3, "0")}`,
-      type: "Log",
-      name: `Acesso de ${user.user}`,
-      date: day.date,
-      user: user.user,
-      status: "Concluído",
-      description: `${user.actions.length} ações registradas entre ${user.entry} e ${user.exit}.`,
-      related: user.role,
-      notes: user.actions.join("; "),
-    })));
+  const filteredRecords = useMemo(() => filterItems(traceItems, search, filters), [traceItems, search, filters]);
+  const filteredReportRecords = useMemo(() => filterItems(traceItems, reportSearch, reportFilters), [traceItems, reportSearch, reportFilters]);
 
-    const auditRecords = AUDIT_ROWS.map((row, index): TraceRecord => ({
-      id: `AUD-${String(index + 1).padStart(4, "0")}`,
-      type: "Auditoria",
-      name: row[2],
-      date: row[0],
-      user: row[1],
-      status: "Concluído",
-      description: `${row[3]} alterado de ${row[4]} para ${row[5]}.`,
-      related: row[3],
-      notes: row[6],
-    }));
+  const operationCount = traceItems.filter((item) => item.type === "Operação").length;
+  const simulationCount = traceItems.filter((item) => item.type === "Simulação").length;
+  const alertCount = traceItems.filter((item) => item.status === "Atenção" || item.status === "Crítico").length;
+  const filtersError = validateDateRange(filters);
+  const reportFiltersError = validateDateRange(reportFilters);
 
-    const exportRecords = EXPORT_ROWS.map((row): TraceRecord => ({
-      id: row[0],
-      type: "Relatório",
-      name: row[1],
-      date: row[3],
-      user: row[4],
-      status: "Exportado",
-      description: `${row[1]} em formato ${row[2]}.`,
-      related: row[5],
-      notes: "Exportação preparada para integração com geração real de PDF.",
-    }));
+  function filterItems(items: TraceItem[], query: string, appliedFilters: Filters) {
+    const error = validateDateRange(appliedFilters);
+    if (error) return [];
 
-    return [...opRecords, ...simRecords, ...alarmRecords, ...logRecords, ...auditRecords, ...exportRecords]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [operations, simulations, localSimulations, alarms]);
+    const term = query.trim().toLowerCase();
 
-  const rangeError = validateRange(dateRange);
-  const reportRangeError = validateRange(reportRange);
-
-  const filteredRecords = useMemo(() => {
-    const term = search.trim().toLowerCase();
-
-    return traceRecords
-      .filter((item) => TYPE_FILTERS[typeFilter] === "Todos" || item.type === TYPE_FILTERS[typeFilter])
-      .filter((item) => statusFilter === "Todos" || item.status.toLowerCase().includes(statusFilter.toLowerCase()))
-      .filter((item) => !userFilter || item.user.toLowerCase().includes(userFilter.toLowerCase()))
-      .filter((item) => !rangeError && inDateRange(item.date, dateRange))
+    return items
+      .filter((item) => {
+        if (appliedFilters.type === "Operações" && item.type !== "Operação") return false;
+        if (appliedFilters.type === "Simulações" && item.type !== "Simulação") return false;
+        if (appliedFilters.status !== "Todos" && item.status !== appliedFilters.status) return false;
+        if (!inDateRange(item.date, appliedFilters)) return false;
+        return true;
+      })
       .map((item) => {
-        const haystack = `${item.type} ${item.id} ${item.name} ${item.user} ${item.status} ${formatDate(item.date)}`.toLowerCase();
+        const haystack = `${item.type} ${item.id} ${item.title} ${item.date} ${item.status} ${item.user}`.toLowerCase();
         let score = 0;
+
         if (!term) score = 1;
-        else if (haystack.includes(term)) score += 10;
-        if (item.id.toLowerCase().startsWith(term)) score += 20;
-        if (item.name.toLowerCase().includes(term)) score += 8;
-        if (item.user.toLowerCase().includes(term)) score += 6;
+        if (item.id.toLowerCase().startsWith(term)) score += 30;
+        if (item.title.toLowerCase().includes(term)) score += 20;
+        if (haystack.includes(term)) score += 10;
+
         return { item, score };
       })
       .filter(({ score }) => !term || score > 0)
       .sort((a, b) => b.score - a.score || new Date(b.item.date).getTime() - new Date(a.item.date).getTime())
       .map(({ item }) => item);
-  }, [traceRecords, search, typeFilter, statusFilter, userFilter, dateRange, rangeError]);
-
-  const reportRecords = traceRecords.filter((item) => !reportRangeError && inDateRange(item.date, reportRange));
-  const operationalCount = traceRecords.filter((item) => ["Operacional", "Concluído", "Exportado"].includes(item.status)).length;
-  const warningCount = traceRecords.filter((item) => item.status.toLowerCase().includes("atenção")).length;
-  const criticalCount = traceRecords.filter((item) => item.status.toLowerCase().includes("crítico")).length;
-
-  function periodLabel(range: DateRange) {
-    if (range.period === "today") return "Hoje";
-    if (range.period === "7") return "Últimos 7 dias";
-    if (range.period === "30") return "Últimos 30 dias";
-    if (range.period === "custom") return `${range.start || "--"} a ${range.end || "--"}`;
-    return "Todos os registros";
   }
 
-  function generateReport(action: "model" | "pdf" | "doc") {
-    if (reportRangeError) {
-      setReportMessage(reportRangeError);
-      return;
-    }
-
-    if (action === "model") {
-      setReportMessage("Modelo formal exibido abaixo com identificação, resumo, tabelas e conclusão técnica.");
-      return;
-    }
-
-    if (action === "pdf") {
-      setReportMessage("Exportação preparada para integração com geração real de PDF.");
-      return;
-    }
-
-    downloadDoc(`${reportType.replace(/\s+/g, "_")}_TSEA.doc`, buildReportHtml(reportType, periodLabel(reportRange), reportRecords));
-    setReportMessage("Relatório preparado em formato Word para revisão técnica.");
+  function openDetails(item: TraceItem) {
+    setSelectedItem(item);
+    setMachineMode(false);
+    setMessage("");
   }
 
-  function renderSearchAndFilters() {
-    return (
-      <div className="traceSearchBlock">
-        <div className="traceSearchRow">
-          <input
-            className="traceSearchInput"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Pesquisar por ID, operação, simulação, usuário, status ou data..."
-          />
-          <button className="secondary" onClick={() => setFilterOpen((current) => !current)}>Filtrar</button>
-        </div>
-
-        {filterOpen && (
-          <div className="traceFilterPanel">
-            <Field label="Tipo">
-              <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}>
-                {Object.keys(TYPE_FILTERS).map((item) => <option key={item}>{item}</option>)}
-              </select>
-            </Field>
-            <Field label="Status">
-              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-                {["Todos", "Operacional", "Atenção", "Crítico", "Concluído", "Abortado", "Exportado"].map((item) => <option key={item}>{item}</option>)}
-              </select>
-            </Field>
-            <Field label="Usuário">
-              <input value={userFilter} onChange={(event) => setUserFilter(event.target.value)} placeholder="Nome do usuário" />
-            </Field>
-            <Field label="Período">
-              <select value={dateRange.period} onChange={(event) => setDateRange((current) => ({ ...current, period: event.target.value as DateRange["period"] }))}>
-                <option value="all">Todos</option>
-                <option value="today">Hoje</option>
-                <option value="7">Últimos 7 dias</option>
-                <option value="30">Últimos 30 dias</option>
-                <option value="custom">Personalizado</option>
-              </select>
-            </Field>
-            {dateRange.period === "custom" && (
-              <>
-                <Field label="Data inicial">
-                  <input value={dateRange.start} onChange={(event) => setDateRange((current) => ({ ...current, start: event.target.value }))} placeholder="dd/mm/aaaa" />
-                </Field>
-                <Field label="Data final">
-                  <input value={dateRange.end} onChange={(event) => setDateRange((current) => ({ ...current, end: event.target.value }))} placeholder="dd/mm/aaaa" />
-                </Field>
-              </>
-            )}
-            {rangeError && <div className="traceError">{rangeError}</div>}
-          </div>
-        )}
-      </div>
-    );
+  function preparedPdfMessage() {
+    setMessage("Relatório preparado para exportação em PDF.");
   }
 
-  function renderRecordList(records: TraceRecord[]) {
-    if (!records.length) return <Empty text="Nenhum registro encontrado para os filtros aplicados." />;
+  function renderTabs() {
+    const tabs: { key: TraceTab; label: string }[] = [
+      { key: "records", label: "Registros" },
+      { key: "logs", label: "Logs de Acesso" },
+      { key: "reports", label: "Relatórios" },
+    ];
 
     return (
-      <div className="traceResultList">
-        {records.map((item) => (
-          <article className={`traceResultCard ${selected?.id === item.id ? "active" : ""}`} key={`${item.type}-${item.id}`}>
-            <div className="traceType">{item.type}</div>
-            <b>{item.id}</b>
-            <span>{item.name}</span>
-            <span>{formatDate(item.date)}</span>
-            <span>{item.user}</span>
-            <Badge value={statusBadge(item.status)} />
-            <button className="secondary" onClick={() => setSelected(selected?.id === item.id ? null : item)}>Ver</button>
-          </article>
+      <div className="trace-tabs">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            className={active === tab.key ? "active" : ""}
+            onClick={() => setActive(tab.key)}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
     );
   }
 
-  function renderSelected() {
-    if (!selected) return null;
+  function renderFilterModal(kind: "records" | "reports") {
+    const current = kind === "records" ? filters : reportFilters;
+    const setCurrent = kind === "records" ? setFilters : setReportFilters;
+    const error = validateDateRange(current);
 
     return (
-      <div className="traceDetailPanel">
-        <div className="traceDetailHeader">
-          <div>
-            <span>{selected.type}</span>
-            <h3>{selected.id} · {selected.name}</h3>
-          </div>
-          <button className="secondary" onClick={() => setSelected(null)}>Fechar</button>
+      <div className="trace-filter-popover">
+        <FieldLike label="Tipo">
+          <select
+            value={current.type}
+            onChange={(event) => setCurrent({ ...current, type: event.target.value as Filters["type"] })}
+          >
+            <option>Todos</option>
+            <option>Operações</option>
+            <option>Simulações</option>
+          </select>
+        </FieldLike>
+
+        <FieldLike label="Status">
+          <select
+            value={current.status}
+            onChange={(event) => setCurrent({ ...current, status: event.target.value })}
+          >
+            <option>Todos</option>
+            <option>Operacional</option>
+            <option>Atenção</option>
+            <option>Crítico</option>
+            <option>Concluído</option>
+            <option>Abortado</option>
+          </select>
+        </FieldLike>
+
+        <FieldLike label="Data inicial">
+          <input
+            value={current.start}
+            onChange={(event) => setCurrent({ ...current, start: event.target.value })}
+            placeholder="dd/mm/aaaa"
+          />
+        </FieldLike>
+
+        <FieldLike label="Data final">
+          <input
+            value={current.end}
+            onChange={(event) => setCurrent({ ...current, end: event.target.value })}
+            placeholder="dd/mm/aaaa"
+          />
+        </FieldLike>
+
+        {error && <p className="trace-form-error">{error}</p>}
+
+        <div className="trace-filter-actions">
+          <button
+            className="btn ghost"
+            onClick={() => setCurrent(BASE_FILTERS)}
+          >
+            Limpar
+          </button>
+          <button
+            className="btn"
+            onClick={() => kind === "records" ? setFilterOpen(false) : setReportFilterOpen(false)}
+          >
+            Aplicar
+          </button>
         </div>
-        <div className="traceDetailGrid">
-          <div><span>Usuário</span><b>{selected.user}</b></div>
-          <div><span>Data/hora</span><b>{formatDate(selected.date)}</b></div>
-          <div><span>Status</span><b>{selected.status}</b></div>
-          <div><span>Dados relacionados</span><b>{selected.related}</b></div>
+      </div>
+    );
+  }
+
+  function renderSearchBar(kind: "records" | "reports") {
+    const isReport = kind === "reports";
+
+    return (
+      <div className="trace-search-row">
+        <input
+          className="trace-search-input"
+          value={isReport ? reportSearch : search}
+          onChange={(event) => isReport ? setReportSearch(event.target.value) : setSearch(event.target.value)}
+          placeholder="Pesquisar por ID, operação, simulação, usuário, status ou data..."
+        />
+
+        <div className="trace-filter-wrap">
+          <button
+            className="btn ghost"
+            onClick={() => isReport ? setReportFilterOpen((current) => !current) : setFilterOpen((current) => !current)}
+          >
+            Filtrar
+          </button>
+
+          {(isReport ? reportFilterOpen : filterOpen) && renderFilterModal(kind)}
         </div>
-        <p>{selected.description}</p>
-        <small>{selected.notes}</small>
+
+        {isReport && (
+          <button
+            className="btn success"
+            onClick={() => {
+              setExportOpen(true);
+              setExportStep("menu");
+              setIndividualKind(null);
+              setIndividualItem(null);
+              setMessage("");
+            }}
+          >
+            Exportar relatório
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  function renderRecordList(items: TraceItem[]) {
+    if (!items.length) {
+      return <Empty text="Nenhuma operação ou simulação encontrada para os filtros informados." />;
+    }
+
+    return (
+      <div className="trace-result-list">
+        {items.map((item) => (
+          <article key={item.id} className="trace-result-card">
+            <div className="trace-result-type">
+              <span>{item.type}</span>
+              <Badge value={statusTone(item.status)} />
+            </div>
+
+            <div className="trace-result-main">
+              <strong>{item.id} · {item.title}</strong>
+              <span>{formatDate(item.date)} · {item.user}</span>
+            </div>
+
+            <div className="trace-result-meta">
+              <span>Status</span>
+              <strong>{item.status}</strong>
+            </div>
+
+            <button className="btn ghost" onClick={() => openDetails(item)}>
+              Ver
+            </button>
+          </article>
+        ))}
       </div>
     );
   }
@@ -531,48 +723,55 @@ export function TraceabilityPage({ operations = [], simulations = [], alarms = [
   function renderRecords() {
     return (
       <>
-        <Section title="Registros unificados" subtitle="Histórico, logs, auditoria e relatórios do processo.">
-          <div className="traceMetricGrid">
-            <Metric label="Total de registros" value={traceRecords.length} detail="Base consultável" />
-            <Metric label="Operações" value={traceRecords.filter((item) => item.type === "Operação").length} detail="Ciclos registrados" status="success" />
-            <Metric label="Simulações" value={traceRecords.filter((item) => item.type === "Simulação").length} detail="Gêmeo Digital" />
-            <Metric label="Alertas" value={traceRecords.filter((item) => item.type === "Alerta").length} detail="Eventos técnicos" status={criticalCount ? "critical" : "warning"} />
-            <Metric label="Relatórios gerados" value={traceRecords.filter((item) => item.type === "Relatório").length} detail="Exportações rastreadas" status="success" />
-          </div>
-          {renderSearchAndFilters()}
+        <div className="metrics-grid">
+          <Metric label="Operações" value={operationCount} detail="Registros operacionais" status="success" />
+          <Metric label="Simulações" value={simulationCount} detail="Cenários do Gêmeo Digital" />
+          <Metric label="Com atenção" value={alertCount} detail="Itens que exigem análise" status={alertCount ? "warning" : "success"} />
+          <Metric label="Total listado" value={filteredRecords.length} detail="Resultado da busca atual" />
+        </div>
+
+        <Section
+          title="Registros"
+          subtitle="Consulte somente operações e simulações registradas no sistema."
+        >
+          {renderSearchBar("records")}
+          {filtersError && <p className="trace-form-error">{filtersError}</p>}
           {renderRecordList(filteredRecords)}
         </Section>
-        {renderSelected()}
       </>
     );
   }
 
   function renderLogs() {
     return (
-      <Section title="Logs de acesso" subtitle="Registros demonstrativos preparados para integração com login de usuários.">
-        <div className="traceLogList">
-          {DEMO_LOG_DAYS.map((day) => {
-            const actions = day.users.reduce((sum, user) => sum + user.actions.length, 0);
-            const key = day.date.slice(0, 10);
+      <Section
+        title="Logs de Acesso"
+        subtitle="Logs demonstrativos preparados para futura integração com login de usuários."
+      >
+        <div className="trace-log-list">
+          {LOG_DAYS.map((day) => {
+            const actionCount = day.users.reduce((sum, user) => sum + user.actions.length, 0);
+
             return (
-              <article className="traceLogDay" key={key}>
-                <div className="traceLogSummary">
-                  <b>{onlyDate(day.date)}</b>
+              <article className="trace-log-card" key={day.date}>
+                <div>
+                  <strong>{formatOnlyDate(day.date)}</strong>
                   <span>{day.users.length} usuários acessaram</span>
-                  <span>{actions} ações registradas</span>
-                  <button className="secondary" onClick={() => setExpandedLogDate(expandedLogDate === key ? "" : key)}>Ver detalhes</button>
                 </div>
-                {expandedLogDate === key && (
-                  <div className="traceUserLogs">
-                    {day.users.map((user) => (
-                      <div className="traceUserLog" key={user.user}>
-                        <strong>{user.user}</strong>
-                        <span>{user.role} · Entrada {user.entry} · Saída {user.exit} · {user.actions.length} ações</span>
-                        <ul>{user.actions.map((action) => <li key={action}>{action}</li>)}</ul>
-                      </div>
-                    ))}
-                  </div>
-                )}
+
+                <div>
+                  <span>Ações registradas</span>
+                  <strong>{actionCount}</strong>
+                </div>
+
+                <div>
+                  <span>Último acesso</span>
+                  <strong>{day.lastAccess}</strong>
+                </div>
+
+                <button className="btn ghost" onClick={() => setSelectedLog(day)}>
+                  Ver
+                </button>
               </article>
             );
           })}
@@ -581,185 +780,386 @@ export function TraceabilityPage({ operations = [], simulations = [], alarms = [
     );
   }
 
-  function renderAudit() {
+  function renderReports() {
     return (
-      <Section title="Auditoria de ações" subtitle="Mudanças relevantes com usuário, momento, área afetada e valores alterados.">
-        <Table
-          columns={["Data/hora", "Usuário", "Tipo de ação", "Área afetada", "Valor anterior", "Valor novo", "Observação"]}
-          rows={AUDIT_ROWS.map((row) => [formatDate(row[0]), row[1], <b>{row[2]}</b>, row[3], row[4], row[5], row[6]])}
-        />
+      <Section
+        title="Relatórios técnicos"
+        subtitle="Gere relatórios por operação, simulação ou período."
+        action={
+          <button
+            className="btn success"
+            onClick={() => {
+              setExportOpen(true);
+              setExportStep("menu");
+              setIndividualKind(null);
+              setIndividualItem(null);
+              setMessage("");
+            }}
+          >
+            Exportar relatório
+          </button>
+        }
+      >
+        {renderSearchBar("reports")}
+        {reportFiltersError && <p className="trace-form-error">{reportFiltersError}</p>}
+        {renderRecordList(filteredReportRecords)}
       </Section>
     );
   }
 
-  function renderReportCards() {
-    const cards = [
-      "Relatório de operação específica",
-      "Relatório de simulação específica",
-      "Relatório de todas as operações",
-      "Relatório de todas as simulações",
-      "Relatório geral",
-    ];
+  function renderDetailsModal() {
+    if (!selectedItem) return null;
+
+    const machines = buildMachineTables(selectedItem);
 
     return (
-      <Section title="Relatórios técnicos" subtitle="Geração visual de documentos formais com escopo e período definidos.">
-        <div className="traceReportControls">
-          <Field label="Tipo de relatório">
-            <select value={reportType} onChange={(event) => setReportType(event.target.value)}>
-              {cards.map((card) => <option key={card}>{card}</option>)}
-            </select>
-          </Field>
-          <Field label="Período">
-            <select value={reportRange.period} onChange={(event) => setReportRange((current) => ({ ...current, period: event.target.value as DateRange["period"] }))}>
-              <option value="today">Hoje</option>
-              <option value="7">Últimos 7 dias</option>
-              <option value="30">Últimos 30 dias</option>
-              <option value="custom">Personalizado</option>
-              <option value="all">Todos</option>
-            </select>
-          </Field>
-          {reportRange.period === "custom" && (
+      <div className="trace-modal-backdrop" role="dialog" aria-modal="true">
+        <div className="trace-modal trace-modal-wide">
+          <div className="trace-modal-header">
+            <div>
+              <span className="trace-eyebrow">{selectedItem.type}</span>
+              <h3>{selectedItem.id} · {selectedItem.title}</h3>
+              <p>{formatDate(selectedItem.date)} · {selectedItem.user}</p>
+            </div>
+
+            <button className="btn ghost" onClick={() => setSelectedItem(null)}>
+              Fechar
+            </button>
+          </div>
+
+          {!machineMode ? (
             <>
-              <Field label="Data inicial">
-                <input value={reportRange.start} onChange={(event) => setReportRange((current) => ({ ...current, start: event.target.value }))} placeholder="dd/mm/aaaa" />
-              </Field>
-              <Field label="Data final">
-                <input value={reportRange.end} onChange={(event) => setReportRange((current) => ({ ...current, end: event.target.value }))} placeholder="dd/mm/aaaa" />
-              </Field>
+              <div className="trace-detail-grid">
+                <Info label="Status" value={selectedItem.status} />
+                <Info label="Tanque" value={selectedItem.tank} />
+                <Info label="Mangueira" value={selectedItem.hose} />
+                <Info label="Pressão inicial" value={fmt(selectedItem.pressureInitial, "mbar")} />
+                <Info label="Pressão final" value={fmt(selectedItem.pressureFinal, "mbar")} />
+                <Info label="Pressão alvo" value={fmt(selectedItem.pressureTarget, "mbar")} />
+                <Info label="Tempo de ciclo" value={selectedItem.cycleTime} />
+                <Info label="Óleo" value={selectedItem.oil} />
+                <Info label="Risco estrutural" value={fmt(selectedItem.risk, "%")} />
+                {selectedItem.type === "Simulação" && <Info label="Cenário" value={selectedItem.scenario || selectedItem.title} />}
+                {selectedItem.type === "Simulação" && <Info label="Bomba envolvida" value={selectedItem.pump || "B1/B2"} />}
+              </div>
+
+              <div className="trace-detail-block">
+                <h4>Resultado</h4>
+                <p>{selectedItem.result}</p>
+              </div>
+
+              {selectedItem.diagnosis && (
+                <div className="trace-detail-block">
+                  <h4>Diagnóstico</h4>
+                  <p>{selectedItem.diagnosis}</p>
+                </div>
+              )}
+
+              {selectedItem.recommendation && (
+                <div className="trace-detail-block">
+                  <h4>Recomendação</h4>
+                  <p>{selectedItem.recommendation}</p>
+                </div>
+              )}
+
+              <div className="trace-detail-block">
+                <h4>Observações</h4>
+                <p>{selectedItem.observations}</p>
+              </div>
+
+              <div className="trace-detail-block">
+                <h4>Eventos importantes</h4>
+                <ul>
+                  {selectedItem.events.map((event) => (
+                    <li key={event}>{event}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {selectedItem.parameters?.length ? (
+                <div className="trace-detail-block">
+                  <h4>Parâmetros usados</h4>
+                  <ul>
+                    {selectedItem.parameters.map((parameter) => (
+                      <li key={parameter}>{parameter}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className="trace-machine-view">
+              <button className="btn ghost" onClick={() => setMachineMode(false)}>
+                Voltar aos dados
+              </button>
+
+              <h4>Máquinas e componentes vinculados</h4>
+
+              <Table
+                columns={["Código", "Equipamento", "Modelo", "Função", "Estado", "Desempenho", "Observação"]}
+                rows={machines.pumpRows}
+              />
+
+              <Table
+                columns={["Código", "Tipo", "Pressão atual/final", "Pressão alvo", "Volume de óleo", "Risco", "Status"]}
+                rows={machines.tankRows}
+              />
+
+              <Table
+                columns={["Componente", "Leitura/valor", "Unidade", "Status", "Observação"]}
+                rows={machines.sensorRows}
+              />
+            </div>
+          )}
+
+          {message && <p className="trace-message">{message}</p>}
+
+          <div className="trace-modal-actions">
+            {!machineMode && (
+              <button className="btn ghost" onClick={() => setMachineMode(true)}>
+                Ver máquinas
+              </button>
+            )}
+            <button className="btn success" onClick={preparedPdfMessage}>
+              Exportar PDF
+            </button>
+            <button className="btn ghost" onClick={() => setSelectedItem(null)}>
+              Fechar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderLogModal() {
+    if (!selectedLog) return null;
+
+    return (
+      <div className="trace-modal-backdrop" role="dialog" aria-modal="true">
+        <div className="trace-modal trace-modal-wide">
+          <div className="trace-modal-header">
+            <div>
+              <span className="trace-eyebrow">Logs de Acesso</span>
+              <h3>{formatOnlyDate(selectedLog.date)}</h3>
+              <p>{selectedLog.users.length} usuários · último acesso {selectedLog.lastAccess}</p>
+            </div>
+
+            <button className="btn ghost" onClick={() => setSelectedLog(null)}>
+              Fechar
+            </button>
+          </div>
+
+          <div className="trace-user-log-list">
+            {selectedLog.users.map((user) => (
+              <article className="trace-user-log-card" key={user.user}>
+                <div>
+                  <h4>{user.user}</h4>
+                  <p>{user.role} · Entrada {user.entry} · Saída {user.exit}</p>
+                  <strong>{user.actions.length} ações registradas</strong>
+                </div>
+
+                <ul>
+                  {user.actions.map((action) => (
+                    <li key={action}>{action}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderExportModal() {
+    if (!exportOpen) return null;
+
+    const operationsList = filteredReportRecords.filter((item) => item.type === "Operação");
+    const simulationsList = filteredReportRecords.filter((item) => item.type === "Simulação");
+    const period = periodText(reportFilters);
+
+    function exportPrepared() {
+      setMessage("Relatório preparado para exportação em PDF.");
+    }
+
+    function resetExport() {
+      setExportStep("menu");
+      setIndividualKind(null);
+      setIndividualItem(null);
+      setMessage("");
+    }
+
+    return (
+      <div className="trace-modal-backdrop" role="dialog" aria-modal="true">
+        <div className="trace-modal trace-modal-wide">
+          <div className="trace-modal-header">
+            <div>
+              <span className="trace-eyebrow">Relatórios técnicos</span>
+              <h3>Exportar relatório</h3>
+              <p>Escolha o escopo do documento antes da exportação.</p>
+            </div>
+
+            <button className="btn ghost" onClick={() => setExportOpen(false)}>
+              Fechar
+            </button>
+          </div>
+
+          {exportStep === "menu" && (
+            <div className="trace-export-options">
+              <button onClick={() => setExportStep("general")}>Geral</button>
+              <button onClick={() => setExportStep("operations")}>Operações</button>
+              <button onClick={() => setExportStep("simulations")}>Simulações</button>
+              <button onClick={() => setExportStep("individualType")}>Individual</button>
+            </div>
+          )}
+
+          {exportStep === "general" && (
+            <>
+              <ReportPreview
+                title="Relatório geral"
+                countText={`Operações incluídas: ${operationsList.length} · Simulações incluídas: ${simulationsList.length} · Alertas considerados: ${alertCount}`}
+                period={period}
+              />
+              <ModalBackExport onBack={resetExport} onExport={exportPrepared} />
             </>
           )}
-        </div>
-        {reportRangeError && <div className="traceError">{reportRangeError}</div>}
 
-        <div className="traceReportGrid">
-          {cards.map((card) => (
-            <article className={`traceReportCard ${reportType === card ? "active" : ""}`} key={card} onClick={() => setReportType(card)}>
-              <strong>{card}</strong>
-              <span>{card.includes("específica") ? "Pesquise e selecione um registro antes da emissão." : "Pode ser geral ou filtrado por data."}</span>
-            </article>
-          ))}
-        </div>
+          {exportStep === "operations" && (
+            <>
+              <ReportPreview
+                title="Relatório de operações"
+                countText={`Operações incluídas: ${operationsList.length}`}
+                period={period}
+              />
+              <ModalBackExport onBack={resetExport} onExport={exportPrepared} />
+            </>
+          )}
 
-        <div className="traceActions">
-          <button onClick={() => generateReport("doc")}>Gerar relatório</button>
-          <button className="secondary" onClick={() => generateReport("model")}>Visualizar modelo</button>
-          <button className="secondary" onClick={() => generateReport("pdf")}>Preparar PDF</button>
-        </div>
-        {reportMessage && <div className="traceInfo">{reportMessage}</div>}
+          {exportStep === "simulations" && (
+            <>
+              <ReportPreview
+                title="Relatório de simulações"
+                countText={`Simulações incluídas: ${simulationsList.length}`}
+                period={period}
+              />
+              <ModalBackExport onBack={resetExport} onExport={exportPrepared} />
+            </>
+          )}
 
-        <div className="traceReportPreview">
-          <h3>{reportType}</h3>
-          <p><b>Sistema:</b> TSEA V-Twin Supervisório Industrial</p>
-          <p><b>Data de emissão:</b> {formatDate(new Date().toISOString())}</p>
-          <p><b>Usuário que gerou:</b> Supervisor</p>
-          <p><b>Período analisado:</b> {periodLabel(reportRange)}</p>
-          {["Identificação do relatório", "Resumo geral", "Operações registradas", "Simulações executadas", "Alertas e eventos", "Logs de acesso", "Auditoria e alterações", "Indicadores", "Exportações", "Conclusão técnica"].map((topic, index) => (
-            <div key={topic}>
-              <h4>{index + 1}. {topic}</h4>
-              <p>Seção formal do relatório técnico com tabela própria quando houver dados relacionados.</p>
+          {exportStep === "individualType" && (
+            <div className="trace-export-options">
+              <button
+                onClick={() => {
+                  setIndividualKind("Operação");
+                  setExportStep("individualList");
+                }}
+              >
+                Operação específica
+              </button>
+              <button
+                onClick={() => {
+                  setIndividualKind("Simulação");
+                  setExportStep("individualList");
+                }}
+              >
+                Simulação específica
+              </button>
             </div>
-          ))}
-        </div>
-      </Section>
-    );
-  }
+          )}
 
-  function renderIndicators() {
-    const avgRisk = traceRecords.filter((item) => item.type === "Simulação").length ? 42 : 0;
-    return (
-      <Section title="Indicadores" subtitle="Visão gerencial e técnica dos registros do sistema.">
-        <div className="traceMetricGrid indicators">
-          <Metric label="Total de operações" value={operations.length} detail="Registros reais" status="success" />
-          <Metric label="Total de simulações" value={simulations.length + localSimulations.length} detail="Cenários executados" />
-          <Metric label="Total de alertas" value={alarms.length} detail="Eventos técnicos" status={alarms.length ? "warning" : "success"} />
-          <Metric label="Relatórios exportados" value={EXPORT_ROWS.length} detail="Documentos rastreados" status="success" />
-          <Metric label="Taxa operacional" value={`${Math.round((operationalCount / Math.max(traceRecords.length, 1)) * 100)}%`} detail="Operacional/concluído" status="success" />
-          <Metric label="Taxa atenção/crítico" value={`${Math.round(((warningCount + criticalCount) / Math.max(traceRecords.length, 1)) * 100)}%`} detail="Eventos com restrição" status={criticalCount ? "critical" : "warning"} />
-          <Metric label="Pressão média final" value="6,5 mbar" detail="Referência consolidada" />
-          <Metric label="Tempo médio de ciclo" value="900 s" detail="Estimativa operacional" />
-          <Metric label="Risco médio" value={`${avgRisk}%`} detail="Simulações registradas" />
-          <Metric label="Maior risco registrado" value={criticalCount ? "Crítico" : "Atenção"} detail="Pior ocorrência" status={criticalCount ? "critical" : "warning"} />
-          <Metric label="Tanque com mais ocorrências" value="TQ-02" detail="Base demonstrativa" />
-          <Metric label="Usuário com mais ações" value="João Martins" detail="Logs de acesso" />
-        </div>
-        <Table
-          columns={["Indicador", "Valor", "Leitura técnica"]}
-          rows={[
-            ["Mangueira com maior perda", "MG-02", "Priorizar verificação de perda de carga."],
-            ["Cenário mais executado", "Atraso do óleo", "Usado para validação de estabilidade do ciclo."],
-            ["Área com mais auditorias", "Operação", "Alterações de pressão alvo e parâmetros de ciclo."],
-          ]}
-        />
-      </Section>
-    );
-  }
+          {exportStep === "individualList" && individualKind && (
+            <>
+              <div className="trace-individual-list">
+                {filteredReportRecords
+                  .filter((item) => item.type === individualKind)
+                  .map((item) => (
+                    <article key={item.id} className="trace-individual-row">
+                      <div>
+                        <strong>{item.title}</strong>
+                        <span>{formatDate(item.date)} · {item.id} · {item.status}</span>
+                      </div>
+                      <button
+                        className="btn ghost"
+                        onClick={() => {
+                          setIndividualItem(item);
+                          setExportStep("individualConfirm");
+                        }}
+                      >
+                        Selecionar
+                      </button>
+                    </article>
+                  ))}
+              </div>
 
-  function renderExports() {
-    return (
-      <Section title="Exportações" subtitle="Relatórios e documentos preparados ou gerados.">
-        <Table
-          columns={["ID", "Tipo", "Formato", "Data de geração", "Usuário", "Período", "Status", "Ação"]}
-          rows={EXPORT_ROWS.map((row) => [
-            <b>{row[0]}</b>,
-            row[1],
-            row[2],
-            formatDate(row[3]),
-            row[4],
-            row[5],
-            <Badge value="success" />,
-            <div className="traceActions inline">
-              <button className="secondary" onClick={() => setReportMessage("Exportação preparada para integração com geração real de PDF.")}>Ver</button>
-              <button onClick={() => setReportMessage("Exportação preparada para integração com geração real de PDF.")}>Baixar</button>
-              <button className="secondary" onClick={() => setReportMessage("Relatório reenfileirado para geração visual.")}>Gerar novamente</button>
-            </div>,
-          ])}
-        />
-        {reportMessage && <div className="traceInfo">{reportMessage}</div>}
-      </Section>
+              <div className="trace-modal-actions">
+                <button className="btn ghost" onClick={() => setExportStep("individualType")}>
+                  Voltar
+                </button>
+              </div>
+            </>
+          )}
+
+          {exportStep === "individualConfirm" && individualItem && (
+            <>
+              <ReportPreview
+                title={`Relatório individual · ${individualItem.type}`}
+                countText={`${individualItem.id} · ${individualItem.title} · ${individualItem.status}`}
+                period={formatDate(individualItem.date)}
+              />
+              <ModalBackExport onBack={() => setExportStep("individualList")} onExport={exportPrepared} />
+            </>
+          )}
+
+          {message && <p className="trace-message">{message}</p>}
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="screen traceabilityScreen">
+    <div className="trace-page">
       <Section
         title="Rastreabilidade"
-        subtitle="Consulte operações, simulações, logs, auditorias e relatórios do sistema."
-        action={<button className="traceMenuButton secondary" aria-label="Abrir navegação interna" onClick={() => setSidebarOpen(true)}>☰</button>}
+        subtitle="Consulte operações, simulações, logs de acesso e relatórios técnicos do sistema."
       >
-        <p className="traceLead">Histórico, logs, auditoria e relatórios do processo.</p>
+        {renderTabs()}
+
+        {active === "records" && renderRecords()}
+        {active === "logs" && renderLogs()}
+        {active === "reports" && renderReports()}
       </Section>
 
-      {active === "records" && renderRecords()}
-      {active === "logs" && renderLogs()}
-      {active === "audit" && renderAudit()}
-      {active === "reports" && renderReportCards()}
-      {active === "indicators" && renderIndicators()}
-      {active === "exports" && renderExports()}
+      {renderDetailsModal()}
+      {renderLogModal()}
+      {renderExportModal()}
+    </div>
+  );
+}
 
-      {sidebarOpen && <div className="traceSideOverlay" onClick={() => setSidebarOpen(false)} />}
-      <aside className={`traceSideNav ${sidebarOpen ? "open" : ""}`}>
-        <div className="traceSideHeader">
-          <div>
-            <strong>Rastreabilidade</strong>
-            <span>Navegação interna</span>
-          </div>
-          <button className="secondary" onClick={() => setSidebarOpen(false)} aria-label="Fechar navegação interna">×</button>
-        </div>
-        <nav>
-          {SECTION_LABELS.map((item) => (
-            <button
-              key={item.key}
-              className={active === item.key ? "active" : "secondary"}
-              onClick={() => {
-                setActive(item.key);
-                setSidebarOpen(false);
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-      </aside>
+function FieldLike({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="trace-field">
+      <span>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function Info({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="trace-info">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function ModalBackExport({ onBack, onExport }: { onBack: () => void; onExport: () => void }) {
+  return (
+    <div className="trace-modal-actions">
+      <button className="btn ghost" onClick={onBack}>Voltar</button>
+      <button className="btn success" onClick={onExport}>Exportar relatório</button>
     </div>
   );
 }
