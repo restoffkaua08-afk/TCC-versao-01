@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { AppShell, type View } from "./components/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
 import { HistoryPage } from "./pages/HistoryPage";
+import { ReportsPage } from "./pages/ReportsPage";
 import "./styles.css";
 
 const API = "http://127.0.0.1:8000/api";
@@ -3018,14 +3019,13 @@ function App() {
         )}
 
         {view === "reports" && (
-          <div className="screen">
-            <TseaReportsMenuV2
-              operations={operations}
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-          </div>
+          <ReportsPage
+            ReportsMenu={TseaReportsMenuV2}
+            operations={operations}
+            state={state}
+            allTanks={allTanks}
+            allHoses={allHoses}
+          />
         )}
 
         {view === "parameters" && (
