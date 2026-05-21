@@ -567,11 +567,7 @@ export function TraceabilityPage({
     return (
       <>
         {navigationOpen && (
-          <button
-            className="trace-nav-overlay"
-            aria-label="Fechar navegação de rastreabilidade"
-            onClick={() => setNavigationOpen(false)}
-          />
+          <div className="trace-nav-overlay" role="presentation" onClick={() => setNavigationOpen(false)} />
         )}
 
         <aside className={`trace-nav-drawer ${navigationOpen ? "open" : ""}`}>
@@ -1193,4 +1189,5 @@ function ModalBackExport({ onBack, onExport }: { onBack: () => void; onExport: (
     </div>
   );
 }
+
 
