@@ -1,6 +1,12 @@
 ﻿import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell, type View } from "./components/AppShell";
+import { DashboardPage } from "./pages/DashboardPage";
+import { DigitalTwinPage } from "./pages/DigitalTwinPage";
+import { HistoryPage } from "./pages/HistoryPage";
+import { OperationPage } from "./pages/OperationPage";
+import { ParametersPage } from "./pages/ParametersPage";
+import { ReportsPage } from "./pages/ReportsPage";
 import "./styles.css";
 
 const API = "http://127.0.0.1:8000/api";
@@ -2881,264 +2887,73 @@ function App() {
         )}
 
         {view === "dashboard" && (
-          <div className="screen">
-            <div className="metricsGrid">
-              <Metric label="Estado do Ciclo" value={state?.cycle?.status ? statusLabel(state.cycle.status) : "Parado"} status={state?.cycle?.status || "stopped"} />
-              <Metric label="Pressão Média" value={fmt(avgPressure, "mbar")} detail="Tanques monitorados" />
-              <Metric label="Risco Máximo" value={fmt(maxRisk, "%")} status={maxRisk >= 82 ? "critical" : maxRisk >= 65 ? "warning" : "success"} />
-              <Metric label="Registros" value={(operations.length + simulations.length).toString()} detail="Ciclos + simulações" />
-            </div>
-
-            <Section title="Mapa operacional" subtitle="Estado consolidado dos tanques de processo e mangueiras de vácuo.">
-              <div className="tankGrid">
-                {tanksState.map((item: any, index: number) => (
-                  <TankCard key={item?.tank?.id || index} item={item} />
-                ))}
-              </div>
-            </Section>
-
-            <Section title="Unidade de bombeamento" subtitle="Bomba primária, bomba secundária, óleo e comunicação.">
-              <div className="statusGrid">
-                <Metric label="Bomba Primária" value={state?.primary_pump?.running ? "Ligada" : "Desligada"} detail={state?.primary_pump?.model || "SV 630 B"} status={state?.primary_pump?.running ? "success" : "neutral"} />
-                <Metric label="Bomba secundária" value={state?.roots_pump?.running ? "Ligada" : "Bloqueada"} detail={state?.roots_pump?.model || "WSU 2001"} status={state?.roots_pump?.running ? "success" : "warning"} />
-                <Metric label="Injeção de Óleo" value={state?.oil_injection?.enabled ? "Ativa" : "Inativa"} detail={fmt(state?.oil_injection?.target_flow_l_min, "L/min")} status={state?.oil_injection?.enabled ? "success" : "neutral"} />
-                <Metric label="Comunicação" value={state?.plc_comm_ok ? "Leitura simulada normal" : "Falha na leitura simulada"} status={state?.plc_comm_ok ? "success" : "critical"} />
-              </div>
-            </Section>
-          </div>
+          <DashboardPage
+            avgPressure={avgPressure}
+            maxRisk={maxRisk}
+            operations={operations}
+            simulations={simulations}
+            state={state}
+            tanksState={tanksState}
+          />
         )}
 
         {view === "operation" && (
-          <div className="screen">
-<Section title="Configuração da operação" subtitle="Parâmetros do ciclo antes da execução." action={<Badge value={state?.cycle?.status || "stopped"} />}>
-              <div className="formGrid">
-                <Field label="Responsável operacional">
-                  <input value={operationConfig.operator} onChange={(e) => setOp("operator", e.target.value)} />
-                </Field>
-
-                <Field label="Tanque de processo">
-                  <select value={operationConfig.tank_id} onChange={(e) => setOp("tank_id", e.target.value)}>
-                    {allTanks.map((tank: any) => (
-                      <option key={tank.id || tank.code} value={tank.id || tank.code}>{tank.code || tank.name} · {tank.type || "tipo"}</option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Mangueira de vácuo / mangueira">
-                  <select value={operationConfig.hose_id} onChange={(e) => setOp("hose_id", e.target.value)}>
-                    {allHoses.map((hose: any) => (
-                      <option key={hose.id || hose.code} value={hose.id || hose.code}>{hose.code} · {fmt(hose.length_m, "m")} · fator {fmt(hose.loss_factor)}</option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Receita operacional">
-                  <select
-                    value={operationConfig.recipe_id}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const recipe = allRecipes.find((r: any) => String(r.id) === String(value));
-                      setOperationConfig((current: any) => ({
-                        ...current,
-                        recipe_id: value,
-                        target_pressure_mbar: recipe?.target_pressure_mbar ?? current.target_pressure_mbar,
-                        roots_start_pressure_mbar: recipe?.roots_start_pressure_mbar ?? current.roots_start_pressure_mbar,
-                        max_cycle_seconds: recipe?.max_cycle_seconds ?? current.max_cycle_seconds,
-                        oil_flow_l_min: recipe?.min_oil_flow_l_min ?? current.oil_flow_l_min,
-                        tank_type: recipe?.tank_type ?? current.tank_type,
-                      }));
-                    }}
-                  >
-                    {allRecipes.map((recipe: any) => (
-                      <option key={recipe.id || recipe.name} value={recipe.id || recipe.name}>{recipe.name}</option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field label="Tipo de tanque">
-                  <select value={operationConfig.tank_type} onChange={(e) => setOp("tank_type", e.target.value)}>
-                    <option value="medio">Médio</option>
-                    <option value="grande">Grande</option>
-                    <option value="extra_grande">Extra grande</option>
-                  </select>
-                </Field>
-
-                <Field label="Pressão final (mbar) do processo">
-                  <input type="number" value={operationConfig.target_pressure_mbar} onChange={(e) => setOp("target_pressure_mbar", Number(e.target.value))} />
-                </Field>
-
-                <Field label="Pressão de acionamento (mbar) da bomba secundária">
-                  <input type="number" value={operationConfig.roots_start_pressure_mbar} onChange={(e) => setOp("roots_start_pressure_mbar", Number(e.target.value))} />
-                </Field>
-
-                <Field label="Vazão de óleo (L/min)">
-                  <input type="number" value={operationConfig.oil_flow_l_min} onChange={(e) => setOp("oil_flow_l_min", Number(e.target.value))} />
-                </Field>
-
-                <Field label="Tempo máximo (s) do ciclo">
-                  <input type="number" value={operationConfig.max_cycle_seconds} onChange={(e) => setOp("max_cycle_seconds", Number(e.target.value))} />
-                </Field>
-
-                <Field label="Observação técnica">
-                  <input value={operationConfig.notes} onChange={(e) => setOp("notes", e.target.value)} />
-                </Field>
-              </div>
-
-              <div className="commandBar">
-                <button onClick={() => control("start")}>Iniciar operação</button>
-                <button className="secondary" onClick={() => control("pause")}>Pausar</button>
-                <button className="secondary" onClick={() => control("stop")}>Finalizar</button>
-                <button className="secondary" onClick={() => control("reset")}>Resetar</button>
-                <button className="danger" onClick={() => control("emergency")}>Emergência</button>
-              </div>
-            </Section>
-
-            <Section title="Operação em tempo real" subtitle="Pressão, óleo, mangueira de vácuo e risco estrutural por tanque.">
-        
-
-<div className="tankGrid">
-                {tanksState.map((item: any, index: number) => (
-                  <TankCard key={item?.tank?.id || index} item={item} />
-                ))}
-              </div>
-            </Section>
-
-            <TseaComponentHealthPanel
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-
-          </div>
+          <OperationPage
+            ComponentHealthPanel={TseaComponentHealthPanel}
+            allHoses={allHoses}
+            allRecipes={allRecipes}
+            allTanks={allTanks}
+            control={control}
+            operationConfig={operationConfig}
+            setOp={setOp}
+            setOperationConfig={setOperationConfig}
+            state={state}
+            tanksState={tanksState}
+          />
         )}
 
         {view === "twin" && (
-          <div className="screen">
-            <TseaDigitalTwin10
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-          </div>
+          <DigitalTwinPage
+            DigitalTwin={TseaDigitalTwin10}
+            state={state}
+            allTanks={allTanks}
+            allHoses={allHoses}
+          />
         )}
 
         {view === "history" && (
-          <div className="screen">
-            <TseaHistoryMenuV2
-              operations={operations}
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-          </div>
+          <HistoryPage
+            HistoryMenu={TseaHistoryMenuV2}
+            operations={operations}
+            state={state}
+            allTanks={allTanks}
+            allHoses={allHoses}
+          />
         )}
 
         {view === "reports" && (
-          <div className="screen">
-            <TseaReportsMenuV2
-              operations={operations}
-              state={state}
-              allTanks={allTanks}
-              allHoses={allHoses}
-            />
-          </div>
+          <ReportsPage
+            ReportsMenu={TseaReportsMenuV2}
+            operations={operations}
+            state={state}
+            allTanks={allTanks}
+            allHoses={allHoses}
+          />
         )}
 
         {view === "parameters" && (
-          <div className="screen">
-            <Section title="Cadastros técnicos" subtitle="Tanques, mangueiras de vácuo, receitas, fórmulas e responsáveis operacionais.">
-              <div className="subtabs">
-                <button className={paramTab === "tanks" ? "" : "secondary"} onClick={() => { setParamTab("tanks"); setForm({}); }}>Tanques</button>
-                <button className={paramTab === "hoses" ? "" : "secondary"} onClick={() => { setParamTab("hoses"); setForm({}); }}>Mangueiras</button>
-                <button className={paramTab === "recipes" ? "" : "secondary"} onClick={() => { setParamTab("recipes"); setForm({}); }}>Receitas</button>
-                <button className={paramTab === "formulas" ? "" : "secondary"} onClick={() => { setParamTab("formulas"); setForm({}); }}>Fórmulas</button>
-                <button className={paramTab === "operators" ? "" : "secondary"} onClick={() => { setParamTab("operators"); setForm({}); }}>Operadores</button>
-              </div>
-
-              <div className="formGrid">
-                {paramTab === "tanks" && (
-                  <>
-                    <Field label="Código"><input value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value })} /></Field>
-                    <Field label="Tipo"><input value={form.type || ""} onChange={(e) => setForm({ ...form, type: e.target.value })} /></Field>
-                    <Field label="Volume (L)"><input type="number" value={form.volume_liters || ""} onChange={(e) => setForm({ ...form, volume_liters: e.target.value })} /></Field>
-                    <Field label="Limite estrutural (mbar)"><input type="number" value={form.structural_limit_mbar || ""} onChange={(e) => setForm({ ...form, structural_limit_mbar: e.target.value })} /></Field>
-                  </>
-                )}
-
-                {paramTab === "hoses" && (
-                  <>
-                    <Field label="Código"><input value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value })} /></Field>
-                    <Field label="Comprimento (m)"><input type="number" value={form.length_m || ""} onChange={(e) => setForm({ ...form, length_m: e.target.value })} /></Field>
-                    <Field label="Diâmetro (pol)"><input type="number" value={form.diameter_in || ""} onChange={(e) => setForm({ ...form, diameter_in: e.target.value })} /></Field>
-                    <Field label="Fator de perda (multiplicador)"><input type="number" value={form.loss_factor || ""} onChange={(e) => setForm({ ...form, loss_factor: e.target.value })} /></Field>
-                  </>
-                )}
-
-                {paramTab === "recipes" && (
-                  <>
-                    <Field label="Nome da receita"><input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-                    <Field label="Tipo de tanque"><input value={form.tank_type || ""} onChange={(e) => setForm({ ...form, tank_type: e.target.value })} /></Field>
-                    <Field label="Pressão final (mbar)"><input type="number" value={form.target_pressure_mbar || ""} onChange={(e) => setForm({ ...form, target_pressure_mbar: e.target.value })} /></Field>
-                    <Field label="Acionamento da bomba secundária"><input type="number" value={form.roots_start_pressure_mbar || ""} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: e.target.value })} /></Field>
-                    <Field label="Tempo máximo (s)"><input type="number" value={form.max_cycle_seconds || ""} onChange={(e) => setForm({ ...form, max_cycle_seconds: e.target.value })} /></Field>
-                    <Field label="Vazão mínima de óleo"><input type="number" value={form.min_oil_flow_l_min || ""} onChange={(e) => setForm({ ...form, min_oil_flow_l_min: e.target.value })} /></Field>
-                  </>
-                )}
-
-                {paramTab === "formulas" && (
-                  <>
-                    <Field label="Nome"><input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-                    <Field label="Variável"><input value={form.variable || ""} onChange={(e) => setForm({ ...form, variable: e.target.value })} /></Field>
-                    <Field label="Expressão"><input value={form.expression || ""} onChange={(e) => setForm({ ...form, expression: e.target.value })} /></Field>
-                    <Field label="Descrição"><input value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
-                  </>
-                )}
-
-                {paramTab === "operators" && (
-                  <>
-                    <Field label="Nome"><input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-                    <Field label="Registro"><input value={form.registration || ""} onChange={(e) => setForm({ ...form, registration: e.target.value })} /></Field>
-                    <Field label="Função"><input value={form.role || ""} onChange={(e) => setForm({ ...form, role: e.target.value })} /></Field>
-                    <Field label="Estado"><input value={form.status || ""} onChange={(e) => setForm({ ...form, status: e.target.value })} /></Field>
-                  </>
-                )}
-              </div>
-
-              <div className="commandBar">
-                <button onClick={saveParam}>Cadastrar</button>
-              </div>
-            </Section>
-
-            {paramTab === "tanks" && (
-              <Section title="Tanques cadastrados">
-                <Table columns={["Código", "Tipo", "Volume", "Limite", "Estado"]} rows={allTanks.map((tank: any) => [<b>{tank.code}</b>, tank.type || "--", fmt(tank.volume_liters, "L"), fmt(tank.structural_limit_mbar, "mbar"), tank.status || "--"])} />
-              </Section>
-            )}
-
-            {paramTab === "hoses" && (
-              <Section title="Mangueiras cadastradas">
-                <Table columns={["Código", "Comprimento (m)", "Diâmetro (mm)", "Fator", "Estado"]} rows={allHoses.map((hose: any) => [<b>{hose.code}</b>, fmt(hose.length_m, "m"), fmt(hose.diameter_in, "pol"), fmt(hose.loss_factor), hose.status || "--"])} />
-              </Section>
-            )}
-
-            {paramTab === "recipes" && (
-              <Section title="Receitas cadastradas">
-                <Table columns={["Nome", "Tanque", "Pressão", "bomba secundária", "Tempo", "Óleo"]} rows={allRecipes.map((recipe: any) => [<b>{recipe.name}</b>, recipe.tank_type || "--", fmt(recipe.target_pressure_mbar, "mbar"), fmt(recipe.roots_start_pressure_mbar, "mbar"), fmt(recipe.max_cycle_seconds, "s"), fmt(recipe.min_oil_flow_l_min, "L/min")])} />
-              </Section>
-            )}
-
-            {paramTab === "formulas" && (
-              <Section title="Fórmulas cadastradas">
-                <Table columns={["Nome", "Variável", "Expressão", "Descrição"]} rows={localFormulas.map((f: any) => [<b>{f.name}</b>, f.variable, f.expression, f.description])} />
-              </Section>
-            )}
-
-            {paramTab === "operators" && (
-              <Section title="Operadores cadastrados">
-                <Table columns={["Nome", "Registro", "Função", "Estado"]} rows={localOperators.map((op: any) => [<b>{op.name}</b>, op.registration, op.role, op.status])} />
-              </Section>
-            )}
-          </div>
+          <ParametersPage
+            allHoses={allHoses}
+            allRecipes={allRecipes}
+            allTanks={allTanks}
+            form={form}
+            localFormulas={localFormulas}
+            localOperators={localOperators}
+            paramTab={paramTab}
+            saveParam={saveParam}
+            setForm={setForm}
+            setParamTab={setParamTab}
+          />
         )}
     </AppShell>
   );
