@@ -2926,7 +2926,7 @@ function App() {
 
         {error && (
           <div className="errorPanel">
-            <strong>Falha de comunicação</strong>
+            <strong>Falha de leitura simulada</strong>
             <span>{error}</span>
           </div>
         )}
@@ -2953,7 +2953,7 @@ function App() {
                 <Metric label="Bomba Primária" value={state?.primary_pump?.running ? "Ligada" : "Desligada"} detail={state?.primary_pump?.model || "SV 630 B"} status={state?.primary_pump?.running ? "success" : "neutral"} />
                 <Metric label="Bomba secundária" value={state?.roots_pump?.running ? "Ligada" : "Bloqueada"} detail={state?.roots_pump?.model || "WSU 2001"} status={state?.roots_pump?.running ? "success" : "warning"} />
                 <Metric label="Injeção de Óleo" value={state?.oil_injection?.enabled ? "Ativa" : "Inativa"} detail={fmt(state?.oil_injection?.target_flow_l_min, "L/min")} status={state?.oil_injection?.enabled ? "success" : "neutral"} />
-                <Metric label="CLP" value={state?.controle simulado_comm_ok ? "Comunicação normal" : "Falha de comunicação"} status={state?.controle simulado_comm_ok ? "success" : "critical"} />
+                <Metric label="CLP" value={state?.controle simulado_comm_ok ? "Comunicação normal" : "Falha de leitura simulada"} status={state?.controle simulado_comm_ok ? "success" : "critical"} />
               </div>
             </Section>
           </div>
@@ -3197,3 +3197,4 @@ function App() {
 }
 
 createRoot(document.getElementById("root") as HTMLElement).render(<App />);
+
