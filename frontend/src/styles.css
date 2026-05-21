@@ -349,6 +349,439 @@ p {
   font-size: 1.25rem;
 }
 
+.dashboardScreen {
+  gap: 18px;
+}
+
+.dashboardMetrics .metric {
+  min-height: 94px;
+}
+
+.dashboardWorkArea {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 16px;
+  align-items: start;
+}
+
+.dashboardTankList,
+.dashboardSide {
+  display: grid;
+  gap: 14px;
+}
+
+.dashboardTankCard,
+.pumpCard,
+.sensorOilCard {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(31, 45, 39, .06);
+}
+
+.dashboardTankCard {
+  border-left: 4px solid var(--green);
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 164px minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.dashboardTankCard.warning {
+  border-left-color: var(--amber);
+}
+
+.dashboardTankCard.critical {
+  border-left-color: var(--red);
+}
+
+.dashboardTankVisual {
+  min-width: 0;
+  background: linear-gradient(180deg, #f7faf8 0%, #eef3ef 100%);
+  border: 1px solid #dfe6e1;
+  border-radius: 9px;
+  padding: 12px 10px;
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+}
+
+.industrialTankShell {
+  position: relative;
+  width: 86px;
+  height: 132px;
+  border: 4px solid #26342f;
+  border-radius: 18px;
+  background: #eef2ef;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 5px rgba(255, 255, 255, .42);
+}
+
+.industrialTankShell::before {
+  content: "";
+  position: absolute;
+  inset: 9px 12px auto auto;
+  width: 12px;
+  height: 72%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .34);
+  z-index: 2;
+}
+
+.dashboardTankLegend {
+  width: 100%;
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.dashboardTankLegend span,
+.dashboardTankFooter b,
+.pumpReadings b,
+.sideReadings b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dashboardTankInfo {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.dashboardTankHeader,
+.pumpHeader,
+.sideCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dashboardTankHeader strong,
+.pumpHeader strong,
+.sideCardHeader strong {
+  display: block;
+  font-size: 1.02rem;
+}
+
+.dashboardTankHeader span,
+.pumpInfo > span,
+.sideCardHeader span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.35;
+}
+
+.dashboardReadings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.dashboardTankFooter {
+  display: grid;
+  grid-template-columns: 1fr 1fr minmax(180px, 1.3fr);
+  gap: 9px;
+}
+
+.dashboardReadings div,
+.dashboardTankFooter div,
+.pumpReadings div,
+.sideReadings div {
+  background: var(--surfaceSoft);
+  border: 1px solid #e3e8e4;
+  border-radius: 8px;
+  padding: 9px;
+  min-width: 0;
+}
+
+.dashboardReadings span,
+.dashboardTankFooter span,
+.pumpReadings span,
+.sideReadings span {
+  display: block;
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+
+.dashboardReadings b,
+.dashboardTankFooter b,
+.pumpReadings b,
+.sideReadings b {
+  margin-top: 4px;
+  font-size: .93rem;
+  line-height: 1.25;
+}
+
+.signalDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  background: #9aa39e;
+}
+
+.signalDot.ok {
+  background: var(--green);
+}
+
+.signalDot.warn {
+  background: var(--amber);
+}
+
+.signalDot.bad {
+  background: var(--red);
+}
+
+.pumpCard {
+  padding: 13px;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.pumpGraphic {
+  position: relative;
+  height: 82px;
+  display: grid;
+  place-items: center;
+}
+
+.pumpMotor {
+  width: 56px;
+  height: 56px;
+  border: 4px solid #27362f;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f4f7f5, #dfe8e2);
+  display: grid;
+  place-items: center;
+  color: #244437;
+  font-weight: 950;
+  z-index: 2;
+}
+
+.pumpBody {
+  position: absolute;
+  right: 6px;
+  width: 36px;
+  height: 28px;
+  border: 3px solid #27362f;
+  border-left: 0;
+  border-radius: 0 16px 16px 0;
+  background: #e8eee9;
+}
+
+.pumpBase {
+  position: absolute;
+  bottom: 5px;
+  width: 76px;
+  height: 8px;
+  border-radius: 999px;
+  background: #27362f;
+  opacity: .85;
+}
+
+.pumpInfo {
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+}
+
+.pumpReadings,
+.sideReadings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sensorOilCard {
+  padding: 14px;
+  display: grid;
+  gap: 13px;
+}
+
+.sensorOilGroup {
+  display: grid;
+  gap: 9px;
+}
+
+.sensorOilGroup h3 {
+  font-size: .9rem;
+  color: var(--ink);
+}
+
+.operationScreen {
+  gap: 16px;
+}
+
+.operationTabs {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.operationTabs button {
+  min-height: 34px;
+  white-space: nowrap;
+}
+
+.operationCommandBar {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.operationIhmArea {
+  align-items: start;
+}
+
+.operationInfoStack {
+  display: grid;
+  gap: 16px;
+}
+
+.operationConfigSummary,
+.operationRecipeDetails,
+.operationReviewGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.operationConfigSummary div,
+.operationRecipeDetails div,
+.operationReviewGrid div,
+.operationStepPanel,
+.operationEmpty {
+  background: var(--surfaceSoft);
+  border: 1px solid #e3e8e4;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.operationConfigSummary span,
+.operationRecipeDetails span,
+.operationReviewGrid span {
+  display: block;
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+
+.operationConfigSummary b,
+.operationRecipeDetails b,
+.operationReviewGrid b {
+  display: block;
+  margin-top: 4px;
+  line-height: 1.25;
+}
+
+.operationModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(14, 22, 18, .42);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.operationModal {
+  width: min(980px, 100%);
+  max-height: min(86vh, 820px);
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--lineStrong);
+  border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(25, 34, 30, .22);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.operationModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+
+.operationModalHeader strong {
+  display: block;
+  font-size: 1.08rem;
+}
+
+.operationModalHeader span,
+.operationStepPanel p {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.operationConfigChoice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.operationConfigChoice button {
+  min-height: 96px;
+  font-size: 1rem;
+}
+
+.operationRecipeList,
+.operationWizard,
+.operationStepPanel {
+  display: grid;
+  gap: 12px;
+}
+
+.operationRecipeGrid,
+.operationSteps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.operationRecipeGrid button,
+.operationSteps button {
+  min-height: 34px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .formGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -704,6 +1137,28 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .dashboardWorkArea {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardSide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sensorOilCard {
+    grid-column: 1 / -1;
+  }
+
+  .dashboardMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .operationConfigSummary,
+  .operationRecipeDetails,
+  .operationReviewGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .content {
     padding: 12px;
   }
@@ -714,6 +1169,41 @@ th {
 
   .topbar > .badge {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboardTankCard,
+  .pumpCard {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardReadings,
+  .dashboardTankFooter,
+  .pumpReadings,
+  .sideReadings,
+  .dashboardMetrics,
+  .operationConfigChoice,
+  .operationConfigSummary,
+  .operationRecipeDetails,
+  .operationReviewGrid,
+  .dashboardSide {
+    grid-template-columns: 1fr;
+  }
+
+  .operationModal {
+    max-height: 92vh;
+    padding: 12px;
+  }
+
+  .operationModalHeader {
+    display: grid;
+  }
+
+  .operationTabs,
+  .operationCommandBar,
+  .modalActions {
+    width: 100%;
   }
 }
 
@@ -746,6 +1236,12 @@ html[data-theme="dark"] .drawer,
 html[data-theme="dark"] .topbar,
 html[data-theme="dark"] .section,
 html[data-theme="dark"] .tankCard,
+html[data-theme="dark"] .dashboardTankCard,
+html[data-theme="dark"] .pumpCard,
+html[data-theme="dark"] .sensorOilCard,
+html[data-theme="dark"] .operationTabs,
+html[data-theme="dark"] .operationCommandBar,
+html[data-theme="dark"] .operationModal,
 html[data-theme="dark"] .metric,
 html[data-theme="dark"] .scenarioCard,
 html[data-theme="dark"] .chartBox,
@@ -781,6 +1277,10 @@ html[data-theme="dark"] small,
 html[data-theme="dark"] .field span,
 html[data-theme="dark"] .metric span,
 html[data-theme="dark"] .tankReadings span,
+html[data-theme="dark"] .dashboardReadings span,
+html[data-theme="dark"] .dashboardTankFooter span,
+html[data-theme="dark"] .pumpReadings span,
+html[data-theme="dark"] .sideReadings span,
 html[data-theme="dark"] .chartLegend span,
 html[data-theme="dark"] .legend span,
 html[data-theme="dark"] .scenarioCard span {
@@ -831,6 +1331,24 @@ html[data-theme="dark"] td {
 html[data-theme="dark"] .tankShell {
   background: #000000 !important;
   border-color: #d1d5db !important;
+}
+
+html[data-theme="dark"] .industrialTankShell,
+html[data-theme="dark"] .dashboardTankVisual,
+html[data-theme="dark"] .pumpMotor,
+html[data-theme="dark"] .pumpBody,
+html[data-theme="dark"] .dashboardReadings div,
+html[data-theme="dark"] .dashboardTankFooter div,
+html[data-theme="dark"] .pumpReadings div,
+html[data-theme="dark"] .sideReadings div,
+html[data-theme="dark"] .operationConfigSummary div,
+html[data-theme="dark"] .operationRecipeDetails div,
+html[data-theme="dark"] .operationReviewGrid div,
+html[data-theme="dark"] .operationStepPanel,
+html[data-theme="dark"] .operationEmpty {
+  background: #0b0f0d !important;
+  border-color: #2f3a35 !important;
+  color: #f7f7f7 !important;
 }
 
 html[data-theme="dark"] .tankFill.gas {
