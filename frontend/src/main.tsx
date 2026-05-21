@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -531,8 +531,7 @@ function tseaBuildSimulationResult(config: any, state: any, hoses: any[], tanks:
     oilDelay * 0.18 +
     Math.max(0, 1 - pumpHealth) * 42 +
     (config?.simulate_sensor_failure ? 18 : 0) +
-    (config?.simulate_hose_leak ? 24 : 0) +
-    (config?.simulate_plc_loss ? 14 : 0)
+    (config?.simulate_hose_leak ? 24 : 0)
   ));
 
   const estimatedTime = Math.round(Math.min(maxCycle, (tankVolume / 640) * 220 + hoseLoss * 42 + oilDelay * 1.6 + (1 - pumpHealth) * 180));
@@ -785,8 +784,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
     max_cycle_seconds: 900,
     pump_health_factor: 1,
     simulate_hose_leak: false,
-    simulate_sensor_failure: false,
-    simulate_plc_loss: false
+    simulate_sensor_failure: false
   });
 
   function persistCustom(next: any[]) {
@@ -900,7 +898,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
           <div className="checks">
             <label><input type="checkbox" checked={form.simulate_hose_leak} onChange={(e) => setForm({ ...form, simulate_hose_leak: e.target.checked })} /> Perda na mangueira</label>
             <label><input type="checkbox" checked={form.simulate_sensor_failure} onChange={(e) => setForm({ ...form, simulate_sensor_failure: e.target.checked })} /> Falha de sensor</label>
-            <label><input type="checkbox" checked={form.simulate_plc_loss} onChange={(e) => setForm({ ...form, simulate_plc_loss: e.target.checked })} /> Falha de comunicação</label>
+            
           </div>
 
           <div className="actions">
@@ -1008,8 +1006,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         secondary_pump_health: 1,
         calibration_factor: 1,
         simulate_hose_leak: false,
-        simulate_sensor_failure: false,
-        simulate_plc_loss: false
+        simulate_sensor_failure: false
       }
     },
     {
@@ -1029,8 +1026,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         secondary_pump_health: 1,
         calibration_factor: 1,
         simulate_hose_leak: false,
-        simulate_sensor_failure: false,
-        simulate_plc_loss: false
+        simulate_sensor_failure: false
       }
     },
     {
@@ -1050,8 +1046,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         secondary_pump_health: 0.9,
         calibration_factor: 1,
         simulate_hose_leak: true,
-        simulate_sensor_failure: false,
-        simulate_plc_loss: false
+        simulate_sensor_failure: false
       }
     },
     {
@@ -1071,8 +1066,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         secondary_pump_health: 0.94,
         calibration_factor: 1,
         simulate_hose_leak: false,
-        simulate_sensor_failure: true,
-        simulate_plc_loss: false
+        simulate_sensor_failure: true
       }
     }
   ];
@@ -1111,8 +1105,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
     secondary_pump_health: 1,
     calibration_factor: 1,
     simulate_hose_leak: false,
-    simulate_sensor_failure: false,
-    simulate_plc_loss: false
+    simulate_sensor_failure: false
   };
 
   const [form, setForm] = useState<any>(() => loadLocal("tsea.gemeo10.form", defaultForm));
@@ -1152,7 +1145,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
     const oilRisk = Math.max(0, 2 - oilFlow) * 18;
     const delayRisk = oilDelay * 0.2;
     const pumpRisk = (1 - primaryHealth) * 34 + (1 - secondaryHealth) * 28;
-    const failureRisk = (config?.simulate_hose_leak ? 22 : 0) + (config?.simulate_sensor_failure ? 18 : 0) + (config?.simulate_plc_loss ? 14 : 0);
+    const failureRisk = (config?.simulate_hose_leak ? 22 : 0) + (config?.simulate_sensor_failure ? 18 : 0);
 
     const risk = Math.max(4, Math.min(98, 16 + hoseRisk + oilRisk + delayRisk + pumpRisk + failureRisk));
     const estimatedTime = Math.round(Math.min(maxCycle, ((tankVolume / 640) * 225 + hoseLoss * 44 + oilDelay * 1.7 + pumpRisk * 3) * calibration));
@@ -1434,7 +1427,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
       <div className="twinChecks">
         <label><input type="checkbox" checked={!!data.simulate_hose_leak} onChange={(e) => setData({ ...data, simulate_hose_leak: e.target.checked })} /> Perda na mangueira</label>
         <label><input type="checkbox" checked={!!data.simulate_sensor_failure} onChange={(e) => setData({ ...data, simulate_sensor_failure: e.target.checked })} /> Falha de sensor</label>
-        <label><input type="checkbox" checked={!!data.simulate_plc_loss} onChange={(e) => setData({ ...data, simulate_plc_loss: e.target.checked })} /> Falha de comunicação</label>
+        
       </div>
     );
   }
@@ -2539,115 +2532,7 @@ function TseaTechnicalReferenceTables() {
 /* TSEA_TABELAS_TECNICAS_MARGEM_END */
 
 
-/* TSEA_PLC_PANEL_START */
 
-function TseaPlcBridgePanel() {
-  const [plc, setPlc] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  async function plcCall(action: string) {
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(`/api/plc/${action}`, {
-        method: action === "status" ? "GET" : "POST"
-      });
-
-      if (!response.ok) {
-        throw new Error(`Falha na comunicação com /api/plc/${action}`);
-      }
-
-      const data = await response.json();
-      setPlc(data);
-    } catch (err: any) {
-      setError(err?.message || "Falha ao comunicar com a bancada física.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    plcCall("status");
-    const timer = window.setInterval(() => plcCall("status"), 1500);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const status = plc?.status || "Indisponível";
-  const source = plc?.source === "kit_iot" ? "Kit IoT físico" : "Simulação backend";
-
-  return (
-    <section className="plcBridgePanel">
-      <div className="plcBridgeHeader">
-        <div>
-          <h2>Integração física — Kit IoT / CLP simples</h2>
-          <p>Duas saídas físicas podem representar o acionamento da bomba primária e da bomba secundária.</p>
-        </div>
-        <span className={`plcStatusBadge state-${plc?.system_state ?? 0}`}>
-          {status}
-        </span>
-      </div>
-
-      <div className="plcBridgeGrid">
-        <div className="plcMetric">
-          <span>Fonte</span>
-          <strong>{source}</strong>
-        </div>
-
-        <div className="plcMetric">
-          <span>Pressão atual</span>
-          <strong>{Number(plc?.pressure_actual ?? 0).toFixed(1)} mbar</strong>
-        </div>
-
-        <div className="plcMetric">
-          <span>Tempo de ciclo</span>
-          <strong>{plc?.cycle_time ?? 0} s</strong>
-        </div>
-
-        <div className="plcMetric">
-          <span>Risco</span>
-          <strong>{Number(plc?.risk_percent ?? 0).toFixed(1)}%</strong>
-        </div>
-      </div>
-
-      <div className="plcLamps">
-        <div className={`plcLamp ${plc?.motor1_on ? "on" : ""}`}>
-          <b>Lâmpada 1</b>
-          <span>Bomba primária</span>
-          <small>{plc?.motor1_on ? "Ligada" : "Desligada"}</small>
-        </div>
-
-        <div className={`plcLamp ${plc?.motor2_on ? "on" : ""}`}>
-          <b>Lâmpada 2</b>
-          <span>Bomba secundária</span>
-          <small>{plc?.motor2_on ? "Ligada" : "Desligada"}</small>
-        </div>
-
-        <div className={`plcLamp ${plc?.green_light ? "green" : plc?.yellow_light ? "yellow" : plc?.red_light ? "red" : ""}`}>
-          <b>Semáforo</b>
-          <span>Status operacional</span>
-          <small>
-            {plc?.red_light ? "Crítico" : plc?.yellow_light ? "Atenção" : plc?.green_light ? "Operacional" : "Parado"}
-          </small>
-        </div>
-      </div>
-
-      <div className="plcActions">
-        <button type="button" onClick={() => plcCall("start")} disabled={loading}>Iniciar bancada</button>
-        <button type="button" className="secondary" onClick={() => plcCall("status")} disabled={loading}>Atualizar</button>
-        <button type="button" className="secondary" onClick={() => plcCall("stop")} disabled={loading}>Parar</button>
-        <button type="button" className="secondary" onClick={() => plcCall("reset")} disabled={loading}>Resetar</button>
-        <button type="button" className="danger" onClick={() => plcCall("emergency")} disabled={loading}>Emergência</button>
-      </div>
-
-      {error && <div className="plcError">{error}</div>}
-      {plc?.kit_iot_error && <div className="plcWarn">Kit físico indisponível. Usando simulação backend: {plc.kit_iot_error}</div>}
-    </section>
-  );
-}
-
-/* TSEA_PLC_PANEL_END */
 
 function App() {
 
@@ -2725,7 +2610,6 @@ function App() {
     oil_compensation_enabled: true,
     simulate_hose_leak: false,
     simulate_sensor_failure: false,
-    simulate_plc_loss: false,
   }));
 
   const [simulationResult, setSimulationResult] = useState<any>(null);
@@ -3069,7 +2953,7 @@ function App() {
                 <Metric label="Bomba Primária" value={state?.primary_pump?.running ? "Ligada" : "Desligada"} detail={state?.primary_pump?.model || "SV 630 B"} status={state?.primary_pump?.running ? "success" : "neutral"} />
                 <Metric label="Bomba secundária" value={state?.roots_pump?.running ? "Ligada" : "Bloqueada"} detail={state?.roots_pump?.model || "WSU 2001"} status={state?.roots_pump?.running ? "success" : "warning"} />
                 <Metric label="Injeção de Óleo" value={state?.oil_injection?.enabled ? "Ativa" : "Inativa"} detail={fmt(state?.oil_injection?.target_flow_l_min, "L/min")} status={state?.oil_injection?.enabled ? "success" : "neutral"} />
-                <Metric label="CLP" value={state?.plc_comm_ok ? "Comunicação normal" : "Falha de comunicação"} status={state?.plc_comm_ok ? "success" : "critical"} />
+                <Metric label="CLP" value={state?.controle simulado_comm_ok ? "Comunicação normal" : "Falha de comunicação"} status={state?.controle simulado_comm_ok ? "success" : "critical"} />
               </div>
             </Section>
           </div>
@@ -3161,7 +3045,7 @@ function App() {
             </Section>
 
             <Section title="Operação em tempo real" subtitle="Pressão, óleo, mangueira de vácuo e risco estrutural por tanque.">
-        <TseaPlcBridgePanel />
+        
 
 <div className="tankGrid">
                 {tanksState.map((item: any, index: number) => (
