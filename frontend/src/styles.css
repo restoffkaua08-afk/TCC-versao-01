@@ -2892,3 +2892,186 @@ html[data-theme="dark"] .technicalReferenceBlock p {
 
 /* TSEA_TRACEABILITY_REFINED_END */
 
+/* TSEA_TRACEABILITY_NAV_DRAWER_START */
+
+/* Ajuste de navegação lateral direita da Rastreabilidade */
+.trace-nav-toggle {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 1.15rem;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.trace-nav-toggle:hover {
+  background: #f8fafc;
+  border-color: rgba(22, 163, 74, 0.42);
+  transform: translateY(-1px);
+}
+
+.trace-nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99980;
+  border: 0;
+  background: rgba(15, 23, 42, 0.34);
+  cursor: default;
+}
+
+.trace-nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 99990;
+  width: min(320px, 88vw);
+  height: 100vh;
+  padding: 18px;
+  background: #ffffff;
+  border-left: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: -18px 0 42px rgba(15, 23, 42, 0.16);
+  transform: translateX(105%);
+  transition: transform 0.24s ease;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 18px;
+}
+
+.trace-nav-drawer.open {
+  transform: translateX(0);
+}
+
+.trace-nav-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.trace-nav-drawer-header span {
+  display: block;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.trace-nav-drawer-header strong {
+  display: block;
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.trace-nav-drawer-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.trace-nav-drawer-list button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.trace-nav-drawer-list button:hover {
+  background: #ffffff;
+  border-color: rgba(22, 163, 74, 0.34);
+  transform: translateX(-2px);
+}
+
+.trace-nav-drawer-list button.active {
+  background: rgba(22, 163, 74, 0.08);
+  border-color: rgba(22, 163, 74, 0.38);
+}
+
+.trace-nav-drawer-list button strong {
+  display: block;
+  color: #0f172a;
+  font-size: 0.94rem;
+}
+
+.trace-nav-drawer-list button span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+/* Oculta a antiga barra de tabs caso ainda exista em cache/estrutura */
+.trace-tabs {
+  display: none !important;
+}
+
+/* Padronização visual: menos sombra, mais alinhado com sistema industrial */
+.trace-result-card,
+.trace-log-card,
+.trace-individual-row,
+.trace-user-log-card,
+.trace-report-preview,
+.trace-info,
+.trace-detail-block {
+  box-shadow: none !important;
+}
+
+.trace-result-card,
+.trace-log-card,
+.trace-individual-row {
+  border-radius: 14px;
+  border-color: rgba(148, 163, 184, 0.2);
+  background: #ffffff;
+}
+
+.trace-modal {
+  border-radius: 18px;
+  box-shadow: 0 22px 56px rgba(15, 23, 42, 0.24);
+}
+
+.trace-export-options button {
+  min-height: 94px;
+  border-radius: 14px;
+  box-shadow: none;
+  background: #ffffff;
+}
+
+.trace-export-options button:hover {
+  box-shadow: none;
+  transform: translateY(-1px);
+}
+
+.trace-search-input,
+.trace-field input,
+.trace-field select {
+  border-radius: 12px;
+}
+
+.trace-filter-popover {
+  border-radius: 16px;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
+}
+
+@media (max-width: 640px) {
+  .trace-nav-drawer {
+    width: min(360px, 94vw);
+    padding: 14px;
+  }
+}
+
+/* TSEA_TRACEABILITY_NAV_DRAWER_END */
+

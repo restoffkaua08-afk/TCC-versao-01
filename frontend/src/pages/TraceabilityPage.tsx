@@ -1,5 +1,5 @@
 ﻿import { useMemo, useState } from "react";
-import { Badge, Empty, fmt, Metric, Section, Table } from "../components/ui";
+import { Badge, Empty, fmt, Section, Table } from "../components/ui";
 
 type TraceTab = "records" | "logs" | "reports";
 type TraceType = "Operação" | "Simulação";
@@ -477,6 +477,7 @@ export function TraceabilityPage({
   alarms?: any[];
 }) {
   const [active, setActive] = useState<TraceTab>("records");
+  const [navigationOpen, setNavigationOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [reportSearch, setReportSearch] = useState("");
   const [filters, setFilters] = useState<Filters>(BASE_FILTERS);
@@ -556,25 +557,51 @@ export function TraceabilityPage({
     setMessage("Relatório preparado para exportação em PDF.");
   }
 
-  function renderTabs() {
-    const tabs: { key: TraceTab; label: string }[] = [
-      { key: "records", label: "Registros" },
-      { key: "logs", label: "Logs de Acesso" },
-      { key: "reports", label: "Relatórios" },
+  function renderTraceabilityNavigation() {
+    const tabs: { key: TraceTab; label: string; description: string }[] = [
+      { key: "records", label: "Registros", description: "Operações e simulações" },
+      { key: "logs", label: "Logs de Acesso", description: "Acessos e ações por dia" },
+      { key: "reports", label: "Relatórios", description: "Exportação técnica" },
     ];
 
     return (
-      <div className="trace-tabs">
-        {tabs.map((tab) => (
+      <>
+        {navigationOpen && (
           <button
-            key={tab.key}
-            className={active === tab.key ? "active" : ""}
-            onClick={() => setActive(tab.key)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+            className="trace-nav-overlay"
+            aria-label="Fechar navegação de rastreabilidade"
+            onClick={() => setNavigationOpen(false)}
+          />
+        )}
+
+        <aside className={`trace-nav-drawer ${navigationOpen ? "open" : ""}`}>
+          <div className="trace-nav-drawer-header">
+            <div>
+              <span>Rastreabilidade</span>
+              <strong>Navegação rápida</strong>
+            </div>
+            <button className="btn ghost" onClick={() => setNavigationOpen(false)}>
+              Fechar
+            </button>
+          </div>
+
+          <div className="trace-nav-drawer-list">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                className={active === tab.key ? "active" : ""}
+                onClick={() => {
+                  setActive(tab.key);
+                  setNavigationOpen(false);
+                }}
+              >
+                <strong>{tab.label}</strong>
+                <span>{tab.description}</span>
+              </button>
+            ))}
+          </div>
+        </aside>
+      </>
     );
   }
 
@@ -723,13 +750,6 @@ export function TraceabilityPage({
   function renderRecords() {
     return (
       <>
-        <div className="metrics-grid">
-          <Metric label="Operações" value={operationCount} detail="Registros operacionais" status="success" />
-          <Metric label="Simulações" value={simulationCount} detail="Cenários do Gêmeo Digital" />
-          <Metric label="Com atenção" value={alertCount} detail="Itens que exigem análise" status={alertCount ? "warning" : "success"} />
-          <Metric label="Total listado" value={filteredRecords.length} detail="Resultado da busca atual" />
-        </div>
-
         <Section
           title="Registros"
           subtitle="Consulte somente operações e simulações registradas no sistema."
@@ -1122,8 +1142,18 @@ export function TraceabilityPage({
       <Section
         title="Rastreabilidade"
         subtitle="Consulte operações, simulações, logs de acesso e relatórios técnicos do sistema."
+        action={
+          <button
+            className="trace-nav-toggle"
+            aria-label="Abrir submenus de rastreabilidade"
+            title="Submenus"
+            onClick={() => setNavigationOpen(true)}
+          >
+            ☰
+          </button>
+        }
       >
-        {renderTabs()}
+        {renderTraceabilityNavigation()}
 
         {active === "records" && renderRecords()}
         {active === "logs" && renderLogs()}
@@ -1163,3 +1193,4 @@ function ModalBackExport({ onBack, onExport }: { onBack: () => void; onExport: (
     </div>
   );
 }
+
