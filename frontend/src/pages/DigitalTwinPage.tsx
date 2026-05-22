@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+﻿import type { ComponentType } from "react";
 import { useMemo, useState } from "react";
 import { Badge, Chart, Empty, Field, fmt, Metric, Section, Table } from "../components/ui";
 
@@ -47,8 +47,7 @@ const DEFAULT_SCENARIO_FORM = {
   notes: "",
   tank_type: "grande",
   tank_id: 1,
-  hose_id: 1,
-  recipe: "",
+  hose_id: 1, tank_count: 1, recipe: "",
   operator: "Operador TSEA",
   initial_pressure_mbar: 1013,
   target_pressure_mbar: 6.5,
@@ -757,9 +756,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
     );
   }
 
-  function renderSimulation() {
-    const target = result;
-    const componentRows = [
+  function renderSimulation() { const target = result; const tankCount = clampTankCount(scenarioConfig(target)?.tank_count ?? target?.metrics?.tank_count ?? scenarioConfig(selectedScenario)?.tank_count ?? scenarioForm?.tank_count ?? 1); const componentRows = [
     ["Quantidade de tanques", `${tankCount}`, "Escopo da simulação", "Configurado", `${tankCount} ${tankCount === 1 ? "tanque" : "tanques"}`, "Define quantos tanques participam do cenário."],
       ["Bomba primária", "Leybold SOGEVAC SV 630 B", "Evacuação inicial", "Operacional", "640 m³/h", "Base de cálculo do ciclo."],
       ["Bomba Roots", "Leybold RUVAC WSU 2001", "Reforço do vácuo", target?.metrics?.final_real_pressure_mbar <= scenarioConfig(target)?.secondary_start_pressure_mbar ? "Liberada" : "Condicionada", fmt(scenarioConfig(target)?.secondary_start_pressure_mbar, "mbar"), "Entrada depende da faixa segura."],
@@ -999,3 +996,4 @@ return (
     </div>
   );
 }
+
