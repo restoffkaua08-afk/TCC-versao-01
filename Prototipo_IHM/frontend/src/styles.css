@@ -36,14 +36,13 @@ button {
     linear-gradient(135deg, #cfd4d7, #eef0ee);
 }
 
-.hmi-device {
+.device {
   position: relative;
   width: 1180px;
   min-height: 760px;
   padding: 54px 142px 112px;
   border-radius: 58px 78px 58px 78px;
-  background:
-    linear-gradient(145deg, #f6f7f4, #d5dad6);
+  background: linear-gradient(145deg, #f7f8f5, #d8ded9);
   border: 8px solid #c4cbc6;
   box-shadow:
     0 34px 80px rgba(32, 38, 45, 0.34),
@@ -51,7 +50,7 @@ button {
     inset 0 -18px 38px rgba(40,48,55,0.08);
 }
 
-.device-handle {
+.grip {
   position: absolute;
   top: 56px;
   width: 70px;
@@ -62,15 +61,15 @@ button {
   box-shadow: inset 0 0 14px rgba(0,0,0,0.08);
 }
 
-.left-handle {
+.grip-left {
   left: 32px;
 }
 
-.right-handle {
+.grip-right {
   right: 32px;
 }
 
-.side-led {
+.round-button {
   position: absolute;
   top: 320px;
   width: 58px;
@@ -84,27 +83,27 @@ button {
   box-shadow: inset 0 -6px 12px rgba(0,0,0,0.18), 0 6px 14px rgba(0,0,0,0.16);
 }
 
-.side-led span {
+.round-button span {
   width: 30px;
   height: 30px;
   border-radius: 50%;
   display: block;
 }
 
-.side-led-left {
+.green-button {
   left: 60px;
 }
 
-.side-led-left span {
+.green-button span {
   background: #10b981;
   box-shadow: 0 0 14px rgba(16,185,129,0.9);
 }
 
-.side-led-right {
+.red-button {
   right: 60px;
 }
 
-.side-led-right span {
+.red-button span {
   background: #dc2626;
   box-shadow: 0 0 14px rgba(220,38,38,0.9);
 }
@@ -119,15 +118,15 @@ button {
   color: #34403a;
 }
 
-.left-label {
+.side-left {
   left: 40px;
 }
 
-.right-label {
+.side-right {
   right: 40px;
 }
 
-.hmi-screen {
+.screen {
   position: relative;
   min-height: 588px;
   border: 5px solid #232d34;
@@ -139,7 +138,7 @@ button {
   grid-template-rows: 50px 76px 1fr;
 }
 
-.top-bar {
+.screen-header {
   background: #151b22;
   color: white;
   display: flex;
@@ -149,13 +148,13 @@ button {
   border-bottom: 3px solid #0d1117;
 }
 
-.top-bar strong {
+.screen-header strong {
   display: block;
   font-size: 1rem;
   letter-spacing: 0.03em;
 }
 
-.top-bar span {
+.screen-header span {
   display: block;
   margin-top: 2px;
   font-size: 0.72rem;
@@ -163,7 +162,7 @@ button {
   font-weight: 800;
 }
 
-.menu-btn {
+.menu-button {
   height: 36px;
   border: 2px solid #64748b;
   background: #f8fafc;
@@ -240,13 +239,7 @@ button {
   border-color: #dc2626;
 }
 
-.status-box.info,
-.status-pill.info {
-  background: #f8faf8;
-  border-color: #9aa79e;
-}
-
-.panel-grid {
+.operation-screen {
   padding: 10px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 178px;
@@ -254,7 +247,7 @@ button {
   gap: 10px;
 }
 
-.process-area {
+.process-panel {
   border: 2px solid #b5c0b8;
   background: #ffffff;
   padding: 10px;
@@ -262,14 +255,14 @@ button {
   gap: 10px;
 }
 
-.section-head {
+.panel-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.section-head small,
+.panel-title small,
 .check-card small,
 .record-card small {
   color: #28584a;
@@ -278,13 +271,13 @@ button {
   letter-spacing: 0.08em;
 }
 
-.section-head h1,
+.panel-title h1,
 .record-card h1 {
   margin: 2px 0 0;
   font-size: 1.15rem;
 }
 
-.timer {
+.clock {
   min-width: 94px;
   text-align: center;
   background: #111827;
@@ -295,7 +288,7 @@ button {
   border: 2px solid #374151;
 }
 
-.process-kpis {
+.kpi-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
@@ -324,20 +317,20 @@ button {
   overflow-wrap: anywhere;
 }
 
-.tanks-grid {
+.tank-grid {
   display: grid;
   gap: 8px;
 }
 
-.tanks-1 {
+.tank-grid-1 {
   grid-template-columns: 1fr;
 }
 
-.tanks-2 {
+.tank-grid-2 {
   grid-template-columns: repeat(2, 1fr);
 }
 
-.tanks-3 {
+.tank-grid-3 {
   grid-template-columns: repeat(3, 1fr);
 }
 
@@ -418,12 +411,12 @@ button {
   gap: 5px;
 }
 
-.command-board {
+.command-panel {
   display: grid;
   gap: 8px;
 }
 
-.button-tile {
+.action-button {
   min-height: 64px;
   border: 3px solid #9aa79e;
   background: #f8faf8;
@@ -435,32 +428,32 @@ button {
   cursor: pointer;
 }
 
-.button-tile span {
+.action-button span {
   font-size: 0.78rem;
 }
 
-.button-tile.primary {
+.action-button.primary {
   background: #28584a;
   color: #ffffff;
   border-color: #173c33;
 }
 
-.lower-board {
+.bottom-panel {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 1fr 1fr 1.1fr 1.5fr;
   gap: 8px;
 }
 
-.pump-box,
-.oil-box,
-.stage-box {
+.pump-card,
+.oil-card,
+.stage-card {
   border: 2px solid #b5c0b8;
   background: #ffffff;
   padding: 9px;
 }
 
-.pump-box {
+.pump-card {
   display: grid;
   grid-template-columns: 68px 1fr;
   gap: 8px;
@@ -482,21 +475,21 @@ button {
   background: #dff2e4;
 }
 
-.pump-box h3,
-.oil-box h3,
-.stage-box h3 {
+.pump-card h3,
+.oil-card h3,
+.stage-card h3 {
   margin: 0 0 5px;
   font-size: 0.88rem;
 }
 
-.pump-box p {
+.pump-card p {
   margin: 2px 0;
   font-size: 0.76rem;
   font-weight: 850;
   color: #475569;
 }
 
-.stage-step {
+.stage-line {
   display: grid;
   grid-template-columns: 24px 1fr;
   gap: 6px;
@@ -506,7 +499,7 @@ button {
   font-weight: 900;
 }
 
-.stage-step span {
+.stage-line span {
   width: 21px;
   height: 21px;
   display: grid;
@@ -517,23 +510,23 @@ button {
   font-size: 0.72rem;
 }
 
-.stage-step.done span {
+.stage-line.done span {
   background: #22c55e;
   color: white;
 }
 
-.stage-step.active {
+.stage-line.active {
   background: #dce8f5;
 }
 
-.stage-step.active span {
+.stage-line.active span {
   background: #2563eb;
   color: white;
 }
 
-.prep-grid,
-.alarm-grid,
-.record-grid {
+.prep-screen,
+.alarm-screen,
+.record-screen {
   padding: 10px;
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
@@ -597,7 +590,7 @@ select {
   border-color: #173c33;
 }
 
-.start-button {
+.start-cycle {
   margin-top: 12px;
   width: 100%;
   min-height: 58px;
@@ -611,7 +604,7 @@ select {
   gap: 10px;
 }
 
-.start-button:disabled {
+.start-cycle:disabled {
   opacity: 0.45;
   filter: grayscale(0.5);
 }
@@ -621,7 +614,7 @@ select {
   gap: 7px;
 }
 
-.check-btn {
+.check-item {
   min-height: 40px;
   border: 2px solid #9aa79e;
   background: #ffffff;
@@ -634,7 +627,7 @@ select {
   cursor: pointer;
 }
 
-.check-btn.checked {
+.check-item.checked {
   border-color: #22c55e;
   background: #dff2e4;
 }
@@ -693,14 +686,14 @@ select {
   padding: 10px;
 }
 
-.record-list {
+.record-grid {
   margin-top: 12px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 
-.bottom-emergency {
+.emergency-button {
   position: absolute;
   left: 50%;
   bottom: 22px;
@@ -822,19 +815,19 @@ select {
 }
 
 @media (max-width: 1180px) {
-  .hmi-device {
+  .device {
     width: 1120px;
   }
 
-  .panel-grid {
+  .operation-screen {
     grid-template-columns: minmax(0, 1fr) 168px;
   }
 
-  .tanks-3 {
+  .tank-grid-3 {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .lower-board {
+  .bottom-panel {
     grid-template-columns: repeat(2, 1fr);
   }
 }
