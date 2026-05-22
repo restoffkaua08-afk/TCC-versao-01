@@ -61,7 +61,7 @@ function TankProcessCard({ item, index }: { item: any; index: number }) {
         <div className="dashboardTankLegend">
           <span><i className="gasDot" />Gás</span>
           <span><i className="pressureDot" />Pressão</span>
-          <span><i className="oilDot" />Óleo</span>
+          <span><i className="oilDot" />B2 simulada</span>
         </div>
       </div>
 
@@ -69,7 +69,7 @@ function TankProcessCard({ item, index }: { item: any; index: number }) {
         <div className="dashboardTankHeader">
           <div>
             <strong>{tank?.code || `Tanque ${index + 1}`}</strong>
-            <span>{tank?.type || "Tanque de processo"}</span>
+            <span>{tank?.type || "Câmara do protótipo"}</span>
           </div>
           <Badge value={status} />
         </div>
@@ -131,7 +131,7 @@ function SensorsOilCard({ state, tanksState }: { state: any; tanksState: any[] }
     <article className="sensorOilCard">
       <div className="sideCardHeader">
         <div>
-          <strong>Sensores e Óleo</strong>
+          <strong>Sensores e B2 simulada</strong>
           <span>Leituras consolidadas do processo</span>
         </div>
         <Badge value={oilEnabled ? "success" : "neutral"} />
@@ -148,11 +148,11 @@ function SensorsOilCard({ state, tanksState }: { state: any; tanksState: any[] }
       </div>
 
       <div className="sensorOilGroup">
-        <h3>Óleo</h3>
+        <h3>B2 simulada</h3>
         <div className="sideReadings">
-          <div><span>Acionamento B2 simulada</span><b>{fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min, "L/min")}</b></div>
-          <div><span>Volume estimado</span><b>{fmt(avgOil, "L")}</b></div>
-          <div><span>Atraso do óleo</span><b>Aguardando</b></div>
+          <div><span>Acionamento B2 simulada</span><b>{fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min, "mbar")}</b></div>
+          <div><span>Pressão estimada no tanque</span><b>{fmt(avgOil, "L")}</b></div>
+          <div><span>Acionamento automático</span><b>Aguardando</b></div>
           <div><span>Status</span><b>{oilEnabled ? "Ativo" : "Inativo"}</b></div>
         </div>
       </div>
@@ -165,13 +165,13 @@ export function DashboardPage({ avgPressure, maxRisk, operations, simulations, s
     <div className="screen dashboardScreen">
       <div className="metricsGrid dashboardMetrics">
         <Metric label="Estado do Ciclo" value={state?.cycle?.status ? statusLabel(state.cycle.status) : "Parado"} status={state?.cycle?.status || "stopped"} />
-        <Metric label="Pressão Média" value={fmt(avgPressure, "mbar")} detail="Tanques monitorados" />
+        <Metric label="Pressão Média" value={fmt(avgPressure, "mbar")} detail="Câmaras monitorados" />
         <Metric label="Risco Máximo" value={fmt(maxRisk, "%")} status={maxRisk >= 82 ? "critical" : maxRisk >= 65 ? "warning" : "success"} />
         <Metric label="Registros" value={(operations.length + simulations.length).toString()} detail="Ciclos + simulações" />
       </div>
 
       <div className="dashboardWorkArea">
-        <Section title="Mapa operacional" subtitle="Tanques de processo organizados por pressão, óleo, risco e mangueira vinculada.">
+        <Section title="Mapa operacional" subtitle="Câmaras de processo organizados por pressão, B2 simulada, risco e mangueira vinculada.">
           <div className="dashboardTankList">
             {tanksState.map((item: any, index: number) => (
               <TankProcessCard key={item?.tank?.id || index} item={item} index={index} />
@@ -183,14 +183,14 @@ export function DashboardPage({ avgPressure, maxRisk, operations, simulations, s
           <PumpCard
             title="Bomba Primária"
             code="B1"
-            model={state?.primary_pump?.model || "Leybold SOGEVAC SV 630 B"}
+            model={state?.primary_pump?.model || "Mini bomba de vácuo do protótipo"}
             running={Boolean(state?.primary_pump?.running)}
             performance={state?.primary_pump?.health_pct ?? 98}
           />
           <PumpCard
             title="Bomba Secundária / Roots"
             code="B2"
-            model={state?.roots_pump?.model || "Leybold RUVAC WSU 2001"}
+            model={state?.roots_pump?.model || "Lâmpada industrial simulando B2"}
             running={Boolean(state?.roots_pump?.running)}
             blocked={!state?.roots_pump?.running}
             performance={state?.roots_pump?.health_pct ?? (state?.roots_pump?.running ? 96 : 0)}

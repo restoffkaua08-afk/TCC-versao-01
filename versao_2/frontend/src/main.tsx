@@ -194,7 +194,7 @@ function TankCard({ item }: { item: any }) {
     <article className={`tankCard ${risk >= 82 ? "riskHigh" : risk >= 65 ? "riskMedium" : "riskLow"}`}>
       <div className="tankTop">
         <div>
-          <strong>{item?.tank?.code || "Tanque de Processo"}</strong>
+          <strong>{item?.tank?.code || "Câmara do protótipo"}</strong>
           <span>{item?.hose?.code || "Mangueira de Vácuo"}</span>
         </div>
         <Badge value={risk >= 82 ? "critical" : risk >= 65 ? "warning" : "success"} />
@@ -210,7 +210,7 @@ function TankCard({ item }: { item: any }) {
         <div className="tankReadings">
           <div><span>Pressão Atual</span><b>{fmt(pressure, "mbar")}</b></div>
           <div><span>Curva Esperada</span><b>{fmt(item?.expected_pressure_mbar, "mbar")}</b></div>
-          <div><span>Volume de Óleo</span><b>{fmt(item?.oil_volume_liters, "L")}</b></div>
+          <div><span>Pressão estimada no tanque</span><b>{fmt(item?.oil_volume_liters, "L")}</b></div>
           <div><span>Risco Estrutural</span><b>{fmt(risk, "%")}</b></div>
           <div><span>Perda na Mangueira</span><b>{fmt(item?.hose_loss_mbar, "mbar")}</b></div>
           <div><span>Sinal</span><b>{item?.status_light || "green"}</b></div>
@@ -220,7 +220,7 @@ function TankCard({ item }: { item: any }) {
       <div className="legend">
         <span><i className="gasDot" />Gás</span>
         <span><i className="pressureDot" />Pressão</span>
-        <span><i className="oilDot" />Óleo</span>
+        <span><i className="oilDot" />B2 simulada</span>
       </div>
     </article>
   );
@@ -272,8 +272,8 @@ function Chart({ points }: { points: any[] }) {
 
 const EQUIPMENT_SPECS = {
   primaryPump: {
-    model: "Leybold SOGEVAC SV 630 B",
-    technology: "Bomba rotativa de palhetas lubrificada a óleo",
+    model: "Mini bomba de vácuo do protótipo",
+    technology: "Bomba rotativa de palhetas lubrificada a B2 simulada",
     nominalSpeed50Hz: "640 m³/h",
     nominalSpeed60Hz: "755 m³/h",
     ultimatePressureNoGasBallast: "≤ 0,08 mbar",
@@ -285,8 +285,8 @@ const EQUIPMENT_SPECS = {
     role: "Bomba de apoio responsável pela evacuação inicial e sustentação do conjunto bomba secundária."
   },
   rootsPump: {
-    model: "Leybold RUVAC WSU 2001",
-    technology: "Bomba secundária com motor blindado refrigerado a ar",
+    model: "Lâmpada industrial simulando B2",
+    technology: "B2 simulada com motor blindado refrigerado a ar",
     nominalSpeed50Hz: "2050 m³/h",
     nominalSpeed60Hz: "2460 m³/h",
     effectiveSpeedWithSogevac50Hz: "1850 m³/h",
@@ -317,7 +317,7 @@ function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
       EQUIPMENT_SPECS.primaryPump.role
     ],
     [
-      <b>Bomba secundária</b>,
+      <b>B2 simulada</b>,
       EQUIPMENT_SPECS.rootsPump.model,
       state?.roots_pump?.running ? "Ligada" : "Intertravada",
       state?.roots_pump?.running ? "96%" : "Aguardando faixa",
@@ -334,7 +334,7 @@ function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
 
     return [
       <b>{tank?.code || item?.code || `TQ-${index + 1}`}</b>,
-      tank?.type || item?.type || "Tanque de processo",
+      tank?.type || item?.type || "Câmara do protótipo",
       fmt(pressure, "mbar"),
       fmt(oil, "L"),
       fmt(risk, "%"),
@@ -372,8 +372,8 @@ function ComponentHealthPanel({ state, allTanks, allHoses }: any) {
         <Table columns={["Componente", "Identificação", "Status", "Desempenho (%)", "Leitura (unidade do sensor) técnica", "Função no processo"]} rows={pumpRows} />
       </Section>
 
-      <Section title="Tanques do processo" subtitle="Leitura (unidade do sensor)s numéricas dos tanques usados no ciclo.">
-        <Table columns={["Tanque", "Tipo", "Pressão", "Óleo", "Risco", "Status"]} rows={tankRows} />
+      <Section title="Câmaras do processo" subtitle="Leitura (unidade do sensor)s numéricas dos câmaras usados no ciclo.">
+        <Table columns={["Tanque", "Tipo", "Pressão", "B2 simulada", "Risco", "Status"]} rows={tankRows} />
       </Section>
 
       <Section title="Mangueiras de vácuo" subtitle="Componentes de ligação entre bombas, tanque e processo.">
@@ -412,18 +412,18 @@ function SimulationTraceability({ result, state, selectedScenario, hoses, tanks,
 
   const componentRows = [
     [<b>Bomba primária</b>, EQUIPMENT_SPECS.primaryPump.model, state?.primary_pump?.running ? "Ligada" : "Pronta", "98%", EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz, EQUIPMENT_SPECS.primaryPump.role],
-    [<b>Bomba secundária</b>, EQUIPMENT_SPECS.rootsPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", EQUIPMENT_SPECS.rootsPump.nominalSpeed50Hz, "Acionamento condicionado à pressão segura."],
+    [<b>B2 simulada</b>, EQUIPMENT_SPECS.rootsPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", EQUIPMENT_SPECS.rootsPump.nominalSpeed50Hz, "Acionamento condicionado à pressão segura."],
     [<b>Mangueira de vácuo</b>, selectedHose?.code || `MG-${config?.hose_id || "--"}`, hoseLoss > 1 ? "Perda elevada" : "Operacional", fmt(Math.max(70, 100 - hoseLoss * 12), "%"), `Fator ${fmt(hoseLoss)}`, "Perda de carga e restrição de fluxo."],
-    [<b>Tanque de processo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressão efetiva."],
+    [<b>Câmara do protótipo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressão efetiva."],
     [<b>Sensor de pressão</b>, `SP-${selectedTank?.code || "SIM"}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", fmt(finalPressure, "mbar"), "Mede pressão do tanque e alimenta diagnóstico."],
-    [<b>B2 simulada / lâmpada</b>, "Acionamento B2 simulada", oilFlow < 1.5 ? "Vazão baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "L/min"), "Afeta vedação, estabilidade da curva e proteção do conjunto."]
+    [<b>B2 simulada / lâmpada</b>, "Acionamento B2 simulada", oilFlow < 1.5 ? "Vazão baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "mbar"), "Afeta vedação, estabilidade da curva e proteção do conjunto."]
   ];
 
   const actionRows = [
     [<b>Preparação</b>, "Parâmetros carregados", selectedTank?.code || config?.tank_type || "--", selectedHose?.code || `MG-${config?.hose_id || "--"}`, "Configuração aplicada ao ciclo simulado."],
     [<b>Evacuação inicial</b>, "Bomba primária em atuação", fmt(estimatedTime * 0.35, "s"), fmt(finalPressure, "mbar"), "Redução inicial da pressão no tanque."],
     [<b>Acionamento da bomba secundária</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar, "mbar"), "Intertravamento", "A bomba secundária só entra em faixa segura."],
-    [<b>Acionamento B2 simulada</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "L/min"), "Vedação", "Condição usada para estabilidade e risco."],
+    [<b>Acionamento B2 simulada</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "mbar"), "Vedação", "Condição usada para estabilidade e risco."],
     [<b>Fechamento</b>, simulationStatus, fmt(risk, "%"), "Resultado", result.recommendation || "Sem recomendação adicional."]
   ];
 
@@ -483,8 +483,8 @@ function tseaWriteStorage(key: string, value: unknown) {
 const TSEA_EQUIPMENT_SPECS = {
   primaryPump: {
     label: "Bomba primária",
-    model: "Leybold SOGEVAC SV 630 B",
-    technology: "Bomba rotativa de palhetas lubrificada a óleo",
+    model: "Mini bomba de vácuo do protótipo",
+    technology: "Bomba rotativa de palhetas lubrificada a B2 simulada",
     nominalSpeed50Hz: "640 m³/h",
     nominalSpeed60Hz: "755 m³/h",
     ultimatePressureNoGasBallast: "≤ 0,08 mbar",
@@ -495,9 +495,9 @@ const TSEA_EQUIPMENT_SPECS = {
     role: "Evacuação inicial e sustentação do conjunto de vácuo."
   },
   secondaryPump: {
-    label: "Bomba secundária",
-    model: "Leybold RUVAC WSU 2001",
-    technology: "Bomba secundária tipo bomba secundária com motor blindado refrigerado a ar",
+    label: "B2 simulada",
+    model: "Lâmpada industrial simulando B2",
+    technology: "B2 simulada tipo bomba secundária com motor blindado refrigerado a ar",
     nominalSpeed50Hz: "2050 m³/h",
     nominalSpeed60Hz: "2460 m³/h",
     effectiveSpeedWithSogevac50Hz: "1850 m³/h",
@@ -549,7 +549,7 @@ function tseaBuildSimulationResult(config: any, state: any, hoses: any[], tanks:
   const recommendation = status === "success"
     ? "Manter parâmetros e registrar o cenário como referência operacional."
     : status === "warning"
-      ? "Revisar mangueira, vazão de óleo, sensores e condição das bombas antes da execução real."
+      ? "Revisar mangueira, vazão de B2 simulada, sensores e condição das bombas antes da execução real."
       : "Bloquear execução, revisar vedação, mangueira, bomba secundária, sensores e limites estruturais.";
 
   const timeline = Array.from({ length: 18 }).map((_, index) => {
@@ -617,7 +617,7 @@ function TseaComponentHealthPanel({ state, allTanks, allHoses }: any) {
 
     return [
       <b>{tank?.code || item?.code || `TQ-${index + 1}`}</b>,
-      tank?.type || item?.type || "Tanque de processo",
+      tank?.type || item?.type || "Câmara do protótipo",
       fmt(pressure, "mbar"),
       fmt(oil, "L"),
       fmt(risk, "%"),
@@ -655,8 +655,8 @@ function TseaComponentHealthPanel({ state, allTanks, allHoses }: any) {
         <Table columns={["Componente", "Identificação", "Status", "Desempenho (%)", "Leitura (unidade do sensor) técnica", "Função no processo"]} rows={pumpRows} />
       </Section>
 
-      <Section title="Tanques do processo" subtitle="Leitura (unidade do sensor)s numéricas dos tanques usados no ciclo.">
-        <Table columns={["Tanque", "Tipo", "Pressão", "Óleo", "Risco", "Status"]} rows={tankRows} />
+      <Section title="Câmaras do processo" subtitle="Leitura (unidade do sensor)s numéricas dos câmaras usados no ciclo.">
+        <Table columns={["Tanque", "Tipo", "Pressão", "B2 simulada", "Risco", "Status"]} rows={tankRows} />
       </Section>
 
       <Section title="Mangueiras de vácuo" subtitle="Componentes de ligação entre bombas, tanque e processo.">
@@ -692,18 +692,18 @@ function TseaSimulationTraceability({ result, state, hoses, tanks }: any) {
 
   const componentRows = [
     [<b>Bomba primária</b>, TSEA_EQUIPMENT_SPECS.primaryPump.model, state?.primary_pump?.running ? "Ligada" : "Pronta", "98%", TSEA_EQUIPMENT_SPECS.primaryPump.nominalSpeed50Hz, TSEA_EQUIPMENT_SPECS.primaryPump.role],
-    [<b>Bomba secundária</b>, TSEA_EQUIPMENT_SPECS.secondaryPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", TSEA_EQUIPMENT_SPECS.secondaryPump.nominalSpeed50Hz, "Acionamento condicionado à pressão segura."],
+    [<b>B2 simulada</b>, TSEA_EQUIPMENT_SPECS.secondaryPump.model, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberada" : "Bloqueada", finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "96%" : "Aguardando faixa", TSEA_EQUIPMENT_SPECS.secondaryPump.nominalSpeed50Hz, "Acionamento condicionado à pressão segura."],
     [<b>Mangueira de vácuo</b>, selectedHose?.code || `MG-${config?.hose_id || "--"}`, hoseLoss > 1 ? "Perda elevada" : "Operacional", fmt(Math.max(70, 100 - hoseLoss * 12), "%"), `Fator ${fmt(hoseLoss)}`, "Perda de carga e restrição de fluxo."],
-    [<b>Tanque de processo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressão efetiva."],
+    [<b>Câmara do protótipo</b>, selectedTank?.code || config?.tank_type || "Tanque simulado", risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional", fmt(Math.max(55, 100 - risk * 0.45), "%"), fmt(risk, "%"), "Margem estrutural e pressão efetiva."],
     [<b>Sensor de pressão</b>, `SP-${selectedTank?.code || "SIM"}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", fmt(finalPressure, "mbar"), "Mede pressão do tanque e alimenta diagnóstico."],
-    [<b>B2 simulada / lâmpada</b>, "Acionamento B2 simulada", oilFlow < 1.5 ? "Vazão baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "L/min"), "Afeta vedação, estabilidade da curva e proteção do conjunto."]
+    [<b>B2 simulada / lâmpada</b>, "Acionamento B2 simulada", oilFlow < 1.5 ? "Vazão baixa" : "Operacional", fmt(Math.min(100, Math.max(40, oilFlow * 45)), "%"), fmt(oilFlow, "mbar"), "Afeta vedação, estabilidade da curva e proteção do conjunto."]
   ];
 
   const actionRows = [
     [<b>Preparação</b>, "Parâmetros carregados", selectedTank?.code || config?.tank_type || "--", selectedHose?.code || `MG-${config?.hose_id || "--"}`, "Configuração aplicada ao ciclo simulado."],
     [<b>Evacuação inicial</b>, "Bomba primária em atuação", fmt(estimatedTime * 0.35, "s"), fmt(finalPressure, "mbar"), "Redução inicial da pressão no tanque."],
     [<b>Acionamento da bomba secundária</b>, finalPressure <= Number(config?.roots_start_pressure_mbar || 50) ? "Liberado" : "Bloqueado", fmt(config?.roots_start_pressure_mbar || 50, "mbar"), "Intertravamento", "A bomba secundária só entra em faixa segura."],
-    [<b>Acionamento B2 simulada</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "L/min"), "Vedação", "Condição usada para estabilidade e risco."],
+    [<b>Acionamento B2 simulada</b>, oilFlow < 1.5 ? "Insuficiente" : "Normal", fmt(oilFlow, "mbar"), "Vedação", "Condição usada para estabilidade e risco."],
     [<b>Fechamento</b>, simulationStatus, fmt(risk, "%"), "Resultado", result.recommendation || "Sem recomendação adicional."]
   ];
 
@@ -753,8 +753,8 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
     },
     {
       id: "base-produtivo",
-      name: "Reguladores TSEA - Vácuo com óleo",
-      description: "Cenário operacional padrão para reguladores com injeção de óleo.",
+      name: "Reguladores TSEA - Vácuo com B2 simulada",
+      description: "Cenário operacional padrão para reguladores com injeção de B2 simulada.",
       config: { tank_type: "grande", hose_id: 1, target_pressure_mbar: 6.5, roots_start_pressure_mbar: 50, oil_flow_l_min: 2, max_cycle_seconds: 900, pump_health_factor: 1 }
     },
     {
@@ -825,7 +825,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
             <div className="scenarioMeta">
               <small>Tanque: {scenario.config?.tank_type || "--"}</small>
               <small>Mangueira: {scenario.config?.hose_id || "--"}</small>
-              <small>Óleo: {fmt(scenario.config?.oil_flow_l_min, "L/min")}</small>
+              <small>B2 simulada: {fmt(scenario.config?.oil_flow_l_min, "mbar")}</small>
             </div>
             <button onClick={() => runScenario(scenario)}>Simular</button>
           </article>
@@ -882,7 +882,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
               <input type="number" value={form.roots_start_pressure_mbar} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: Number(e.target.value) })} />
             </Field>
 
-            <Field label="Acionamento B2 simulada (L/min)">
+            <Field label="Acionamento B2 simulada (mbar)">
               <input type="number" value={form.oil_flow_l_min} onChange={(e) => setForm({ ...form, oil_flow_l_min: Number(e.target.value) })} />
             </Field>
 
@@ -1007,8 +1007,8 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
     },
     {
       id: "base-produtivo",
-      name: "Reguladores TSEA com óleo",
-      description: "Ciclo operacional padrão para reguladores com injeção de óleo.",
+      name: "Reguladores TSEA com B2 simulada",
+      description: "Ciclo operacional padrão para reguladores com injeção de B2 simulada.",
       tag: "Produção",
       config: {
         tank_type: "grande",
@@ -1153,7 +1153,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
     const diagnosis = status === "success"
       ? "Simulação aprovada. O ciclo mantém margem operacional aceitável."
       : status === "warning"
-        ? "Simulação aprovada com restrição. Existe tendência de perda, atraso de óleo, falha simulada ou redução de margem."
+        ? "Simulação aprovada com restrição. Existe tendência de perda, atraso de B2 simulada, falha simulada ou redução de margem."
         : "Simulação reprovada. O ciclo apresenta risco elevado e não deve ser liberado sem revisão.";
 
     const probableCause = status === "success"
@@ -1161,9 +1161,9 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
       : risk >= 82 && config?.simulate_hose_leak
         ? "Perda simulada na mangueira elevou o risco e prejudicou a estabilidade do ciclo."
         : oilFlow < 1.5
-          ? "Acionamento B2 simulada (L/min) insuficiente reduziu a estabilidade e aumentou risco operacional."
+          ? "Acionamento B2 simulada (mbar) insuficiente reduziu a estabilidade e aumentou risco operacional."
           : !secondaryReleased
-            ? "Bomba secundária permaneceu bloqueada pela pressão fora da faixa segura."
+            ? "B2 simulada permaneceu bloqueada pela pressão fora da faixa segura."
             : config?.simulate_sensor_failure
               ? "Falha simulada no sensor comprometeu a confiabilidade da leitura."
               : "Conjunto de perdas e degradação de desempenho elevou o risco.";
@@ -1171,7 +1171,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
     const recommendation = status === "success"
       ? "Manter parâmetros e registrar o cenário como referência operacional."
       : status === "warning"
-        ? "Revisar mangueira, vazão de óleo, sensores e saúde das bombas antes da execução real."
+        ? "Revisar mangueira, vazão de B2 simulada, sensores e saúde das bombas antes da execução real."
         : "Bloquear execução, revisar vedação, mangueira, sensores, bomba primária e bomba secundária.";
 
     const timeline = Array.from({ length: 22 }).map((_, index) => {
@@ -1188,22 +1188,22 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         effective_pressure_mbar: effective,
         collapse_risk_pct: Math.round(risk * step),
         hose_loss_mbar: hoseLoss,
-        event: step === 0 ? "Início" : step > 0.32 && step < 0.38 ? "Bomba secundária" : step > 0.46 && step < 0.52 ? "Óleo" : ""
+        event: step === 0 ? "Início" : step > 0.32 && step < 0.38 ? "B2 simulada" : step > 0.46 && step < 0.52 ? "B2 simulada" : ""
       };
     });
 
     const components = [
       {
         type: "Bomba primária",
-        id: "Leybold SOGEVAC SV 630 B",
+        id: "Mini bomba de vácuo do protótipo",
         status: "Operacional",
         performance: fmt(primaryHealth * 100, "%"),
         reading: "640 m³/h",
         impact: "Evacuação inicial e sustentação do vácuo."
       },
       {
-        type: "Bomba secundária",
-        id: "Leybold RUVAC WSU 2001",
+        type: "B2 simulada",
+        id: "Lâmpada industrial simulando B2",
         status: secondaryReleased ? "Liberada" : "Bloqueada",
         performance: secondaryReleased ? fmt(secondaryHealth * 100, "%") : "Aguardando faixa",
         reading: `${fmt(secondaryStart, "mbar")} liberação`,
@@ -1218,7 +1218,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         impact: "Perda de carga, restrição de fluxo e tempo de ciclo."
       },
       {
-        type: "Tanque de processo",
+        type: "Câmara do protótipo",
         id: tank?.code || tank?.codigo || config?.tank_type || "Tanque simulado",
         status: risk >= 82 ? "Crítico" : risk >= 65 ? "Atenção" : "Operacional",
         performance: fmt(Math.max(45, 100 - risk * 0.42), "%"),
@@ -1238,7 +1238,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         id: "Acionamento B2 simulada",
         status: oilFlow < 1.5 ? "Vazão baixa" : "Operacional",
         performance: fmt(Math.max(40, Math.min(100, oilFlow * 45)), "%"),
-        reading: `${fmt(oilFlow, "L/min")} · atraso ${fmt(oilDelay, "s")}`,
+        reading: `${fmt(oilFlow, "mbar")} · atraso ${fmt(oilDelay, "s")}`,
         impact: "Vedação, estabilidade e proteção do conjunto."
       }
     ];
@@ -1247,7 +1247,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
       { step: "Preparação", status: "Concluída", ref: scenarioName, log: "Parâmetros carregados e componentes vinculados." },
       { step: "Evacuação inicial", status: "Concluída", ref: "Bomba primária", log: "Redução inicial da pressão no tanque." },
       { step: "Acionamento da bomba secundária", status: secondaryReleased ? "Liberado" : "Bloqueado", ref: `${fmt(secondaryStart, "mbar")}`, log: "Intertravamento avaliado pela pressão segura." },
-      { step: "Acionamento B2 simulada", status: oilFlow < 1.5 ? "Restrição" : "Normal", ref: `${fmt(oilFlow, "L/min")}`, log: "Condição aplicada ao cálculo de estabilidade." },
+      { step: "Acionamento B2 simulada", status: oilFlow < 1.5 ? "Restrição" : "Normal", ref: `${fmt(oilFlow, "mbar")}`, log: "Condição aplicada ao cálculo de estabilidade." },
       { step: "Diagnóstico final", status: status === "success" ? "Aprovado" : status === "warning" ? "Atenção" : "Reprovado", ref: `${fmt(risk, "%")}`, log: recommendation }
     ];
 
@@ -1331,7 +1331,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
           <span>Tanque: {config.tank_type || "--"}</span>
           <span>Mangueira: {config.hose_id || "--"}</span>
           <span>Pressão: {fmt(config.target_pressure_mbar, "mbar")}</span>
-          <span>Óleo: {fmt(config.oil_flow_l_min, "L/min")}</span>
+          <span>B2 simulada: {fmt(config.oil_flow_l_min, "mbar")}</span>
         </div>
 
         <div className="twinScenarioActions">
@@ -1391,11 +1391,11 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
           <input type="number" value={data.secondary_start_pressure_mbar ?? 50} onChange={(e) => setData({ ...data, secondary_start_pressure_mbar: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Acionamento B2 simulada (L/min)">
+        <Field label="Acionamento B2 simulada (mbar)">
           <input type="number" value={data.oil_flow_l_min ?? 2} onChange={(e) => setData({ ...data, oil_flow_l_min: Number(e.target.value) })} />
         </Field>
 
-        <Field label="Atraso do óleo (s)">
+        <Field label="Acionamento automático (s)">
           <input type="number" value={data.oil_delay_seconds ?? 0} onChange={(e) => setData({ ...data, oil_delay_seconds: Number(e.target.value) })} />
         </Field>
 
@@ -1478,7 +1478,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
         <div className="traceHeader">
           <div>
             <h3>Rastreabilidade da simulação</h3>
-            <p>Registro por máquina, peça, sensor, mangueira, óleo e ação simulada.</p>
+            <p>Registro por máquina, peça, sensor, mangueira, B2 simulada e ação simulada.</p>
           </div>
           <Badge value={target.status} />
         </div>
@@ -1559,7 +1559,7 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
       {tab === "create" && (
         <div className="twin10Panel">
           <h3>Criar cenário de teste</h3>
-          <p>Monte um cenário com tanque, mangueira, pressão, óleo, saúde das bombas e falhas simuladas.</p>
+          <p>Monte um cenário com tanque, mangueira, pressão, B2 simulada, saúde das bombas e falhas simuladas.</p>
 
           {renderConfigForm(form, setForm, true)}
           {renderChecks(form, setForm)}
@@ -1639,8 +1639,8 @@ function TseaDigitalTwin10({ state, allTanks, allHoses }: any) {
 <Table
             columns={["Sistema", "Modelo", "Dado técnico", "Função"]}
             rows={[
-              ["Bomba primária", "Leybold SOGEVAC SV 630 B", "640 m³/h · ≤ 0,08 mbar · 20 L óleo · 15 kW", "Evacuação inicial e sustentação do vácuo."],
-              ["Bomba secundária", "Leybold RUVAC WSU 2001", "2050 m³/h · < 4 × 10⁻² mbar · ΔP 50 mbar", "Reforço após faixa segura de pressão."],
+              ["Bomba primária", "Mini bomba de vácuo do protótipo", "640 m³/h · ≤ 0,08 mbar · 20 L B2 simulada · 15 kW", "Evacuação inicial e sustentação do vácuo."],
+              ["B2 simulada", "Lâmpada industrial simulando B2", "2050 m³/h · < 4 × 10⁻² mbar · ΔP 50 mbar", "Reforço após faixa segura de pressão."],
               ["Mangueira", "MG-VAC", "Comprimento (m), diâmetro e fator de perda", "Impacta perda de carga e tempo de ciclo."],
               ["Tanque", "TQ-REG", "Volume, pressão final e limite estrutural", "Base para cálculo de risco e margem."],
               ["Sensor", "SP-TQ", "Pressão, status e confiabilidade", "Alimenta diagnóstico e rastreabilidade."]
@@ -1941,12 +1941,12 @@ function tseaHRComponentRows(record: any, allTanks: any[], allHoses: any[]) {
   const pressure = record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || config?.target_pressure_mbar || config?.pressaoFinal || "--";
 
   return [
-    ["Bomba primária", "Leybold SOGEVAC SV 630 B", "Operacional", "98%", "640 m³/h", "Evacuação inicial e sustentação do vácuo."],
-    ["Bomba secundária", "Leybold RUVAC WSU 2001", "Conforme intertravamento", "96%", "2050 m³/h", "Reforço do vácuo após faixa segura."],
+    ["Bomba primária", "Mini bomba de vácuo do protótipo", "Operacional", "98%", "640 m³/h", "Evacuação inicial e sustentação do vácuo."],
+    ["B2 simulada", "Lâmpada industrial simulando B2", "Conforme intertravamento", "96%", "2050 m³/h", "Reforço do vácuo após faixa segura."],
     ["Mangueira de vácuo", hoseCode, "Operacional", "Conforme fator de perda", String(config?.hose_loss_factor || config?.loss_factor || record?.metrics?.hose_loss_factor || "--"), "Perda de carga e ligação entre bomba/tanque."],
-    ["Tanque de processo", tankCode, tseaHRStatusLabel(record?.status), "--", tseaHRNumber(pressure, "mbar"), "Volume, pressão e margem estrutural."],
+    ["Câmara do protótipo", tankCode, tseaHRStatusLabel(record?.status), "--", tseaHRNumber(pressure, "mbar"), "Volume, pressão e margem estrutural."],
     ["Sensor de pressão", `SP-${tankCode}`, config?.simulate_sensor_failure ? "Falha simulada" : "Online", config?.simulate_sensor_failure ? "35%" : "98%", tseaHRNumber(pressure, "mbar"), "Leitura (unidade do sensor) usada no controle e rastreabilidade."],
-    ["B2 simulada / lâmpada", "Acionamento B2 simulada", Number(config?.oil_flow_l_min || config?.vazaoOleo || 2) < 1.5 ? "Vazão baixa" : "Operacional", "--", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min || 2, "L/min"), "Vedação, estabilidade e proteção do conjunto."]
+    ["B2 simulada / lâmpada", "Acionamento B2 simulada", Number(config?.oil_flow_l_min || config?.vazaoOleo || 2) < 1.5 ? "Vazão baixa" : "Operacional", "--", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min || 2, "mbar"), "Vedação, estabilidade e proteção do conjunto."]
   ];
 }
 
@@ -1986,7 +1986,7 @@ function tseaHRInfoRows(record: any) {
     ["Pressão final (mbar)", tseaHRNumber(record?.pressure || record?.pressaoFinal || record?.metrics?.final_real_pressure_mbar || config?.target_pressure_mbar || config?.pressaoFinal, "mbar")],
     ["Tempo estimado (s)", tseaHRNumber(record?.duration || record?.metrics?.estimated_time_seconds || config?.max_cycle_seconds, "s")],
     ["Risco máximo (%)", tseaHRNumber(record?.metrics?.max_collapse_risk_pct || record?.metrics?.risco, "%")],
-    ["Acionamento B2 simulada (L/min)", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min, "L/min")],
+    ["Acionamento B2 simulada (mbar)", tseaHRNumber(config?.oil_flow_l_min || config?.vazaoOleo || record?.metrics?.oil_flow_l_min, "mbar")],
     ["Status", tseaHRStatusLabel(record?.status)],
     ["Diagnóstico", record?.diagnosis || record?.diagnostico || "--"],
     ["Recomendação", record?.recommendation || record?.recomendacao || "--"]
@@ -2047,7 +2047,7 @@ function tseaHRBuildWordRecord(record: any, kind: string, allTanks: any[], allHo
       <h1>6. Conclusão técnica</h1>
       <p>
         O registro apresenta rastreabilidade dos principais componentes envolvidos no processo de vácuo,
-        incluindo bombas, mangueira, tanque, sensores e sistema de óleo. As informações consolidadas permitem
+        incluindo bombas, mangueira, tanque, sensores e sistema de B2 simulada. As informações consolidadas permitem
         análise operacional, investigação de falhas, padronização de procedimentos e suporte à tomada de decisão técnica.
       </p>
     </div>
@@ -2461,9 +2461,9 @@ function TseaReportsMenuV2({ operations = [], state, allTanks = [], allHoses = [
 function TseaTechnicalReferenceTables() {
   const unitRows = [
     ["mbar", "Pressão / vácuo", "Usado em pressão atual, pressão final, pressão de acionamento e limite estrutural."],
-    ["s", "Tempo em segundos", "Usado em atraso do óleo, tempo máximo, tempo estimado e duração do ciclo."],
-    ["L/min", "Acionamento B2 simulada", "Indica o volume de óleo aplicado por minuto no processo."],
-    ["L", "Volume", "Quantidade de óleo registrada no tanque ou no sistema."],
+    ["s", "Tempo em segundos", "Usado em atraso do B2 simulada, tempo máximo, tempo estimado e duração do ciclo."],
+    ["mbar", "Acionamento B2 simulada", "Indica o volume de B2 simulada aplicado por minuto no processo."],
+    ["L", "Volume", "Quantidade de B2 simulada registrada no tanque ou no sistema."],
     ["%", "Percentual", "Usado em risco, desempenho, eficiência, desvio e margem de erro."],
     ["0 a 1", "Saúde relativa", "Escala de condição do equipamento. Valor 1 indica condição ideal."],
     ["m", "Comprimento", "Comprimento da mangueira."],
@@ -2476,8 +2476,8 @@ function TseaTechnicalReferenceTables() {
   const parameterRows = [
     ["Pressão final", "Valor alvo de vácuo ou pressão ao final do ciclo.", "mbar"],
     ["Tempo estimado", "Tempo previsto para conclusão da operação.", "s"],
-    ["Atraso do óleo", "Intervalo considerado antes da estabilização/atuação do óleo no processo.", "s"],
-    ["Acionamento B2 simulada", "Fluxo de óleo aplicado durante a operação.", "L/min"],
+    ["Acionamento automático", "Intervalo considerado antes da estabilização/atuação do B2 simulada no processo.", "s"],
+    ["Acionamento B2 simulada", "Fluxo de B2 simulada aplicado durante a operação.", "mbar"],
     ["Saúde da bomba", "Indicador relativo da condição operacional da bomba.", "0 a 1"],
     ["Fator de perda da mangueira", "Multiplicador usado para representar perda de eficiência pela mangueira.", "multiplicador"],
     ["Risco operacional", "Índice técnico usado para representar criticidade da operação.", "%"],
@@ -2490,7 +2490,7 @@ function TseaTechnicalReferenceTables() {
     ["Faixa de atenção", "margem < desvio ≤ 2 × margem", "Status Atenção / semáforo amarelo."],
     ["Faixa crítica", "desvio > 2 × margem", "Status Crítico / semáforo vermelho."],
     ["Status geral", "se qualquer parâmetro essencial for crítico, o processo fica crítico", "Regra conservadora para segurança operacional."],
-    ["Aplicação futura", "pressão, tempo, vazão de óleo, sensor e desempenho das bombas", "A margem de erro poderá padronizar os alertas do sistema e do semáforo físico."]
+    ["Aplicação futura", "pressão, tempo, vazão de B2 simulada, sensor e desempenho das bombas", "A margem de erro poderá padronizar os alertas do sistema e do semáforo físico."]
   ];
 
   return (
@@ -2771,8 +2771,8 @@ function App() {
 
     let answer = `Estado atual: ${status}. Risco máximo (%): ${fmt(risk, "%")}. Pressão final (mbar): ${fmt(pressure, "mbar")}.`;
 
-    if (q.includes("óleo") || q.includes("oleo")) {
-      answer += " Verifique vazão de injeção, atraso de entrada e compensação de óleo. Baixa vazão ou atraso elevam a carga estrutural.";
+    if (q.includes("B2 simulada") || q.includes("oleo")) {
+      answer += " Verifique vazão de injeção, atraso de entrada e compensação de B2 simulada. Baixa vazão ou atraso elevam a carga estrutural.";
     } else if (q.includes("mangueira") || q.includes("mangueira")) {
       answer += " Verifique comprimento, diâmetro e fator de perda da mangueira de vácuo. Perda elevada altera a curva esperada.";
     } else if (q.includes("roots") || q.includes("bomba")) {
@@ -2780,7 +2780,7 @@ function App() {
     } else if (q.includes("risco")) {
       answer += " O índice de risco deve ser comparado ao limite estrutural definido para o tanque e à margem operacional de segurança.";
     } else {
-      answer += " Analise curva esperada, curva real/simulada, mangueira de vácuo, óleo e acionamento da bomba secundária antes de liberar a execução.";
+      answer += " Analise curva esperada, curva real/simulada, mangueira de vácuo, B2 simulada e acionamento da bomba secundária antes de liberar a execução.";
     }
 
     setAssistantAnswer(answer);

@@ -19,17 +19,17 @@ function clampTankCount(value: unknown) {
   return Math.max(1, Math.min(3, Math.round(numeric)));
 }
 
-function TankQuantityStrip({ count, label = "Tanques configurados" }: { count: number; label?: string }) {
+function TankQuantityStrip({ count, label = "Câmaras configurados" }: { count: number; label?: string }) {
   const normalized = clampTankCount(count);
 
   return (
     <div className="tank-count-strip">
       <div>
         <span>{label}</span>
-        <strong>{normalized} {normalized === 1 ? "tanque" : "tanques"}</strong>
+        <strong>{normalized} {normalized === 1 ? "tanque" : "câmaras"}</strong>
       </div>
 
-      <div className="tank-count-icons" aria-label="Quantidade de tanques">
+      <div className="tank-count-icons" aria-label="Quantidade de câmaras">
         {Array.from({ length: normalized }).map((_, index) => (
           <span key={index}>T{index + 1}</span>
         ))}
@@ -112,16 +112,16 @@ function scenarioRows(scenario: any) {
     ["Categoria", scenario?.category || scenario?.tag || config.category || "--"],
     ["Nível de risco esperado", scenario?.expected_risk_level || config.expected_risk_level || "--"],
     ["Tanque", config.tank_type || config.tank_id || "--"],
-    ["Quantidade de tanques", `${clampTankCount(config.tank_count ?? 1)} ${clampTankCount(config.tank_count ?? 1) === 1 ? "tanque" : "tanques"}`],
+    ["Quantidade de câmaras", `${clampTankCount(config.tank_count ?? 1)} ${clampTankCount(config.tank_count ?? 1) === 1 ? "tanque" : "câmaras"}`],
     ["Mangueira", config.hose_id || "--"],
     ["Receita", config.recipe || "--"],
     ["Pressão inicial", fmt(config.initial_pressure_mbar, "mbar")],
     ["Pressão alvo", fmt(config.target_pressure_mbar, "mbar")],
     ["Pressão para acionar bomba Roots", fmt(config.secondary_start_pressure_mbar, "mbar")],
     ["Margem de erro", fmt(config.allowed_error_mbar, "mbar")],
-    ["Acionamento B2 simulada", fmt(config.oil_flow_l_min, "L/min")],
-    ["Volume estimado", fmt(config.estimated_oil_volume_liters, "L")],
-    ["Atraso do óleo", fmt(config.oil_delay_seconds, "s")],
+    ["Acionamento B2 simulada", fmt(config.oil_flow_l_min, "mbar")],
+    ["Pressão estimada no tanque", fmt(config.estimated_oil_volume_liters, "L")],
+    ["Acionamento automático", fmt(config.oil_delay_seconds, "s")],
     ["Condição da bomba", fmt((config.primary_pump_health ?? 1) * 100, "%")],
     ["Perda na mangueira", fmt(config.hose_loss_factor, "fator")],
     ["Falha de sensor", config.simulate_sensor_failure ? "Sim" : "Não"],
@@ -190,8 +190,8 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
     },
     {
       id: "base-produtivo",
-      name: "Reguladores TSEA com óleo",
-      description: "Ciclo operacional padrão para reguladores com injeção de óleo.",
+      name: "Reguladores TSEA com B2 simulada",
+      description: "Ciclo operacional padrão para reguladores com injeção de B2 simulada.",
       category: "Produção",
       expected_risk_level: "Operacional",
       status: "Disponível",
@@ -313,7 +313,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
     const recommendation = status === "success"
       ? "Manter parâmetros e registrar o cenário como referência."
       : status === "warning"
-        ? "Revisar mangueira, óleo, sensores e saúde das bombas antes da execução."
+        ? "Revisar mangueira, B2 simulada, sensores e saúde das bombas antes da execução."
         : "Bloquear execução e revisar parâmetros críticos antes de liberar.";
 
     const timeline = Array.from({ length: 22 }).map((_, index) => {
@@ -332,7 +332,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
 
     const alerts = [
       risk >= 82 ? ["Risco estrutural elevado", "Crítica", "Margem estrutural reduzida", "Bloquear e revisar configuração."] : null,
-      risk >= 65 && risk < 82 ? ["Tendência de atenção", "Atenção", "Perda, óleo ou bomba fora da faixa ideal", "Revisar antes de liberar operação."] : null,
+      risk >= 65 && risk < 82 ? ["Tendência de atenção", "Atenção", "Perda, B2 simulada ou bomba fora da faixa ideal", "Revisar antes de liberar operação."] : null,
       config?.simulate_sensor_failure ? ["Leitura de sensor instável", "Crítica", "Falha simulada de sensor", "Validar sensor e redundância."] : null,
       config?.simulate_hose_leak ? ["Perda na mangueira", "Atenção", "Vazamento simulado", "Inspecionar vedação e conexão."] : null,
     ].filter(Boolean) as any[];
@@ -479,7 +479,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
     const secondaryRunning = Boolean(target && pressure <= Number(config.secondary_start_pressure_mbar || 50));
 
     return (
-      <Section title="Visual operacional da simulação" subtitle="Representação visual dos tanques e bombas considerados no cenário simulado.">
+      <Section title="Visual operacional da simulação" subtitle="Representação visual dos câmaras e bombas considerados no cenário simulado.">
         <div className="dashboardWorkArea twinSimulationVisual">
           <div className="dashboardTankList">
             <article className={`dashboardTankCard ${status}`}>
@@ -492,7 +492,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
                 <div className="dashboardTankLegend">
                   <span><i className="gasDot" />Gás</span>
                   <span><i className="pressureDot" />Pressão</span>
-                  <span><i className="oilDot" />Óleo</span>
+                  <span><i className="oilDot" />B2 simulada</span>
                 </div>
               </div>
 
@@ -533,7 +533,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
                   <strong>Bomba Primária</strong>
                   <Badge value={primaryRunning ? "success" : "neutral"} />
                 </div>
-                <span>Leybold SOGEVAC SV 630 B</span>
+                <span>Mini bomba de vácuo do protótipo</span>
                 <div className="pumpReadings">
                   <div><span>Estado</span><b>{primaryRunning ? "Ligada" : "Em espera"}</b></div>
                   <div><span>Desempenho</span><b>{fmt((config.primary_pump_health ?? 1) * 100, "%")}</b></div>
@@ -553,7 +553,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
                   <strong>Bomba Secundária / Roots</strong>
                   <Badge value={secondaryRunning ? "success" : "warning"} />
                 </div>
-                <span>Leybold RUVAC WSU 2001</span>
+                <span>Lâmpada industrial simulando B2</span>
                 <div className="pumpReadings">
                   <div><span>Estado</span><b>{secondaryRunning ? "Ligada" : "Bloqueada"}</b></div>
                   <div><span>Desempenho</span><b>{fmt((config.secondary_pump_health ?? 1) * 100, "%")}</b></div>
@@ -565,7 +565,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
             <article className="sensorOilCard">
               <div className="sideCardHeader">
                 <div>
-                  <strong>Sensores e Óleo</strong>
+                  <strong>Sensores e B2 simulada</strong>
                   <span>Condições consideradas na simulação</span>
                 </div>
                 <Badge value={target ? "success" : "neutral"} />
@@ -580,11 +580,11 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
                 </div>
               </div>
               <div className="sensorOilGroup">
-                <h3>Óleo</h3>
+                <h3>B2 simulada</h3>
                 <div className="sideReadings">
-                  <div><span>Acionamento B2 simulada</span><b>{fmt(config.oil_flow_l_min, "L/min")}</b></div>
-                  <div><span>Volume estimado</span><b>{fmt(oil, "L")}</b></div>
-                  <div><span>Atraso do óleo</span><b>{fmt(config.oil_delay_seconds, "s")}</b></div>
+                  <div><span>Acionamento B2 simulada</span><b>{fmt(config.oil_flow_l_min, "mbar")}</b></div>
+                  <div><span>Pressão estimada no tanque</span><b>{fmt(oil, "L")}</b></div>
+                  <div><span>Acionamento automático</span><b>{fmt(config.oil_delay_seconds, "s")}</b></div>
                   <div><span>Status</span><b>{Number(config.oil_flow_l_min || 0) > 0 ? "Ativo" : "Aguardando"}</b></div>
                 </div>
               </div>
@@ -630,7 +630,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
   }
 
   function renderScenarioWizard() {
-    const steps = ["Identificação", "Processo", "Pressão", "Óleo", "Condições", "Revisar"];
+    const steps = ["Identificação", "Processo", "Pressão", "B2 simulada", "Condições", "Revisar"];
 
     return (
       <div className="operationWizard">
@@ -664,7 +664,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
               <Field label="Tanque"><select value={scenarioForm.tank_id || allTanks?.[0]?.id || 1} onChange={(e) => setScenarioForm({ ...scenarioForm, tank_id: e.target.value })}>{(allTanks || []).map((tank: any, index: number) => <option key={tank.id || index} value={tank.id || index + 1}>{tank.code || `TQ-${index + 1}`}</option>)}</select></Field>
               <Field label="Tipo de tanque"><input value={scenarioForm.tank_type || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, tank_type: e.target.value })} /></Field>
 
-<Field label="Quantidade de tanques (1 a 3)">
+<Field label="Quantidade de câmaras (1 a 3)">
   <input
     type="number"
     min={1}
@@ -697,12 +697,12 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
 
         {createStep === 4 && (
           <div className="operationStepPanel">
-            <h3>Óleo</h3>
-            <p>Informe vazão, volume estimado e atraso do óleo.</p>
+            <h3>B2 simulada</h3>
+            <p>Informe vazão, volume estimado e atraso do B2 simulada.</p>
             <div className="formGrid">
               <Field label="Acionamento B2 simulada"><input type="number" value={scenarioForm.oil_flow_l_min || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, oil_flow_l_min: Number(e.target.value) })} /></Field>
-              <Field label="Volume estimado"><input type="number" value={scenarioForm.estimated_oil_volume_liters || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, estimated_oil_volume_liters: Number(e.target.value) })} /></Field>
-              <Field label="Atraso do óleo"><input type="number" value={scenarioForm.oil_delay_seconds || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, oil_delay_seconds: Number(e.target.value) })} /></Field>
+              <Field label="Pressão estimada no tanque"><input type="number" value={scenarioForm.estimated_oil_volume_liters || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, estimated_oil_volume_liters: Number(e.target.value) })} /></Field>
+              <Field label="Acionamento automático"><input type="number" value={scenarioForm.oil_delay_seconds || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, oil_delay_seconds: Number(e.target.value) })} /></Field>
             </div>
           </div>
         )}
@@ -757,24 +757,24 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
   }
 
   function renderSimulation() { const target = result; const tankCount = clampTankCount(scenarioConfig(target)?.tank_count ?? target?.metrics?.tank_count ?? scenarioConfig(selectedScenario)?.tank_count ?? scenarioForm?.tank_count ?? 1); const componentRows = [
-    ["Quantidade de tanques", `${tankCount}`, "Escopo da simulação", "Configurado", `${tankCount} ${tankCount === 1 ? "tanque" : "tanques"}`, "Define quantos tanques participam do cenário."],
-      ["Bomba primária", "Leybold SOGEVAC SV 630 B", "Evacuação inicial", "Operacional", "640 m³/h", "Base de cálculo do ciclo."],
-      ["Bomba Roots", "Leybold RUVAC WSU 2001", "Reforço do vácuo", target?.metrics?.final_real_pressure_mbar <= scenarioConfig(target)?.secondary_start_pressure_mbar ? "Liberada" : "Condicionada", fmt(scenarioConfig(target)?.secondary_start_pressure_mbar, "mbar"), "Entrada depende da faixa segura."],
+    ["Quantidade de câmaras", `${tankCount}`, "Escopo da simulação", "Configurado", `${tankCount} ${tankCount === 1 ? "tanque" : "câmaras"}`, "Define quantos câmaras participam do cenário."],
+      ["Bomba primária", "Mini bomba de vácuo do protótipo", "Evacuação inicial", "Operacional", "640 m³/h", "Base de cálculo do ciclo."],
+      ["Lâmpada / B2 simulada", "Lâmpada industrial simulando B2", "Reforço do vácuo", target?.metrics?.final_real_pressure_mbar <= scenarioConfig(target)?.secondary_start_pressure_mbar ? "Liberada" : "Condicionada", fmt(scenarioConfig(target)?.secondary_start_pressure_mbar, "mbar"), "Entrada depende da faixa segura."],
       ["Mangueira", target?.hose?.code || scenarioConfig(target)?.hose_id || "--", "Perda de carga", Number(target?.metrics?.hose_loss_factor || 0) > 1 ? "Atenção" : "Operacional", fmt(target?.metrics?.hose_loss_factor), "Impacta tempo e estabilidade."],
       ["Tanque", target?.tank?.code || scenarioConfig(target)?.tank_type || "--", "Volume e margem", statusText(target?.status), fmt(target?.metrics?.safety_margin_mbar, "mbar"), "Margem estrutural estimada."],
     ];
     const actionRows = [
-    ["Escopo do cenário", "Quantidade de tanques", `${tankCount}`, "Configurado", "Número de tanques usado na simulação."],
+    ["Escopo do cenário", "Quantidade de câmaras", `${tankCount}`, "Configurado", "Número de câmaras usado na simulação."],
       ["Preparação", fmt(scenarioConfig(target)?.target_pressure_mbar, "mbar"), target?.scenario || "--", target ? "Concluída" : "Aguardando", "Parâmetros do cenário carregados."],
       ["Evacuação inicial", "Pressão decrescente", fmt(target?.metrics?.final_real_pressure_mbar, "mbar"), target ? "Simulada" : "Aguardando", "Cálculo baseado em tanque, bomba e perda."],
       ["Acionamento Roots", fmt(scenarioConfig(target)?.secondary_start_pressure_mbar, "mbar"), fmt(target?.metrics?.final_real_pressure_mbar, "mbar"), target ? "Avaliada" : "Aguardando", "Verifica entrada em faixa segura."],
-      ["Acionamento B2 simulada", fmt(scenarioConfig(target)?.oil_flow_l_min, "L/min"), fmt(target?.metrics?.oil_flow_l_min, "L/min"), target ? "Simulada" : "Aguardando", "Afeta vedação e estabilidade."],
+      ["Acionamento B2 simulada", fmt(scenarioConfig(target)?.oil_flow_l_min, "mbar"), fmt(target?.metrics?.oil_flow_l_min, "mbar"), target ? "Simulada" : "Aguardando", "Afeta vedação e estabilidade."],
     ];
     const monitorRows = [
-    ["Quantidade de tanques", `${tankCount}`, `${tankCount}`, "un.", "Configurado"],
+    ["Quantidade de câmaras", `${tankCount}`, `${tankCount}`, "un.", "Configurado"],
       ["Pressão alvo", fmt(scenarioConfig(target)?.target_pressure_mbar, "mbar"), fmt(target?.metrics?.final_real_pressure_mbar, "mbar"), "mbar", target ? statusText(target.status) : "--"],
       ["Tempo de ciclo", fmt(scenarioConfig(target)?.max_cycle_seconds, "s"), fmt(target?.metrics?.estimated_time_seconds, "s"), "s", "Calculado"],
-      ["Óleo", fmt(scenarioConfig(target)?.oil_flow_l_min, "L/min"), fmt(target?.metrics?.oil_flow_l_min, "L/min"), "L/min", "Simulado"],
+      ["B2 simulada", fmt(scenarioConfig(target)?.oil_flow_l_min, "mbar"), fmt(target?.metrics?.oil_flow_l_min, "mbar"), "mbar", "Simulado"],
       ["Risco", scenarioConfig(target)?.expected_risk_level || "--", fmt(target?.metrics?.max_collapse_risk_pct, "%"), "%", target ? statusText(target.status) : "--"],
     ];
     const alertRows = target?.alerts?.length ? target.alerts : [["Sem alerta ativo", "Operacional", "Parâmetros dentro da faixa", "Registrar simulação."]];
@@ -800,13 +800,13 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
         <Section title="Etapas simuladas" subtitle="Evolução prevista do ciclo e situação por etapa.">
           <Table columns={["Etapa", "Valor esperado", "Valor simulado", "Situação", "Observação"]} rows={actionRows} />
         </Section>
-        <Section title="Monitoramento de pressão e óleo" subtitle="Parâmetros principais calculados pela simulação.">
+        <Section title="Monitoramento de pressão e B2 simulada" subtitle="Parâmetros principais calculados pela simulação.">
           <Table columns={["Parâmetro", "Valor esperado", "Valor simulado", "Unidade", "Situação"]} rows={monitorRows} />
         </Section>
         <Section title="Alertas gerados" subtitle="Alertas técnicos derivados do cenário executado.">
           <Table columns={["Alerta", "Severidade", "Causa provável", "Ação sugerida"]} rows={alertRows} />
         </Section>
-        {<TankQuantityStrip count={tankCount} label="Tanques configurados na simulação" />}
+        {<TankQuantityStrip count={tankCount} label="Câmaras configurados na simulação" />}
       {renderSimulationVisual(target)}
       </div>
     );
@@ -883,8 +883,8 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
           <Table
             columns={["Sistema", "Modelo", "Dado técnico", "Função"]}
             rows={[
-              ["Bomba primária", "Leybold SOGEVAC SV 630 B", "640 m³/h em 50 Hz · <= 0,08 mbar · 20 L óleo · 15 kW", "Evacuação inicial e sustentação do vácuo."],
-              ["Bomba secundária", "Leybold RUVAC WSU 2001", "2050 m³/h em 50 Hz · < 4 x 10^-2 mbar · diferencial máximo 50 mbar", "Reforçar o vácuo após atingir faixa segura."],
+              ["Bomba primária", "Mini bomba de vácuo do protótipo", "640 m³/h em 50 Hz · <= 0,08 mbar · 20 L B2 simulada · 15 kW", "Evacuação inicial e sustentação do vácuo."],
+              ["B2 simulada", "Lâmpada industrial simulando B2", "2050 m³/h em 50 Hz · < 4 x 10^-2 mbar · diferencial máximo 50 mbar", "Reforçar o vácuo após atingir faixa segura."],
             ]}
           />
         </Section>
@@ -895,7 +895,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
               ["Pressão", "mbar"],
               ["Tempo", "segundos"],
               ["Volume", "litros"],
-              ["Vazão", "L/min"],
+              ["Vazão", "mbar"],
               ["Risco", "%"],
               ["Comprimento de mangueira", "metros"],
             ]}

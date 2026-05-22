@@ -120,7 +120,7 @@ export function TankCard({ item }: { item: any }) {
     <article className={`tankCard ${risk >= 82 ? "riskHigh" : risk >= 65 ? "riskMedium" : "riskLow"}`}>
       <div className="tankTop">
         <div>
-          <strong>{item?.tank?.code || "Tanque de Processo"}</strong>
+          <strong>{item?.tank?.code || "Câmara do protótipo"}</strong>
           <span>{item?.hose?.code || "Mangueira de Vácuo"}</span>
         </div>
         <Badge value={risk >= 82 ? "critical" : risk >= 65 ? "warning" : "success"} />
@@ -136,7 +136,7 @@ export function TankCard({ item }: { item: any }) {
         <div className="tankReadings">
           <div><span>Pressão Atual</span><b>{fmt(pressure, "mbar")}</b></div>
           <div><span>Curva Esperada</span><b>{fmt(item?.expected_pressure_mbar, "mbar")}</b></div>
-          <div><span>Volume de Óleo</span><b>{fmt(item?.oil_volume_liters, "L")}</b></div>
+          <div><span>Pressão estimada no tanque</span><b>{fmt(item?.oil_volume_liters, "L")}</b></div>
           <div><span>Risco Estrutural</span><b>{fmt(risk, "%")}</b></div>
           <div><span>Perda na Mangueira</span><b>{fmt(item?.hose_loss_mbar, "mbar")}</b></div>
           <div><span>Sinal</span><b>{item?.status_light || "green"}</b></div>
@@ -146,7 +146,7 @@ export function TankCard({ item }: { item: any }) {
       <div className="legend">
         <span><i className="gasDot" />Gás</span>
         <span><i className="pressureDot" />Pressão</span>
-        <span><i className="oilDot" />Óleo</span>
+        <span><i className="oilDot" />B2 simulada</span>
       </div>
     </article>
   );

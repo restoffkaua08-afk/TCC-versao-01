@@ -1,38 +1,39 @@
 # TSEA V-Twin — Versão 2: Protótipo Físico
 
-Esta pasta é baseada na versão oficial do sistema, mas adaptada para a demonstração física do TCC.
+Esta pasta contém uma versão baseada no sistema oficial da TSEA, porém adaptada para a demonstração física do TCC.
 
-## Mantido da versão oficial
+## Objetivo desta versão
 
-- Mesmo visual base.
-- Mesma estrutura principal.
-- Painel.
-- Operação.
-- Rastreabilidade.
-- Parâmetros.
-- Cards, tabelas e identidade visual do sistema oficial.
+A versão 2 não substitui a versão oficial completa. Ela serve para demonstrar, em escala reduzida, a lógica essencial do sistema com hardware real ou semirreal.
 
-## Adaptado para o protótipo físico
+## O que será demonstrado
 
-Esta versão representa apenas o que pode ser demonstrado com o protótipo físico:
-
-- uma bomba de vácuo;
-- um sensor de pressão/vácuo;
-- uma câmara/tanque de demonstração seguro;
-- uma lâmpada simulando a B2/Roots;
-- mangueira cadastrada;
-- perda de carga calculada;
+- 1 câmara/tanque de demonstração;
+- 1 mini bomba de vácuo;
+- 1 sensor de pressão/vácuo;
+- 1 mangueira cadastrada;
+- cálculo de perda de carga da mangueira;
 - pressão medida pelo sensor;
-- pressão estimada no tanque;
-- rampa de vácuo;
-- logs e rastreabilidade;
-- alarmes e farol visual.
+- pressão estimada na câmara/tanque;
+- acionamento de uma lâmpada simulando a segunda bomba/Roots;
+- estado dos equipamentos;
+- conexão dos equipamentos;
+- alarmes;
+- farol visual;
+- logs da operação;
+- rampa de vácuo registrada em intervalos regulares;
+- rastreabilidade da operação.
 
 ## Fora do escopo desta versão
 
 - óleo real;
 - múltiplos tanques reais;
 - linha industrial completa;
-- Gêmeo Digital industrial completo.
+- Gêmeo Digital industrial completo;
+- simulação estrutural completa;
+- integração final validada com CLP real.
 
-A versão completa para apresentação conceitual da TSEA permanece preservada em `versao_3`.
+## Relação com a versão oficial
+
+A versão oficial completa permanece preservada em `versao_3`.  
+A `versao_2` mantém a identidade visual e a estrutura do sistema oficial, mas mostra somente informações possíveis de obter ou demonstrar com o protótipo físico.

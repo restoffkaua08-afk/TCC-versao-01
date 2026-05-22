@@ -79,14 +79,14 @@ const DEMO_OPERATIONS: TraceItem[] = [
     pressureFinal: 6.2,
     pressureTarget: 8,
     cycleTime: "55 min",
-    oil: "52 L · 2,2 L/min",
+    oil: "52 L · 2,2 mbar",
     risk: 18,
     result: "Ciclo concluído dentro da faixa operacional.",
     observations: "Operação sem restrições críticas. Curva compatível com o cenário esperado.",
     events: [
       "Operação iniciada pelo operador.",
       "Bomba primária acionada.",
-      "Bomba Roots liberada após faixa segura.",
+      "Lâmpada / B2 simulada liberada após faixa segura.",
       "Acionamento B2 simulada concluída.",
     ],
   },
@@ -103,7 +103,7 @@ const DEMO_OPERATIONS: TraceItem[] = [
     pressureFinal: 11.8,
     pressureTarget: 8,
     cycleTime: "61 min",
-    oil: "48 L · 1,8 L/min",
+    oil: "48 L · 1,8 mbar",
     risk: 63,
     result: "Ciclo concluído com acompanhamento recomendado.",
     observations: "Acionamento B2 simulada abaixo da referência e pressão final acima do alvo.",
@@ -120,8 +120,8 @@ const DEMO_SIMULATIONS: TraceItem[] = [
   {
     id: "SIM-0012",
     type: "Simulação",
-    title: "Atraso do óleo",
-    scenario: "Atraso do óleo",
+    title: "Acionamento automático",
+    scenario: "Acionamento automático",
     date: "2026-03-05T15:10:00",
     user: "Maria Souza",
     status: "Atenção",
@@ -131,23 +131,23 @@ const DEMO_SIMULATIONS: TraceItem[] = [
     pressureFinal: 9.4,
     pressureTarget: 8,
     cycleTime: "58 min estimados",
-    oil: "Atraso de 120 s · 1,7 L/min",
+    oil: "Atraso de 120 s · 1,7 mbar",
     risk: 68,
     pump: "B1/B2",
-    diagnosis: "Atraso no óleo aumentou a instabilidade da curva e reduziu a margem operacional.",
-    recommendation: "Revisar vazão de óleo, sensor de volume e condição da mangueira antes da operação.",
+    diagnosis: "Atraso no B2 simulada aumentou a instabilidade da curva e reduziu a margem operacional.",
+    recommendation: "Revisar vazão de B2 simulada, sensor de volume e condição da mangueira antes da operação.",
     result: "Simulação aprovada com restrição.",
-    observations: "Cenário útil para validar resposta do sistema em condição de óleo abaixo do ideal.",
+    observations: "Cenário útil para validar resposta do sistema em condição de B2 simulada abaixo do ideal.",
     events: [
       "Cenário selecionado.",
       "Parâmetros de pressão carregados.",
-      "Atraso do óleo aplicado.",
+      "Acionamento automático aplicado.",
       "Diagnóstico gerado com atenção.",
     ],
     parameters: [
       "Pressão alvo: 8 mbar",
       "Roots: 50 mbar",
-      "Acionamento B2 simulada: 1,7 L/min",
+      "Acionamento B2 simulada: 1,7 mbar",
       "Margem de erro: 8%",
     ],
   },
@@ -165,7 +165,7 @@ const DEMO_SIMULATIONS: TraceItem[] = [
     pressureFinal: 5.8,
     pressureTarget: 8,
     cycleTime: "64 min estimados",
-    oil: "50 L · 2,0 L/min",
+    oil: "50 L · 2,0 mbar",
     risk: 87,
     pump: "B1",
     diagnosis: "A combinação de queda rápida de pressão e geometria crítica elevou o risco estrutural.",
@@ -366,7 +366,7 @@ function operationRecord(item: any, index: number): TraceItem {
     pressureFinal: Number(item?.final_pressure_mbar || item?.pressure_mbar || 8),
     pressureTarget: Number(item?.target_pressure_mbar || 8),
     cycleTime: item?.cycle_time || item?.duration || "55 min",
-    oil: item?.oil || `${fmt(item?.oil_volume_liters || 50, "L")} · ${fmt(item?.oil_flow_l_min || 2, "L/min")}`,
+    oil: item?.oil || `${fmt(item?.oil_volume_liters || 50, "L")} · ${fmt(item?.oil_flow_l_min || 2, "mbar")}`,
     risk: Number(item?.risk || item?.collapse_risk_pct || 18),
     result: item?.result || "Operação registrada para consulta técnica.",
     observations: item?.notes || item?.observations || "Registro operacional disponível para análise e relatório.",
@@ -398,7 +398,7 @@ function simulationRecord(item: any, index: number): TraceItem {
     pressureFinal: Number(metrics?.final_real_pressure_mbar || item?.pressureFinal || 8),
     pressureTarget: Number(config?.target_pressure_mbar || 8),
     cycleTime: `${fmt(metrics?.estimated_time_seconds || 900, "s")} estimados`,
-    oil: `${fmt(config?.oil_flow_l_min || metrics?.oil_flow_l_min || 2, "L/min")}`,
+    oil: `${fmt(config?.oil_flow_l_min || metrics?.oil_flow_l_min || 2, "mbar")}`,
     risk,
     pump: "B1/B2",
     diagnosis: item?.diagnosis || "Diagnóstico preparado pela simulação do Simulação Completa.",
@@ -414,7 +414,7 @@ function simulationRecord(item: any, index: number): TraceItem {
     parameters: [
       `Pressão alvo: ${fmt(config?.target_pressure_mbar || 8, "mbar")}`,
       `Roots: ${fmt(config?.roots_start_pressure_mbar || 50, "mbar")}`,
-      `Acionamento B2 simulada: ${fmt(config?.oil_flow_l_min || 2, "L/min")}`,
+      `Acionamento B2 simulada: ${fmt(config?.oil_flow_l_min || 2, "mbar")}`,
       `Risco: ${fmt(risk, "%")}`,
     ],
   };
@@ -429,17 +429,17 @@ function periodText(filters: Filters) {
 
 function buildMachineTables(item: TraceItem) {
   const pumpRows = [
-    ["B1", "Bomba primária", "Leybold SOGEVAC SV 630 B", "Evacuação inicial", item.type === "Operação" ? "Pronta/Ligada" : "Simulada", "96%", "Atuação principal no início do ciclo."],
-    ["B2", "Bomba secundária / Roots", "Leybold RUVAC WSU 2001", "Reforço do vácuo", item.status === "Crítico" ? "Bloqueada" : "Liberada", "88%", "Acionamento condicionado à faixa segura."],
+    ["B1", "Bomba primária", "Mini bomba de vácuo do protótipo", "Evacuação inicial", item.type === "Operação" ? "Pronta/Ligada" : "Simulada", "96%", "Atuação principal no início do ciclo."],
+    ["B2", "B2 simulada / Roots", "Lâmpada industrial simulando B2", "Reforço do vácuo", item.status === "Crítico" ? "Bloqueada" : "Liberada", "88%", "Acionamento condicionado à faixa segura."],
   ];
 
   const tankRows = [
-    [item.tank, "Tanque de processo", fmt(item.pressureFinal, "mbar"), fmt(item.pressureTarget, "mbar"), item.oil, fmt(item.risk, "%"), item.status],
+    [item.tank, "Câmara do protótipo", fmt(item.pressureFinal, "mbar"), fmt(item.pressureTarget, "mbar"), item.oil, fmt(item.risk, "%"), item.status],
   ];
 
   const sensorRows = [
     ["Sensor de pressão", fmt(item.pressureFinal, "mbar"), "mbar", item.status, "Leitura associada ao tanque selecionado."],
-    ["B2 simulada / lâmpada", item.oil, "L / L/min", item.risk >= 65 ? "Atenção" : "Operacional", "Dados usados na análise de estabilidade."],
+    ["B2 simulada / lâmpada", item.oil, "L / mbar", item.risk >= 65 ? "Atenção" : "Operacional", "Dados usados na análise de estabilidade."],
     ["Mangueira", item.hose, "identificação", "Vinculada", "Elemento relacionado a perda de carga."],
   ];
 
@@ -853,7 +853,7 @@ export function TraceabilityPage({
                 <Info label="Pressão final" value={fmt(selectedItem.pressureFinal, "mbar")} />
                 <Info label="Pressão alvo" value={fmt(selectedItem.pressureTarget, "mbar")} />
                 <Info label="Tempo de ciclo" value={selectedItem.cycleTime} />
-                <Info label="Óleo" value={selectedItem.oil} />
+                <Info label="B2 simulada" value={selectedItem.oil} />
                 <Info label="Risco estrutural" value={fmt(selectedItem.risk, "%")} />
                 {selectedItem.type === "Simulação" && <Info label="Cenário" value={selectedItem.scenario || selectedItem.title} />}
                 {selectedItem.type === "Simulação" && <Info label="Bomba envolvida" value={selectedItem.pump || "B1/B2"} />}

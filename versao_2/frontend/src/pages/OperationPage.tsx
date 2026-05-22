@@ -24,17 +24,17 @@ function clampTankCount(value: unknown) {
   return 1;
 }
 
-function TankQuantityStrip({ count, label = "Tanques configurados" }: { count: number; label?: string }) {
+function TankQuantityStrip({ count, label = "Câmaras configurados" }: { count: number; label?: string }) {
   const normalized = clampTankCount(count);
 
   return (
     <div className="tank-count-strip">
       <div>
         <span>{label}</span>
-        <strong>{normalized} {normalized === 1 ? "tanque" : "tanques"}</strong>
+        <strong>{normalized} {normalized === 1 ? "tanque" : "câmaras"}</strong>
       </div>
 
-      <div className="tank-count-icons" aria-label="Quantidade de tanques">
+      <div className="tank-count-icons" aria-label="Quantidade de câmaras">
         {Array.from({ length: normalized }).map((_, index) => (
           <span key={index}>T{index + 1}</span>
         ))}
@@ -96,7 +96,7 @@ function TankProcessCard({ item, index, cycleStatus }: { item: any; index: numbe
         <div className="dashboardTankLegend">
           <span><i className="gasDot" />Gás</span>
           <span><i className="pressureDot" />Pressão</span>
-          <span><i className="oilDot" />Óleo</span>
+          <span><i className="oilDot" />B2 simulada</span>
         </div>
       </div>
 
@@ -104,7 +104,7 @@ function TankProcessCard({ item, index, cycleStatus }: { item: any; index: numbe
         <div className="dashboardTankHeader">
           <div>
             <strong>{tank?.code || `Tanque ${index + 1}`}</strong>
-            <span>{tank?.type || "Tanque de processo"}</span>
+            <span>{tank?.type || "Câmara do protótipo"}</span>
           </div>
           <Badge value={status} />
         </div>
@@ -166,8 +166,8 @@ function SensorsOilCard({ state, tanksState }: { state: any; tanksState: any[] }
     <article className="sensorOilCard">
       <div className="sideCardHeader">
         <div>
-          <strong>Sensores e Óleo</strong>
-          <span>Leituras consolidadas da operação</span>
+          <strong>Sensores e B2 simulada</strong>
+          <span>Leituras possíveis do protótipo físico</span>
         </div>
         <Badge value={oilEnabled ? "success" : "neutral"} />
       </div>
@@ -183,11 +183,11 @@ function SensorsOilCard({ state, tanksState }: { state: any; tanksState: any[] }
       </div>
 
       <div className="sensorOilGroup">
-        <h3>Óleo</h3>
+        <h3>B2 simulada</h3>
         <div className="sideReadings">
-          <div><span>Acionamento B2 simulada</span><b>{fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min, "L/min")}</b></div>
-          <div><span>Volume estimado</span><b>{fmt(avgOil, "L")}</b></div>
-          <div><span>Atraso do óleo</span><b>Aguardando</b></div>
+          <div><span>Acionamento B2 simulada</span><b>{fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min, "mbar")}</b></div>
+          <div><span>Pressão estimada no tanque</span><b>{fmt(avgOil, "L")}</b></div>
+          <div><span>Acionamento automático</span><b>Aguardando</b></div>
           <div><span>Status</span><b>{oilEnabled ? "Ativo" : "Inativo"}</b></div>
         </div>
       </div>
@@ -199,7 +199,7 @@ function SummaryCards({ state, avgPressure, maxRisk, operationConfig }: any) {
   return (
     <div className="metricsGrid dashboardMetrics">
       <Metric label="Estado do ciclo" value={state?.cycle?.status ? statusLabel(state.cycle.status) : "Parado"} status={state?.cycle?.status || "stopped"} />
-      <Metric label="Pressão média" value={fmt(avgPressure, "mbar")} detail="Tanques monitorados" />
+      <Metric label="Pressão média" value={fmt(avgPressure, "mbar")} detail="Câmaras monitorados" />
       <Metric label="Risco máximo" value={fmt(maxRisk, "%")} status={maxRisk >= 82 ? "critical" : maxRisk >= 65 ? "warning" : "success"} />
       <Metric label="Tempo máximo" value={fmt(operationConfig?.max_cycle_seconds, "s")} detail="Limite configurado" />
     </div>
@@ -215,7 +215,7 @@ function RecipeDetails({ recipe }: { recipe: any }) {
       <div><span>Pressão alvo</span><b>{fmt(recipe.target_pressure_mbar, "mbar")}</b></div>
       <div><span>Acionamento Roots</span><b>{fmt(recipe.roots_start_pressure_mbar, "mbar")}</b></div>
       <div><span>Tempo estimado</span><b>{fmt(recipe.max_cycle_seconds, "s")}</b></div>
-      <div><span>Acionamento B2 simulada</span><b>{fmt(recipe.min_oil_flow_l_min, "L/min")}</b></div>
+      <div><span>Acionamento B2 simulada</span><b>{fmt(recipe.min_roots_start_pressure_mbar, "mbar")}</b></div>
       <div><span>Tanque</span><b>{recipe.tank_type || "--"}</b></div>
       <div><span>Margem de erro</span><b>{fmt(recipe.max_tank_difference_mbar ?? recipe.structural_risk_limit, recipe.max_tank_difference_mbar ? "mbar" : "%")}</b></div>
       <div><span>Observações</span><b>{recipe.notes || "Parâmetros recebidos do cadastro."}</b></div>
@@ -247,11 +247,11 @@ export function OperationPage({
   const operationVisualTanks = visibleTanksState.length
     ? visibleTanksState
     : Array.from({ length: activeTankCount }).map((_, index) => ({
-        tank: allTanks?.[index] || { code: `TQ-${index + 1}`, type: "Tanque de processo" },
+        tank: allTanks?.[index] || { code: `TQ-${index + 1}`, type: "Câmara do protótipo" },
         hose: allHoses?.[index] || allHoses?.[0],
         pressure_mbar: operationConfig?.target_pressure_mbar ?? 0,
         expected_pressure_mbar: operationConfig?.target_pressure_mbar ?? 0,
-        oil_volume_liters: operationConfig?.estimated_oil_volume_liters ?? 0,
+        oil_volume_liters: operationConfig?.target_pressure_mbar ?? 0,
         collapse_risk_pct: 0,
         status_light: "green",
       }));
@@ -282,7 +282,7 @@ export function OperationPage({
       target_pressure_mbar: recipe.target_pressure_mbar ?? current.target_pressure_mbar,
       roots_start_pressure_mbar: recipe.roots_start_pressure_mbar ?? current.roots_start_pressure_mbar,
       max_cycle_seconds: recipe.max_cycle_seconds ?? current.max_cycle_seconds,
-      oil_flow_l_min: recipe.min_oil_flow_l_min ?? recipe.oil_flow_l_min ?? current.oil_flow_l_min,
+      roots_start_pressure_mbar: recipe.min_roots_start_pressure_mbar ?? recipe.roots_start_pressure_mbar ?? current.roots_start_pressure_mbar,
       tank_type: recipe.tank_type ?? current.tank_type,
       tank_count: clampTankCount(recipe.tank_count ?? current.tank_count ?? 1),
     }));
@@ -296,7 +296,7 @@ export function OperationPage({
       target_pressure_mbar: Number(recipeDraft.target_pressure_mbar ?? selectedRecipe?.target_pressure_mbar),
       roots_start_pressure_mbar: Number(recipeDraft.roots_start_pressure_mbar ?? selectedRecipe?.roots_start_pressure_mbar),
       max_cycle_seconds: Number(recipeDraft.max_cycle_seconds ?? selectedRecipe?.max_cycle_seconds),
-      min_oil_flow_l_min: Number(recipeDraft.min_oil_flow_l_min ?? selectedRecipe?.min_oil_flow_l_min),
+      min_roots_start_pressure_mbar: Number(recipeDraft.min_roots_start_pressure_mbar ?? selectedRecipe?.min_roots_start_pressure_mbar),
     });
   }
 
@@ -319,9 +319,9 @@ export function OperationPage({
         </div>
 
         <div className="dashboardWorkArea operationIhmArea">
-          <Section title="IHM da operação" subtitle="Tanques, pressão, óleo, risco e mangueira vinculada em tempo real.">
+          <Section title="IHM da operação" subtitle="Câmaras, pressão, B2 simulada, risco e mangueira vinculada em tempo real.">
             <div className="dashboardTankList">
-              <TankQuantityStrip count={activeTankCount} label="Tanques configurados na operação" />
+              <TankQuantityStrip count={activeTankCount} label="Câmaras configurados na operação" />
         {operationVisualTanks.map((item: any, index: number) => (
                 <TankProcessCard key={item?.tank?.id || index} item={item} index={index} cycleStatus={state?.cycle?.status} />
               ))}
@@ -332,14 +332,14 @@ export function OperationPage({
             <PumpCard
               title="Bomba Primária"
               code="B1"
-              model={state?.primary_pump?.model || "Leybold SOGEVAC SV 630 B"}
+              model={state?.primary_pump?.model || "Mini bomba de vácuo do protótipo"}
               running={Boolean(state?.primary_pump?.running)}
               performance={state?.primary_pump?.health_pct ?? 96}
             />
             <PumpCard
               title="Bomba Secundária / Roots"
               code="B2"
-              model={state?.roots_pump?.model || "Leybold RUVAC WSU 2001"}
+              model={state?.roots_pump?.model || "Lâmpada industrial simulando B2"}
               running={Boolean(state?.roots_pump?.running)}
               blocked={!state?.roots_pump?.running}
               performance={state?.roots_pump?.health_pct ?? (state?.roots_pump?.running ? 94 : 0)}
@@ -356,16 +356,16 @@ export function OperationPage({
     const avgOil = operationVisualTanks.reduce((sum: number, item: any) => sum + Number(item?.oil_volume_liters || 0), 0) / Math.max(operationVisualTanks.length, 1);
 
     const machineRows = [
-      ["B1", "Bomba primária", state?.primary_pump?.model || "Leybold SOGEVAC SV 630 B", "Evacuação inicial", state?.primary_pump?.running ? "Ligada" : "Desligada", fmt(state?.primary_pump?.health_pct ?? 96, "%"), state?.primary_pump?.running ? "Conectada" : "Em espera"],
-      ["B2", "Bomba Roots", state?.roots_pump?.model || "Leybold RUVAC WSU 2001", "Reforço do vácuo", state?.roots_pump?.running ? "Ligada" : "Bloqueada", fmt(state?.roots_pump?.health_pct ?? 94, "%"), state?.roots_pump?.running ? "Conectada" : "Em espera"],
+      ["B1", "Bomba primária", state?.primary_pump?.model || "Mini bomba de vácuo do protótipo", "Evacuação inicial", state?.primary_pump?.running ? "Ligada" : "Desligada", fmt(state?.primary_pump?.health_pct ?? 96, "%"), state?.primary_pump?.running ? "Conectada" : "Em espera"],
+      ["B2", "Lâmpada / B2 simulada", state?.roots_pump?.model || "Lâmpada industrial simulando B2", "Reforço do vácuo", state?.roots_pump?.running ? "Ligada" : "Bloqueada", fmt(state?.roots_pump?.health_pct ?? 94, "%"), state?.roots_pump?.running ? "Conectada" : "Em espera"],
     ];
 
     const tankRows = operationVisualTanks.map((item: any, index: number) => [
       item?.tank?.code || `TQ-${index + 1}`,
-      item?.tank?.type || "Tanque de processo",
+      item?.tank?.type || "Câmara do protótipo",
       fmt(item?.pressure_mbar, "mbar"),
       fmt(item?.expected_pressure_mbar, "mbar"),
-      fmt(item?.oil_volume_liters, "L"),
+      fmt(item?.effective_pressure_mbar ?? item?.pressure_mbar, "mbar"),
       item?.hose?.code || "--",
       `SP-${item?.tank?.code || index + 1}`,
       <Badge value={riskStatus(Number(item?.collapse_risk_pct || 0))} />,
@@ -382,19 +382,19 @@ export function OperationPage({
     ]);
 
     const oilRows = [
-      ["Acionamento B2 simulada", fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min), "L/min", state?.oil_injection?.enabled ? "Ativo" : "Inativo", "Referência da lubrificação do ciclo."],
-      ["Volume estimado", fmt(avgOil), "L", avgOil > 0 ? "Operacional" : "Aguardando", "Média calculada pelos tanques monitorados."],
-      ["Atraso do óleo", "--", "s", "Aguardando", "Sem atraso informado nos dados atuais."],
-      ["Estado da lubrificação", state?.oil_injection?.enabled ? "Habilitada" : "Desabilitada", "--", state?.oil_injection?.enabled ? "Operacional" : "Em espera", "Condição atual da injeção de óleo."],
+      ["Acionamento B2 simulada", state?.roots_pump?.running ? "Ligada" : "Em espera", "mbar", state?.oil_injection?.enabled ? "Ativo" : "Inativo", "Representa a segunda bomba/Roots no protótipo físico."],
+      ["Pressão estimada no tanque", fmt(avgOil), "L", avgOil > 0 ? "Operacional" : "Aguardando", "Média calculada pelos câmaras monitorados."],
+      ["Acionamento automático", "--", "s", "Aguardando", "Sem atraso informado nos dados atuais."],
+      ["Estado da B2 simulada", state?.oil_injection?.enabled ? "Habilitada" : "Desabilitada", "--", state?.oil_injection?.enabled ? "Operacional" : "Em espera", "Condição atual da lâmpada usada como B2 simulada."],
       ["Condição de vedação", maxRisk >= 82 ? "Crítica" : maxRisk >= 65 ? "Atenção" : "Normal", "--", maxRisk >= 82 ? "Crítico" : maxRisk >= 65 ? "Atenção" : "Operacional", "Derivada do risco estrutural máximo."],
     ];
 
     const traceRows = [
-    ["Quantidade de tanques", "Operação", activeTankCount, "tanques", "Configurado", "Define quantos tanques participam do ciclo."],
+    ["Quantidade de câmaras", "Operação", activeTankCount, "câmaras", "Configurado", "Define quantos câmaras participam do ciclo."],
       ["Preparação", "Receita / operador", fmt(operationConfig?.target_pressure_mbar, "mbar"), state?.cycle?.status || "Parado", "Configurado", "Parâmetros carregados para a operação."],
       ["Evacuação inicial", "Bomba primária", "Pressão decrescente", fmt(avgPressure, "mbar"), state?.primary_pump?.running ? "Em execução" : "Em espera", "Bomba primária sustenta a redução inicial."],
-      ["Acionamento da bomba Roots", "Bomba secundária", fmt(operationConfig?.roots_start_pressure_mbar, "mbar"), fmt(avgPressure, "mbar"), state?.roots_pump?.running ? "Liberado" : "Bloqueado", "Liberação depende da faixa de pressão."],
-      ["Estabilização", "Tanques / óleo", fmt(operationConfig?.oil_flow_l_min, "L/min"), fmt(firstTank?.oil_volume_liters, "L"), maxRisk >= 65 ? "Atenção" : "Normal", "Acompanhar óleo, mangueira e tendência."],
+      ["Acionamento da bomba Roots", "B2 simulada", fmt(operationConfig?.roots_start_pressure_mbar, "mbar"), fmt(avgPressure, "mbar"), state?.roots_pump?.running ? "Liberado" : "Bloqueado", "Liberação depende da faixa de pressão."],
+      ["Estabilização", "Tanque / B2 simulada", fmt(operationConfig?.roots_start_pressure_mbar, "mbar"), fmt(firstTank?.effective_pressure_mbar ?? firstTank?.pressure_mbar, "mbar"), maxRisk >= 65 ? "Atenção" : "Normal", "Acompanhar sensor, mangueira, pressão e tendência."],
       ["Finalização", "Ciclo", fmt(operationConfig?.max_cycle_seconds, "s"), state?.cycle?.status || "--", "Aguardando", "Encerramento conforme pressão alvo e tempo."],
     ];
 
@@ -403,8 +403,8 @@ export function OperationPage({
         <Section title="Máquinas/Bombas" subtitle="Estado técnico dos principais equipamentos da operação.">
           <Table columns={["Código", "Equipamento", "Modelo", "Função no processo", "Estado", "Desempenho", "Conexão"]} rows={machineRows} />
         </Section>
-        <Section title="Tanques" subtitle="Leituras por tanque, mangueira, óleo e status operacional.">
-          <Table columns={["Código", "Tipo", "Pressão atual", "Pressão alvo", "Óleo", "Mangueira", "Sensor", "Status"]} rows={tankRows} />
+        <Section title="Câmaras" subtitle="Leituras por tanque, mangueira, B2 simulada e status operacional.">
+          <Table columns={["Código", "Tipo", "Pressão atual", "Pressão alvo", "B2 simulada", "Mangueira", "Sensor", "Status"]} rows={tankRows} />
         </Section>
         <Section title="Sensores" subtitle="Monitoramento das leituras e comunicação simulada do processo.">
           <Table columns={["Código", "Tipo", "Leitura atual", "Unidade", "Comunicação", "Última atualização", "Status"]} rows={sensorRows} />
@@ -445,7 +445,7 @@ export function OperationPage({
               <Field label="Mangueira"><select value={operationConfig.hose_id} onChange={(e) => setOp("hose_id", e.target.value)}>{allHoses.map((hose: any) => <option key={hose.id || hose.code} value={hose.id || hose.code}>{hose.code} · {fmt(hose.length_m, "m")}</option>)}</select></Field>
               <Field label="Receita de referência"><select value={operationConfig.recipe_id} onChange={(e) => setOp("recipe_id", e.target.value)}>{allRecipes.map((recipe: any) => <option key={recipe.id || recipe.name} value={recipe.id || recipe.name}>{recipe.name}</option>)}</select></Field>
 
-<Field label="Quantidade de tanques (1 a 3)">
+<Field label="Quantidade de câmaras (1 a 3)">
   <input
     type="number"
     min={1}
@@ -481,19 +481,19 @@ export function OperationPage({
               <Field label="Tempo estimado"><input type="number" value={operationConfig.estimated_time_seconds || ""} onChange={(e) => setOp("estimated_time_seconds", Number(e.target.value))} /></Field>
               <Field label="Tempo máximo permitido"><input type="number" value={operationConfig.max_cycle_seconds} onChange={(e) => setOp("max_cycle_seconds", Number(e.target.value))} /></Field>
               <Field label="Tempo de estabilização"><input type="number" value={operationConfig.stabilization_seconds || ""} onChange={(e) => setOp("stabilization_seconds", Number(e.target.value))} /></Field>
-              <Field label="Atraso permitido do óleo"><input type="number" value={operationConfig.oil_delay_seconds || ""} onChange={(e) => setOp("oil_delay_seconds", Number(e.target.value))} /></Field>
+              <Field label="Atraso permitido do B2 simulada"><input type="number" value={operationConfig.b2_delay_seconds || ""} onChange={(e) => setOp("b2_delay_seconds", Number(e.target.value))} /></Field>
             </div>
           </div>
         )}
 
         {manualStep === 4 && (
           <div className="operationStepPanel">
-            <h3>Óleo</h3>
+            <h3>B2 simulada</h3>
             <p>Defina o acionamento demonstrativo da lâmpada que representa a segunda bomba/Roots.</p>
             <div className="formGrid">
-              <Field label="Acionamento B2 simulada"><input type="number" value={operationConfig.oil_flow_l_min} onChange={(e) => setOp("oil_flow_l_min", Number(e.target.value))} /></Field>
-              <Field label="Volume estimado"><input type="number" value={operationConfig.estimated_oil_volume_liters || ""} onChange={(e) => setOp("estimated_oil_volume_liters", Number(e.target.value))} /></Field>
-              <Field label="Status esperado do óleo"><input value={operationConfig.expected_oil_status || ""} onChange={(e) => setOp("expected_oil_status", e.target.value)} /></Field>
+              <Field label="Acionamento B2 simulada"><input type="number" value={operationConfig.roots_start_pressure_mbar} onChange={(e) => setOp("roots_start_pressure_mbar", Number(e.target.value))} /></Field>
+              <Field label="Pressão estimada no tanque"><input type="number" value={operationConfig.target_pressure_mbar || ""} onChange={(e) => setOp("target_pressure_mbar", Number(e.target.value))} /></Field>
+              <Field label="Status esperado do B2 simulada"><input value={operationConfig.expected_b2_status || ""} onChange={(e) => setOp("expected_b2_status", e.target.value)} /></Field>
             </div>
           </div>
         )}
@@ -521,7 +521,7 @@ export function OperationPage({
               <div><span>Mangueira</span><b>{operationConfig.hose_id || "--"}</b></div>
               <div><span>Pressão alvo</span><b>{fmt(operationConfig.target_pressure_mbar, "mbar")}</b></div>
               <div><span>Roots</span><b>{fmt(operationConfig.roots_start_pressure_mbar, "mbar")}</b></div>
-              <div><span>Óleo</span><b>{fmt(operationConfig.oil_flow_l_min, "L/min")}</b></div>
+              <div><span>B2 simulada</span><b>{fmt(operationConfig.roots_start_pressure_mbar, "mbar")}</b></div>
             </div>
           </div>
         )}
@@ -603,7 +603,7 @@ export function OperationPage({
                 <Field label="Pressão alvo"><input type="number" value={recipeDraft.target_pressure_mbar || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, target_pressure_mbar: e.target.value })} /></Field>
                 <Field label="Acionamento Roots"><input type="number" value={recipeDraft.roots_start_pressure_mbar || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, roots_start_pressure_mbar: e.target.value })} /></Field>
                 <Field label="Tempo estimado"><input type="number" value={recipeDraft.max_cycle_seconds || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, max_cycle_seconds: e.target.value })} /></Field>
-                <Field label="Acionamento B2 simulada"><input type="number" value={recipeDraft.min_oil_flow_l_min || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, min_oil_flow_l_min: e.target.value })} /></Field>
+                <Field label="Acionamento B2 simulada"><input type="number" value={recipeDraft.min_roots_start_pressure_mbar || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, min_roots_start_pressure_mbar: e.target.value })} /></Field>
               </div>
               <div className="modalActions">
                 <button className="secondary" onClick={() => setConfigMode("recipe-detail")}>Voltar</button>
@@ -695,7 +695,7 @@ return (
             <div><span>Receita atual</span><b>{operationConfig.recipe_id || "--"}</b></div>
             <div><span>Pressão alvo</span><b>{fmt(operationConfig.target_pressure_mbar, "mbar")}</b></div>
             <div><span>Roots</span><b>{fmt(operationConfig.roots_start_pressure_mbar, "mbar")}</b></div>
-            <div><span>Óleo</span><b>{fmt(operationConfig.oil_flow_l_min, "L/min")}</b></div>
+            <div><span>B2 simulada</span><b>{fmt(operationConfig.roots_start_pressure_mbar, "mbar")}</b></div>
           </div>
           <div className="commandBar">
             <button onClick={() => openConfig("choice")}>Abrir configuração</button>

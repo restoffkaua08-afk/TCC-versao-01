@@ -29,9 +29,9 @@ export function ParametersPage({
 }: ParametersPageProps) {
   return (
     <div className="screen">
-      <Section title="Cadastros técnicos" subtitle="Tanques, mangueiras de vácuo, receitas, fórmulas e responsáveis operacionais.">
+      <Section title="Cadastros técnicos" subtitle="Câmaras, mangueiras de vácuo, receitas, fórmulas e responsáveis operacionais.">
         <div className="subtabs">
-          <button className={paramTab === "tanks" ? "" : "secondary"} onClick={() => { setParamTab("tanks"); setForm({}); }}>Tanques</button>
+          <button className={paramTab === "tanks" ? "" : "secondary"} onClick={() => { setParamTab("tanks"); setForm({}); }}>Câmaras</button>
           <button className={paramTab === "hoses" ? "" : "secondary"} onClick={() => { setParamTab("hoses"); setForm({}); }}>Mangueiras</button>
           <button className={paramTab === "recipes" ? "" : "secondary"} onClick={() => { setParamTab("recipes"); setForm({}); }}>Receitas</button>
           <button className={paramTab === "formulas" ? "" : "secondary"} onClick={() => { setParamTab("formulas"); setForm({}); }}>Fórmulas</button>
@@ -64,7 +64,7 @@ export function ParametersPage({
               <Field label="Pressão final (mbar)"><input type="number" value={form.target_pressure_mbar || ""} onChange={(e) => setForm({ ...form, target_pressure_mbar: e.target.value })} /></Field>
               <Field label="Acionamento da bomba secundária"><input type="number" value={form.roots_start_pressure_mbar || ""} onChange={(e) => setForm({ ...form, roots_start_pressure_mbar: e.target.value })} /></Field>
               <Field label="Tempo máximo (s)"><input type="number" value={form.max_cycle_seconds || ""} onChange={(e) => setForm({ ...form, max_cycle_seconds: e.target.value })} /></Field>
-              <Field label="Vazão mínima de óleo"><input type="number" value={form.min_oil_flow_l_min || ""} onChange={(e) => setForm({ ...form, min_oil_flow_l_min: e.target.value })} /></Field>
+              <Field label="Vazão mínima de B2 simulada"><input type="number" value={form.min_oil_flow_l_min || ""} onChange={(e) => setForm({ ...form, min_oil_flow_l_min: e.target.value })} /></Field>
             </>
           )}
 
@@ -93,7 +93,7 @@ export function ParametersPage({
       </Section>
 
       {paramTab === "tanks" && (
-        <Section title="Tanques cadastrados">
+        <Section title="Câmaras cadastrados">
           <Table columns={["Código", "Tipo", "Volume", "Limite", "Estado"]} rows={allTanks.map((tank: any) => [<b>{tank.code}</b>, tank.type || "--", fmt(tank.volume_liters, "L"), fmt(tank.structural_limit_mbar, "mbar"), tank.status || "--"])} />
         </Section>
       )}
@@ -106,7 +106,7 @@ export function ParametersPage({
 
       {paramTab === "recipes" && (
         <Section title="Receitas cadastradas">
-          <Table columns={["Nome", "Tanque", "Pressão", "bomba secundária", "Tempo", "Óleo"]} rows={allRecipes.map((recipe: any) => [<b>{recipe.name}</b>, recipe.tank_type || "--", fmt(recipe.target_pressure_mbar, "mbar"), fmt(recipe.roots_start_pressure_mbar, "mbar"), fmt(recipe.max_cycle_seconds, "s"), fmt(recipe.min_oil_flow_l_min, "L/min")])} />
+          <Table columns={["Nome", "Tanque", "Pressão", "bomba secundária", "Tempo", "B2 simulada"]} rows={allRecipes.map((recipe: any) => [<b>{recipe.name}</b>, recipe.tank_type || "--", fmt(recipe.target_pressure_mbar, "mbar"), fmt(recipe.roots_start_pressure_mbar, "mbar"), fmt(recipe.max_cycle_seconds, "s"), fmt(recipe.min_oil_flow_l_min, "mbar")])} />
         </Section>
       )}
 
