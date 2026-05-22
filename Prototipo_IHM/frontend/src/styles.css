@@ -39,7 +39,7 @@ button {
 .device {
   position: relative;
   width: 1180px;
-  min-height: 760px;
+  min-height: 780px;
   padding: 54px 142px 112px;
   border-radius: 58px 78px 58px 78px;
   background: linear-gradient(145deg, #f7f8f5, #d8ded9);
@@ -128,14 +128,14 @@ button {
 
 .screen {
   position: relative;
-  min-height: 588px;
+  min-height: 608px;
   border: 5px solid #232d34;
   background: #eef2ee;
   box-shadow:
     inset 0 0 0 3px #111827,
     0 8px 18px rgba(0,0,0,0.18);
   display: grid;
-  grid-template-rows: 50px 76px 1fr;
+  grid-template-rows: 50px 76px 44px 1fr;
 }
 
 .screen-header {
@@ -239,6 +239,36 @@ button {
   border-color: #dc2626;
 }
 
+.alarm-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: 3px solid #b7c2ba;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+}
+
+.alarm-strip.ok {
+  background: #dff2e4;
+  color: #14532d;
+}
+
+.alarm-strip.warn {
+  background: #fff3c4;
+  color: #854d0e;
+}
+
+.alarm-strip.danger {
+  background: #f8d3d0;
+  color: #991b1b;
+}
+
+.alarm-strip.info {
+  background: #e5eef7;
+  color: #334155;
+}
+
 .operation-screen {
   padding: 10px;
   display: grid;
@@ -290,18 +320,20 @@ button {
 
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 
-.kpi {
+.kpi,
+.valve-box {
   border: 2px solid #c0cac2;
   background: #f4f7f3;
   padding: 7px;
   min-width: 0;
 }
 
-.kpi span {
+.kpi span,
+.valve-box span {
   display: block;
   color: #526058;
   font-size: 0.67rem;
@@ -309,12 +341,34 @@ button {
   text-transform: uppercase;
 }
 
-.kpi strong {
+.kpi strong,
+.valve-box strong {
   display: block;
   margin-top: 3px;
   color: #111827;
   font-size: 0.9rem;
   overflow-wrap: anywhere;
+}
+
+.valve-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.valve-box.ok {
+  background: #dff2e4;
+  border-color: #22c55e;
+}
+
+.valve-box.warn {
+  background: #fff3c4;
+  border-color: #d99a16;
+}
+
+.valve-box.danger {
+  background: #f8d3d0;
+  border-color: #dc2626;
 }
 
 .tank-grid {
@@ -337,11 +391,11 @@ button {
 .tank-card {
   border: 3px solid #aab6ae;
   background: #fefefe;
-  padding: 9px;
+  padding: 8px;
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 104px 1fr;
   gap: 8px;
-  min-height: 236px;
+  min-height: 232px;
 }
 
 .tank-card.ok {
@@ -358,7 +412,7 @@ button {
 
 .tank-visual {
   position: relative;
-  height: 212px;
+  height: 210px;
   border: 4px solid #64706a;
   background: #f5f8f5;
   display: grid;
@@ -411,6 +465,18 @@ button {
   gap: 5px;
 }
 
+.tank-data .kpi {
+  padding: 5px 6px;
+}
+
+.tank-data .kpi span {
+  font-size: 0.62rem;
+}
+
+.tank-data .kpi strong {
+  font-size: 0.82rem;
+}
+
 .command-panel {
   display: grid;
   gap: 8px;
@@ -426,10 +492,12 @@ button {
   place-items: center;
   gap: 4px;
   cursor: pointer;
+  text-align: center;
 }
 
 .action-button span {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
+  line-height: 1.1;
 }
 
 .action-button.primary {
@@ -441,7 +509,7 @@ button {
 .bottom-panel {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 1fr 1.1fr 1.5fr;
+  grid-template-columns: 1fr 1fr 1.15fr 1.65fr;
   gap: 8px;
 }
 
@@ -451,6 +519,11 @@ button {
   border: 2px solid #b5c0b8;
   background: #ffffff;
   padding: 9px;
+}
+
+.oil-card.oil-active {
+  border-color: #d99a16;
+  background: #fff8dc;
 }
 
 .pump-card {

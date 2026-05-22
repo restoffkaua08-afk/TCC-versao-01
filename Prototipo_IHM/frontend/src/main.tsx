@@ -70,7 +70,7 @@ function tone(value: string) {
   const v = value.toLowerCase();
 
   if (v.includes("bloque") || v.includes("emerg") || v.includes("falha") || v.includes("crít")) return "danger";
-  if (v.includes("aten") || v.includes("paus") || v.includes("monitorada") || v.includes("brando")) return "warn";
+  if (v.includes("aten") || v.includes("paus") || v.includes("monitorada") || v.includes("brando") || v.includes("pendente")) return "warn";
   if (v.includes("operação") || v.includes("normal") || v.includes("pronta") || v.includes("liber") || v.includes("ok") || v.includes("conclu")) return "ok";
 
   return "info";
@@ -189,6 +189,7 @@ function App() {
   const ready = Object.values(checklist).every(Boolean);
   const stage = getStage(status, elapsed);
   const tanks = useMemo(() => buildTanks(tankCount, status, elapsed, recipe, hose), [tankCount, status, elapsed, recipe, hose]);
+
   const avgTankPressure = tanks.reduce((acc, tank) => acc + tank.tankPressure, 0) / tanks.length;
   const avgMachinePressure = tanks.reduce((acc, tank) => acc + tank.machinePressure, 0) / tanks.length;
 
@@ -196,8 +197,9 @@ function App() {
   const b2 = status === "EM OPERAÇÃO" && stage === 2;
 
   const permission = ready && status !== "BLOQUEADA" ? "LIBERADO" : "BLOQUEADO";
-  const alarm = status === "BLOQUEADA" ? "EMERGÊNCIA" : status === "ATENÇÃO" ? "ATENÇÃO" : "SEM ALARME";
+  const alarm = getActiveAlarm(status, ready, recipe, stage);
   const ramp = status === "EM OPERAÇÃO" && stage === 1 ? recipes[recipe].ramp : status === "EM OPERAÇÃO" ? "MONITORANDO" : "AGUARDANDO";
+  const oilActive = stage >= 3 && status === "EM OPERAÇÃO";
 
   useEffect(() => {
     if (status !== "EM OPERAÇÃO") return;
@@ -298,11 +300,14 @@ function App() {
     });
   }
 
-  function finishCycle() {
+  function safeEndCycle() {
     ask({
-      title: "FINALIZAR CICLO",
-      text: status === "CONCLUÍDA" ? "Salvar resumo da operação?" : "Finalização manual simulada antes do fim automático?",
-      label: "FINALIZAR",
+      title: "ENCERRAR SEGURO",
+      text:
+        status === "CONCLUÍDA"
+          ? "Salvar resumo da operação concluída?"
+          : "O ciclo ainda não está concluído. Esta ação representa uma interrupção controlada simulada, não uma finalização normal.",
+      label: "CONFIRMAR",
       danger: status !== "CONCLUÍDA",
       action: () => {
         setStatus("CONCLUÍDA");
@@ -345,7 +350,12 @@ function App() {
             <StatusBox label="STATUS" value={status} />
             <StatusBox label="PERMISSÃO" value={permission} />
             <StatusBox label="ETAPA" value={stages[stage]} />
-            <StatusBox label="ALARME" value={alarm} />
+            <StatusBox label="RECEITA" value={recipes[recipe].label} />
+          </section>
+
+          <section className={`alarm-strip ${tone(alarm)}`}>
+            <AlertTriangle size={20} />
+            <strong>{alarm}</strong>
           </section>
 
           {screen === "operacao" && (
@@ -363,6 +373,14 @@ function App() {
                   <Kpi label="Pressão tanque" value={`${avgTankPressure.toFixed(1)} mbar`} />
                   <Kpi label="Pressão máquina" value={`${avgMachinePressure.toFixed(1)} mbar`} />
                   <Kpi label="Rampa" value={ramp} />
+                  <Kpi label="Tanques" value={`${tankCount}`} />
+                </div>
+
+                <div className="valve-row">
+                  <ValveBox label="Válvula superior" value={checklist.upperValve ? "ABERTA" : "FECHADA"} />
+                  <ValveBox label="Válvula inferior" value={checklist.lowerValve ? "FECHADA" : "ABERTA"} />
+                  <ValveBox label="Linha vácuo" value={stage >= 1 && stage <= 2 ? "ATIVA" : "AGUARDANDO"} />
+                  <ValveBox label="Linha óleo" value={oilActive ? "INJETANDO" : "AGUARDANDO"} />
                 </div>
 
                 <div className={`tank-grid tank-grid-${tankCount}`}>
@@ -381,14 +399,14 @@ function App() {
                 )}
                 <ActionButton label="INICIAR" icon={<Play size={22} />} onClick={startCycle} primary />
                 <ActionButton label="ALARMES" icon={<ShieldAlert size={22} />} onClick={() => setScreen("alarmes")} />
-                <ActionButton label="REGISTRO" icon={<ClipboardCheck size={22} />} onClick={() => setScreen("registro")} />
+                <ActionButton label="ENCERRAR SEGURO" icon={<Square size={22} />} onClick={safeEndCycle} />
                 <ActionButton label="RESET" icon={<RotateCcw size={22} />} onClick={resetCycle} />
               </div>
 
               <div className="bottom-panel">
                 <PumpCard code="B1" name="Bomba primária" running={b1} />
                 <PumpCard code="B2" name="Bomba Roots" running={b2} />
-                <OilCard active={stage >= 3 && status === "EM OPERAÇÃO"} />
+                <OilCard active={oilActive} />
                 <StageCard stage={stage} />
               </div>
             </section>
@@ -489,6 +507,12 @@ function App() {
                   severity="ATENÇÃO"
                   action="Comparar pressão da máquina com pressão estimada no tanque."
                 />
+                <AlarmCard
+                  code="ALM-003"
+                  title="Sistema de óleo"
+                  severity={oilActive ? "NORMAL" : "ATENÇÃO"}
+                  action={oilActive ? "Óleo em injeção monitorada." : "Verificar liberação e disponibilidade de óleo antes do ciclo."}
+                />
               </div>
 
               <div className="alarm-actions">
@@ -574,6 +598,14 @@ function App() {
   );
 }
 
+function getActiveAlarm(status: Status, ready: boolean, recipe: Recipe, stage: number) {
+  if (status === "BLOQUEADA") return "EMERGÊNCIA ACIONADA — OPERAÇÃO BLOQUEADA";
+  if (!ready) return "CHECKLIST PENDENTE — INÍCIO BLOQUEADO";
+  if (status === "ATENÇÃO") return "ATENÇÃO OPERACIONAL — VERIFICAR PROCESSO";
+  if (recipe === "critico" && stage === 1) return "ATENÇÃO: TANQUE CRÍTICO COM VÁCUO BRANDO";
+  return "SEM ALARME ATIVO";
+}
+
 function StatusBox({ label, value }: { label: string; value: string }) {
   return (
     <div className={`status-box ${tone(value)}`}>
@@ -590,6 +622,15 @@ function StatusPill({ value }: { value: string }) {
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div className="kpi">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function ValveBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div className={`valve-box ${tone(value)}`}>
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
@@ -647,8 +688,8 @@ function PumpCard({ code, name, running }: { code: string; name: string; running
 
 function OilCard({ active }: { active: boolean }) {
   return (
-    <article className="oil-card">
-      <h3>ÓLEO</h3>
+    <article className={`oil-card ${active ? "oil-active" : ""}`}>
+      <h3>SISTEMA DE ÓLEO</h3>
       <Kpi label="Vazão" value={active ? "2,1 L/min" : "0,0 L/min"} />
       <Kpi label="Temp." value="60 °C" />
       <Kpi label="Estado" value={active ? "INJETANDO" : "AGUARDANDO"} />
@@ -659,7 +700,7 @@ function OilCard({ active }: { active: boolean }) {
 function StageCard({ stage }: { stage: number }) {
   return (
     <article className="stage-card">
-      <h3>SEQUÊNCIA</h3>
+      <h3>SEQUÊNCIA AUTOMÁTICA</h3>
       {stages.map((item, index) => (
         <div key={item} className={`stage-line ${index < stage ? "done" : index === stage ? "active" : ""}`}>
           <span>{index + 1}</span>
