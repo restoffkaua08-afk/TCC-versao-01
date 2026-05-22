@@ -1,13 +1,12 @@
-import type { ReactNode } from "react";
+﻿import { useEffect, useState, type ReactNode } from "react";
 
-export type View = "dashboard" | "operation" | "twin" | "history" | "reports" | "parameters";
+export type View = "dashboard" | "operation" | "twin" | "traceability" | "parameters";
 
 const menu: { key: View; label: string; sub: string }[] = [
   { key: "dashboard", label: "Painel", sub: "Resumo operacional" },
   { key: "operation", label: "Operação", sub: "Configuração e execução" },
   { key: "twin", label: "Gêmeo Digital", sub: "Simulação operacional" },
-  { key: "history", label: "Histórico", sub: "Ciclos e simulações" },
-  { key: "reports", label: "Relatórios", sub: "Filtros e auditoria" },
+  { key: "traceability", label: "Rastreabilidade", sub: "Histórico, logs e relatórios" },
   { key: "parameters", label: "Parâmetros", sub: "Cadastros técnicos" },
 ];
 
@@ -21,60 +20,118 @@ type AppShellProps = {
   view: View;
 };
 
-export function AppShell({ apiOnline, children, menuOpen, setMenuOpen, setView, statusBadge, view }: AppShellProps) {
+export function AppShell({
+  apiOnline,
+  children,
+  menuOpen,
+  setMenuOpen,
+  setView,
+  statusBadge,
+  view,
+}: AppShellProps) {
   const pageTitle = menu.find((item) => item.key === view)?.label || "Painel";
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem("tsea.mainSidebarCollapsed") === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("tsea.mainSidebarCollapsed", sidebarCollapsed ? "true" : "false");
+  }, [sidebarCollapsed]);
+
+  function handleNavigate(nextView: View) {
+    setView(nextView);
+    setMenuOpen(false);
+  }
 
   return (
-    <div className={`layout ${menuOpen ? "drawerOpen" : ""}`}>
-      <aside className="drawer">
-        <div className="brandBlock">
-          <span>TSEA</span>
-          <strong>Supervisório Digital</strong>
-          <small>Vácuo · Rastreabilidade · Gêmeo Digital</small>
+    <div
+      className={[
+        "app-shell",
+        menuOpen ? "mobile-menu-open" : "",
+        sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded",
+      ].join(" ")}
+    >
+      <aside className={`sidebar ${menuOpen ? "open" : ""} ${sidebarCollapsed ? "collapsed" : ""}`}>
+        <div className="sidebar-header">
+          <div className="brand-mark">T</div>
+
+          <div className="brand-copy">
+            <strong>TSEA</strong>
+            <span>Supervisório Digital</span>
+            <small>Vácuo · Rastreabilidade · Gêmeo Digital</small>
+          </div>
+
+          <button
+            className="sidebar-collapse-toggle"
+            type="button"
+            aria-label={sidebarCollapsed ? "Abrir barra lateral" : "Recolher barra lateral"}
+            title={sidebarCollapsed ? "Abrir menu lateral" : "Recolher menu lateral"}
+            onClick={() => setSidebarCollapsed((current) => !current)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
         </div>
 
-        <nav className="navList">
+        <nav className="nav-list" aria-label="Menu principal">
           {menu.map((item) => (
             <button
               key={item.key}
-              className={view === item.key ? "active" : ""}
-              onClick={() => {
-                setView(item.key);
-                setMenuOpen(false);
-              }}
+              className={`nav-item ${view === item.key ? "active" : ""}`}
+              onClick={() => handleNavigate(item.key)}
+              title={sidebarCollapsed ? item.label : undefined}
             >
-              <span>{item.label}</span>
-              <small>{item.sub}</small>
+              <span className="nav-item-dot" />
+              <span className="nav-item-text">
+                <strong>{item.label}</strong>
+                <small>{item.sub}</small>
+              </span>
             </button>
           ))}
         </nav>
 
-        <div className="drawerFooter">
-          <span className={`dot ${apiOnline ? "on" : "off"}`} />
-          <small>{apiOnline ? "API conectada" : "API desconectada"}</small>
+        <div className="sidebar-footer">
+          <span className={apiOnline ? "api-dot online" : "api-dot offline"} />
+          <div>
+            <strong>{apiOnline ? "API conectada" : "API desconectada"}</strong>
+            <small>{apiOnline ? "Sincronização ativa" : "Operando com dados locais"}</small>
+          </div>
         </div>
       </aside>
 
-      <div className="overlay" onClick={() => setMenuOpen(false)} />
+      {menuOpen && (
+        <button
+          className="backdrop"
+          type="button"
+          aria-label="Fechar menu"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
 
       <main className="content">
         <header className="topbar">
-          <button className="hamburger" onClick={() => setMenuOpen(true)} aria-label="Abrir menu">
+          <button
+            className="menu-toggle"
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Abrir menu"
+          >
             <span />
             <span />
             <span />
           </button>
 
-          <div>
-            <span className="moduleLabel">TSEA · {pageTitle}</span>
+          <div className="topbar-title">
+            <span>TSEA · {pageTitle}</span>
             <h1>{pageTitle}</h1>
             <p>Supervisão técnica do processo de vácuo, rastreabilidade e validação operacional.</p>
           </div>
 
-          {statusBadge}
+          <div className="topbar-status">{statusBadge}</div>
         </header>
 
-        {children}
+        <div className="page-content">{children}</div>
       </main>
     </div>
   );

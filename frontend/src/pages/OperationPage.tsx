@@ -211,7 +211,7 @@ export function OperationPage({
   tanksState,
 }: OperationPageProps) {
   const [tab, setTab] = useState<OperationTab>("ihm");
-  const [configOpen, setConfigOpen] = useState(false);
+  const [operationSubmenuOpen, setOperationSubmenuOpen] = useState(false); const [configOpen, setConfigOpen] = useState(false);
   const [configMode, setConfigMode] = useState<ConfigMode>("choice");
   const [selectedRecipeId, setSelectedRecipeId] = useState<any>(operationConfig.recipe_id || allRecipes[0]?.id || "");
   const [recipeDraft, setRecipeDraft] = useState<any>({});
@@ -565,13 +565,74 @@ export function OperationPage({
     );
   }
 
-  return (
-    <div className="screen operationScreen">
-      <div className="operationTabs">
-        <button className={tab === "ihm" ? "" : "secondary"} onClick={() => handleTab("ihm")}>IHM</button>
-        <button className={tab === "info" ? "" : "secondary"} onClick={() => handleTab("info")}>Informações</button>
-        <button className={tab === "config" ? "" : "secondary"} onClick={() => handleTab("config")}>Configuração</button>
+  
+  /* TSEA_PAGE_SUBMENU_DRAWER_START:renderOperationSubmenuDrawer */
+  function renderOperationSubmenuDrawer() {
+    const submenuItems: { key: any; label: string; description: string }[] = [
+      { key: "ihm" as any, label: "IHM", description: "Visão operacional e acionamentos" },
+      { key: "info" as any, label: "Informações", description: "Dados técnicos e rastreabilidade" },
+      { key: "config" as any, label: "Configuração", description: "Configuração guiada do ciclo" }
+    ];
+
+    return (
+      <div className="page-subnav-shell">
+        <button
+          className="page-subnav-toggle"
+          type="button"
+          aria-label="Abrir submenus de Operação"
+          title="Submenus"
+          onClick={() => setOperationSubmenuOpen(true)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+        {operationSubmenuOpen && (
+          <div
+            className="page-subnav-overlay"
+            role="presentation"
+            onClick={() => setOperationSubmenuOpen(false)}
+          />
+        )}
+
+        <aside className={`page-subnav-drawer ${operationSubmenuOpen ? "open" : ""}`}>
+          <div className="page-subnav-drawer-header">
+            <div>
+              <span>Operação</span>
+              <strong>Navegação rápida</strong>
+            </div>
+
+            <button className="btn ghost" type="button" onClick={() => setOperationSubmenuOpen(false)}>
+              Fechar
+            </button>
+          </div>
+
+          <div className="page-subnav-drawer-list">
+            {submenuItems.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className={tab === item.key ? "active" : ""}
+                onClick={() => {
+                  handleTab(item.key);
+                  setOperationSubmenuOpen(false);
+                }}
+              >
+                <strong>{item.label}</strong>
+                <span>{item.description}</span>
+              </button>
+            ))}
+          </div>
+        </aside>
       </div>
+    );
+  }
+  /* TSEA_PAGE_SUBMENU_DRAWER_END:renderOperationSubmenuDrawer */
+
+return (
+    <div className="screen operationScreen">
+      {renderOperationSubmenuDrawer()}
 
       {tab === "ihm" && renderIhm()}
       {tab === "info" && renderInfo()}
