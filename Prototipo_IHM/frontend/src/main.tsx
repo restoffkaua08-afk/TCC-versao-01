@@ -19,12 +19,22 @@ import {
 import "./styles.css";
 
 type Screen = "inicio" | "preparacao" | "operacao" | "alarmes" | "registro";
-type CycleStatus = "Pronta" | "Em operação" | "Atenção" | "Bloqueada";
+type CycleStatus = "Pronta" | "Em operação" | "Pausada" | "Atenção" | "Bloqueada" | "Concluída";
 type TankCondition = "Normal" | "Atenção" | "Bloqueio";
+type RecipeKey = "padrao" | "tanque_grande" | "tanque_critico";
+type HoseKey = "MG-01" | "MG-02" | "MG-03";
+
+type RecipeProfile = {
+  label: string;
+  targetPressure: number;
+  oilTarget: number;
+  rampMode: string;
+};
 
 type TankData = {
   code: string;
   pressure: number;
+  machinePressure: number;
   target: number;
   oil: number;
   air: number;
@@ -52,12 +62,33 @@ type ConfirmAction = {
   onConfirm: () => void;
 };
 
+const recipeProfiles: Record<RecipeKey, RecipeProfile> = {
+  padrao: {
+    label: "Padrão",
+    targetPressure: 8,
+    oilTarget: 50,
+    rampMode: "Rampa padrão"
+  },
+  tanque_grande: {
+    label: "Tanque grande",
+    targetPressure: 12,
+    oilTarget: 65,
+    rampMode: "Rampa monitorada"
+  },
+  tanque_critico: {
+    label: "Tanque crítico",
+    targetPressure: 35,
+    oilTarget: 45,
+    rampMode: "Vácuo brando"
+  }
+};
+
 const menuItems: { key: Screen; label: string; description: string }[] = [
-  { key: "inicio", label: "Início", description: "Estado geral da máquina" },
-  { key: "preparacao", label: "Preparação", description: "Configurar ciclo e liberar checklist" },
+  { key: "inicio", label: "Início", description: "Status geral da máquina" },
+  { key: "preparacao", label: "Preparação", description: "Receita, tanques e checklist" },
   { key: "operacao", label: "Operação", description: "Monitoramento automático do ciclo" },
   { key: "alarmes", label: "Alarmes", description: "Falhas, bloqueios e reconhecimento" },
-  { key: "registro", label: "Registro", description: "Resumo final da operação" }
+  { key: "registro", label: "Registro", description: "Resumo da operação" }
 ];
 
 const stages = [
@@ -73,8 +104,8 @@ function tone(value: string) {
   const lower = value.toLowerCase();
 
   if (lower.includes("bloque") || lower.includes("crítico") || lower.includes("falha") || lower.includes("emergência")) return "critical";
-  if (lower.includes("atenção") || lower.includes("aguard") || lower.includes("paus") || lower.includes("rápida")) return "warning";
-  if (lower.includes("operação") || lower.includes("normal") || lower.includes("pronta") || lower.includes("liberado") || lower.includes("online")) return "success";
+  if (lower.includes("atenção") || lower.includes("aguard") || lower.includes("paus") || lower.includes("monitorada") || lower.includes("brando")) return "warning";
+  if (lower.includes("operação") || lower.includes("normal") || lower.includes("pronta") || lower.includes("liberado") || lower.includes("online") || lower.includes("concluída")) return "success";
 
   return "neutral";
 }
@@ -86,7 +117,8 @@ function formatTime(seconds: number) {
 }
 
 function stageFromElapsed(status: CycleStatus, elapsed: number) {
-  if (status === "Bloqueada" || status === "Pronta") return 0;
+  if (status === "Pronta" || status === "Bloqueada") return 0;
+  if (status === "Concluída") return 5;
   if (elapsed < 24) return 1;
   if (elapsed < 90) return 2;
   if (elapsed < 160) return 3;
@@ -104,22 +136,51 @@ function expectedStageTime(stage: number) {
     "Ciclo concluído"
   ];
 
-  return map[stage] ?? "Em acompanhamento";
+  return map[stage] ?? "Acompanhamento";
 }
 
-function makeTanks(count: number, status: CycleStatus, elapsed: number): TankData[] {
+function hoseLossBase(hose: HoseKey, tankCount: number) {
+  const hoseBase: Record<HoseKey, number> = {
+    "MG-01": 0.8,
+    "MG-02": 1.5,
+    "MG-03": 2.2
+  };
+
+  return hoseBase[hose] + (tankCount - 1) * 0.7;
+}
+
+function machinePressureByElapsed(elapsed: number, profile: RecipeProfile) {
+  if (elapsed < 24) {
+    return Math.max(profile.targetPressure, 1013 * Math.exp(-elapsed / 8));
+  }
+
+  if (elapsed < 90) {
+    return Math.max(profile.targetPressure, 75 * Math.exp(-(elapsed - 24) / 20));
+  }
+
+  return profile.targetPressure;
+}
+
+function makeTanks(
+  count: number,
+  status: CycleStatus,
+  elapsed: number,
+  profile: RecipeProfile,
+  hose: HoseKey
+): TankData[] {
   const stage = stageFromElapsed(status, elapsed);
-  const running = status === "Em operação" || status === "Atenção";
+  const running = status === "Em operação" || status === "Pausada" || status === "Atenção";
   const blocked = status === "Bloqueada";
 
   return Array.from({ length: count }).map((_, index) => {
-    const hoseLoss = count === 1 ? 0.8 : count === 2 ? 1.7 + index * 0.2 : 2.6 + index * 0.3;
+    const hoseLoss = hoseLossBase(hose, count) + index * 0.3;
 
     if (blocked) {
       return {
         code: `TQ-0${index + 1}`,
         pressure: 1013,
-        target: 8,
+        machinePressure: 1013,
+        target: profile.targetPressure,
         oil: 0,
         air: 100,
         vacuum: 0,
@@ -132,7 +193,8 @@ function makeTanks(count: number, status: CycleStatus, elapsed: number): TankDat
       return {
         code: `TQ-0${index + 1}`,
         pressure: 1013,
-        target: 8,
+        machinePressure: 1013,
+        target: profile.targetPressure,
         oil: 0,
         air: 100,
         vacuum: 0,
@@ -141,21 +203,25 @@ function makeTanks(count: number, status: CycleStatus, elapsed: number): TankDat
       };
     }
 
-    const basePressure = Math.max(8 + hoseLoss, 1013 * Math.exp(-elapsed / 15) + hoseLoss);
-    const oil = stage >= 3 ? Math.min(62, 10 + (elapsed - 90) * 0.36 + index * 3) : 0;
-    const vacuum = Math.min(88, Math.max(12, ((1013 - basePressure) / 1013) * 86));
-    const air = Math.max(8, 72 - vacuum * 0.35 - oil * 0.22);
-    const condition: TankCondition = status === "Atenção" || (count === 3 && index === 2 && elapsed > 50) ? "Atenção" : "Normal";
+    const machinePressure = machinePressureByElapsed(elapsed, profile);
+    const tankPressure = machinePressure + hoseLoss;
+    const oilProgress = stage >= 3 ? Math.min(1, Math.max(0, (elapsed - 90) / 70)) : 0;
+    const oil = profile.oilTarget * oilProgress;
+    const vacuum = Math.min(88, Math.max(0, ((1013 - tankPressure) / 1013) * 88));
+    const air = Math.max(7, 74 - vacuum * 0.35 - oilProgress * 28);
+    const warningByThreeTanks = count === 3 && index === 2 && elapsed > 42;
+    const warningByCriticalRecipe = profile.label === "Tanque crítico" && elapsed < 24;
 
     return {
       code: `TQ-0${index + 1}`,
-      pressure: basePressure,
-      target: 8,
+      pressure: tankPressure,
+      machinePressure,
+      target: profile.targetPressure,
       oil,
       air,
       vacuum,
       hoseLoss,
-      condition
+      condition: status === "Atenção" || warningByThreeTanks || warningByCriticalRecipe ? "Atenção" : "Normal"
     };
   });
 }
@@ -164,11 +230,11 @@ function App() {
   const [screen, setScreen] = useState<Screen>("inicio");
   const [menuOpen, setMenuOpen] = useState(false);
   const [tankCount, setTankCount] = useState(2);
+  const [recipeKey, setRecipeKey] = useState<RecipeKey>("padrao");
+  const [hose, setHose] = useState<HoseKey>("MG-02");
   const [cycleStatus, setCycleStatus] = useState<CycleStatus>("Pronta");
   const [operator, setOperator] = useState("Operador 01");
   const [shift, setShift] = useState("Manhã");
-  const [recipe, setRecipe] = useState("Padrão");
-  const [hose, setHose] = useState("MG-02");
   const [checklist, setChecklist] = useState<ChecklistState>({
     hose: true,
     upperValve: true,
@@ -186,21 +252,22 @@ function App() {
   const [ackAlarm, setAckAlarm] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
+  const profile = recipeProfiles[recipeKey];
   const checklistReady = Object.values(checklist).every(Boolean);
   const stageIndex = stageFromElapsed(cycleStatus, elapsed);
-  const tanks = useMemo(() => makeTanks(tankCount, cycleStatus, elapsed), [tankCount, cycleStatus, elapsed]);
+  const tanks = useMemo(() => makeTanks(tankCount, cycleStatus, elapsed, profile, hose), [tankCount, cycleStatus, elapsed, profile, hose]);
+  const avgPressure = tanks.reduce((sum, tank) => sum + tank.pressure, 0) / Math.max(tanks.length, 1);
 
   const permission = checklistReady && !emergency ? "Liberado" : "Bloqueado";
   const alarmStatus = emergency ? "Emergência geral" : cycleStatus === "Atenção" ? "Atenção operacional" : "Sem alarme";
   const plcStatus = cycleStatus === "Bloqueada" ? "Bloqueado" : "Online simulado";
   const sensorStatus = checklist.sensors ? "Sensores OK" : "Falha sensor";
   const interlockStatus = checklist.interlocks && checklist.emergency ? "Liberado" : "Bloqueado";
-  const rampStatus = cycleStatus === "Em operação" && elapsed < 24 ? "Rampa inicial" : cycleStatus === "Em operação" ? "Acompanhando" : "Aguardando";
-  const avgPressure = tanks.reduce((sum, tank) => sum + tank.pressure, 0) / Math.max(tanks.length, 1);
+  const rampStatus = cycleStatus === "Em operação" && stageIndex === 1 ? profile.rampMode : cycleStatus === "Em operação" ? "Acompanhando" : "Aguardando";
   const finalStage = stageIndex >= 5;
 
   useEffect(() => {
-    if (cycleStatus !== "Em operação" && cycleStatus !== "Atenção") return;
+    if (cycleStatus !== "Em operação") return;
 
     const id = window.setInterval(() => {
       setElapsed((current) => current + 1);
@@ -210,15 +277,30 @@ function App() {
   }, [cycleStatus]);
 
   useEffect(() => {
-    if (cycleStatus === "Em operação" && stageIndex >= 2) setB2Running(true);
+    if (cycleStatus === "Em operação") {
+      if (stageIndex === 1) {
+        setB1Running(true);
+        setB2Running(false);
+      }
 
-    if (cycleStatus === "Em operação" && finalStage) {
-      setB1Running(false);
-      setB2Running(false);
-      setCycleStatus("Pronta");
-      setScreen("registro");
+      if (stageIndex === 2) {
+        setB1Running(true);
+        setB2Running(true);
+      }
+
+      if (stageIndex === 3 || stageIndex === 4) {
+        setB1Running(true);
+        setB2Running(false);
+      }
+
+      if (stageIndex >= 5) {
+        setB1Running(false);
+        setB2Running(false);
+        setCycleStatus("Concluída");
+        setScreen("registro");
+      }
     }
-  }, [cycleStatus, stageIndex, finalStage]);
+  }, [cycleStatus, stageIndex]);
 
   function startCycle() {
     if (!checklistReady) {
@@ -239,6 +321,30 @@ function App() {
         setElapsed(0);
         setAckAlarm(false);
         setScreen("operacao");
+      }
+    });
+  }
+
+  function requestPause() {
+    setConfirmAction({
+      title: "Solicitar pausa",
+      body: "Solicitar pausa operacional ao CLP/simulação? As bombas serão colocadas em estado seguro simulado.",
+      confirmLabel: "Solicitar pausa",
+      onConfirm: () => {
+        setCycleStatus("Pausada");
+        setB1Running(false);
+        setB2Running(false);
+      }
+    });
+  }
+
+  function requestResume() {
+    setConfirmAction({
+      title: "Retomar ciclo",
+      body: "Solicitar retomada do ciclo ao CLP/simulação?",
+      confirmLabel: "Retomar",
+      onConfirm: () => {
+        setCycleStatus("Em operação");
       }
     });
   }
@@ -275,42 +381,16 @@ function App() {
     });
   }
 
-  function requestPause() {
-    setConfirmAction({
-      title: "Solicitar pausa",
-      body: "Solicitar pausa operacional ao CLP/simulação? A operação entrará em atenção.",
-      confirmLabel: "Solicitar pausa",
-      onConfirm: () => {
-        setCycleStatus("Atenção");
-        setB1Running(false);
-        setB2Running(false);
-      }
-    });
-  }
-
-  function requestResume() {
-    setConfirmAction({
-      title: "Retomar ciclo",
-      body: "Solicitar retomada do ciclo ao CLP/simulação?",
-      confirmLabel: "Retomar",
-      onConfirm: () => {
-        setCycleStatus("Em operação");
-        setB1Running(true);
-        if (stageIndex >= 2) setB2Running(true);
-      }
-    });
-  }
-
   function finishCycle() {
     setConfirmAction({
       title: "Finalizar ciclo",
-      body: finalStage
+      body: finalStage || cycleStatus === "Concluída"
         ? "Encerrar operação simulada e gerar resumo?"
-        : "O ciclo ainda não chegou à finalização automática. Deseja encerrar como finalização manual simulada?",
+        : "O ciclo ainda não chegou à etapa final. Deseja encerrar como finalização manual simulada?",
       confirmLabel: "Finalizar",
-      danger: !finalStage,
+      danger: !(finalStage || cycleStatus === "Concluída"),
       onConfirm: () => {
-        setCycleStatus("Pronta");
+        setCycleStatus("Concluída");
         setB1Running(false);
         setB2Running(false);
         setScreen("registro");
@@ -373,6 +453,7 @@ function App() {
                 permission={permission}
                 alarmStatus={alarmStatus}
                 tankCount={tankCount}
+                recipeLabel={profile.label}
                 setScreen={setScreen}
               />
             )}
@@ -385,8 +466,8 @@ function App() {
                 setOperator={setOperator}
                 shift={shift}
                 setShift={setShift}
-                recipe={recipe}
-                setRecipe={setRecipe}
+                recipeKey={recipeKey}
+                setRecipeKey={setRecipeKey}
                 hose={hose}
                 setHose={setHose}
                 checklist={checklist}
@@ -431,7 +512,7 @@ function App() {
                 operator={operator}
                 shift={shift}
                 hose={hose}
-                recipe={recipe}
+                recipeLabel={profile.label}
                 cycleStatus={cycleStatus}
                 elapsed={elapsed}
                 avgPressure={avgPressure}
@@ -494,12 +575,14 @@ function StartScreen({
   permission,
   alarmStatus,
   tankCount,
+  recipeLabel,
   setScreen
 }: {
   cycleStatus: CycleStatus;
   permission: string;
   alarmStatus: string;
   tankCount: number;
+  recipeLabel: string;
   setScreen: (screen: Screen) => void;
 }) {
   return (
@@ -511,11 +594,12 @@ function StartScreen({
         <div className="start-status-grid">
           <InfoTile label="Permissão" value={permission} tone={tone(permission)} />
           <InfoTile label="Tanques" value={`${tankCount}`} tone="neutral" />
+          <InfoTile label="Receita" value={recipeLabel} tone="neutral" />
           <InfoTile label="Alarme" value={alarmStatus} tone={tone(alarmStatus)} />
         </div>
 
         <p className="operator-note">
-          A sequência do processo é automática. O operador prepara o ciclo, acompanha leituras, reconhece alarmes e registra a operação.
+          IHM local para preparar ciclo, acompanhar vácuo/óleo, reconhecer alarmes e registrar operação. A sequência é automática pelo CLP/simulação.
         </p>
       </section>
 
@@ -546,10 +630,10 @@ function PreparationScreen(props: {
   setOperator: (value: string) => void;
   shift: string;
   setShift: (value: string) => void;
-  recipe: string;
-  setRecipe: (value: string) => void;
-  hose: string;
-  setHose: (value: string) => void;
+  recipeKey: RecipeKey;
+  setRecipeKey: (value: RecipeKey) => void;
+  hose: HoseKey;
+  setHose: (value: HoseKey) => void;
   checklist: ChecklistState;
   setChecklist: (value: ChecklistState) => void;
   checklistReady: boolean;
@@ -591,10 +675,10 @@ function PreparationScreen(props: {
           </Field>
 
           <Field label="Receita">
-            <select value={props.recipe} onChange={(event) => props.setRecipe(event.target.value)}>
-              <option>Padrão</option>
-              <option>Tanque grande</option>
-              <option>Tanque crítico</option>
+            <select value={props.recipeKey} onChange={(event) => props.setRecipeKey(event.target.value as RecipeKey)}>
+              <option value="padrao">Padrão</option>
+              <option value="tanque_grande">Tanque grande</option>
+              <option value="tanque_critico">Tanque crítico</option>
             </select>
           </Field>
 
@@ -615,10 +699,10 @@ function PreparationScreen(props: {
           </Field>
 
           <Field label="Mangueira">
-            <select value={props.hose} onChange={(event) => props.setHose(event.target.value)}>
-              <option>MG-01</option>
-              <option>MG-02</option>
-              <option>MG-03</option>
+            <select value={props.hose} onChange={(event) => props.setHose(event.target.value as HoseKey)}>
+              <option value="MG-01">MG-01</option>
+              <option value="MG-02">MG-02</option>
+              <option value="MG-03">MG-03</option>
             </select>
           </Field>
         </div>
@@ -700,9 +784,9 @@ function OperationScreen(props: {
 
         <section className="oil-panel">
           <h3>Óleo</h3>
-          <InfoTile label="Vazão" value="2,1 L/min" tone="success" />
-          <InfoTile label="Volume" value="48 L" tone="success" />
+          <InfoTile label="Vazão" value={props.stageIndex >= 3 ? "2,1 L/min" : "0,0 L/min"} tone={props.stageIndex >= 3 ? "success" : "neutral"} />
           <InfoTile label="Temp." value="60 °C" tone="success" />
+          <InfoTile label="Status" value={props.stageIndex >= 3 ? "Injetando" : "Aguardando"} tone={props.stageIndex >= 3 ? "success" : "neutral"} />
         </section>
 
         <section className="steps-panel">
@@ -716,7 +800,7 @@ function OperationScreen(props: {
         </section>
 
         <section className="operator-actions">
-          {props.cycleStatus === "Atenção" ? (
+          {props.cycleStatus === "Pausada" || props.cycleStatus === "Atenção" ? (
             <button onClick={props.requestResume}>
               <Play size={23} />
               Retomar
@@ -745,7 +829,7 @@ function OperationScreen(props: {
 
 function TankVisual({ tank }: { tank: TankData }) {
   const airHeight = Math.min(82, Math.max(14, tank.air));
-  const vacuumHeight = Math.min(86, Math.max(12, tank.vacuum));
+  const vacuumHeight = Math.min(86, Math.max(10, tank.vacuum));
   const oilHeight = Math.min(70, Math.max(0, tank.oil));
 
   return (
@@ -767,7 +851,8 @@ function TankVisual({ tank }: { tank: TankData }) {
       </div>
 
       <div className="tank-readings">
-        <Reading label="Pressão" value={`${tank.pressure.toFixed(1)} mbar`} />
+        <Reading label="Pressão tanque" value={`${tank.pressure.toFixed(1)} mbar`} />
+        <Reading label="Pressão máquina" value={`${tank.machinePressure.toFixed(1)} mbar`} />
         <Reading label="Alvo" value={`${tank.target.toFixed(1)} mbar`} />
         <Reading label="Óleo" value={`${tank.oil.toFixed(0)} L`} />
         <Reading label="Perda mangueira" value={`${tank.hoseLoss.toFixed(1)} mbar`} />
@@ -812,10 +897,10 @@ function AlarmsScreen(props: {
     },
     {
       id: "ALM-002",
-      title: "Rampa inicial rápida",
+      title: "Rampa inicial de vácuo",
       severity: "Atenção",
       cause: "Queda inicial de pressão precisa ser acompanhada.",
-      action: "Verificar pressão do tanque e estabilidade da mangueira."
+      action: "Verificar leitura no tanque, mangueira e estabilidade da bomba primária."
     }
   ];
 
@@ -860,8 +945,8 @@ function RegisterScreen(props: {
   tankCount: number;
   operator: string;
   shift: string;
-  hose: string;
-  recipe: string;
+  hose: HoseKey;
+  recipeLabel: string;
   cycleStatus: CycleStatus;
   elapsed: number;
   avgPressure: number;
@@ -878,7 +963,7 @@ function RegisterScreen(props: {
           <InfoTile label="Turno" value={props.shift} tone="neutral" />
           <InfoTile label="Tanques" value={`${props.tankCount}`} tone="neutral" />
           <InfoTile label="Mangueira" value={props.hose} tone="neutral" />
-          <InfoTile label="Receita" value={props.recipe} tone="neutral" />
+          <InfoTile label="Receita" value={props.recipeLabel} tone="neutral" />
           <InfoTile label="Tempo demo" value={formatTime(props.elapsed)} tone="neutral" />
           <InfoTile label="Pressão média" value={`${props.avgPressure.toFixed(1)} mbar`} tone="neutral" />
           <InfoTile label="Status" value={props.cycleStatus} tone={tone(props.cycleStatus)} />

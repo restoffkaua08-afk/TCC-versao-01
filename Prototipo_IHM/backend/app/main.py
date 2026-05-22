@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field
 
 app = FastAPI(
     title="TSEA IHM Local API",
-    description="API simulada para protótipo de IHM local industrial da TSEA.",
-    version="0.2.0",
+    description="API simulada para protótipo de IHM local da TSEA.",
+    version="0.3.0",
 )
 
 app.add_middleware(
@@ -27,7 +27,7 @@ class CycleConfig(BaseModel):
     tank_count: int = Field(ge=1, le=3)
     recipe: str
     hose: str
-    operation_mode: Literal["automatico", "manual"] = "automatico"
+    control_mode: Literal["local", "remoto"] = "local"
 
 
 class CommandRequest(BaseModel):
@@ -48,9 +48,15 @@ def root():
 @app.get("/api/state")
 def get_state():
     return {
+        "device": {
+            "profile": "tablet_industrial_simulado",
+            "kiosk_mode": True,
+            "glove_touch": "previsto",
+            "sunlight_readable": "previsto",
+            "ip_rating": "referencia_minima_ip65",
+        },
         "machine": {
             "status": "pronta",
-            "operation_mode": "automatico",
             "control_mode": "local",
             "interlocks": "liberado",
             "emergency": "liberada",
