@@ -230,7 +230,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
   ], [allHoses, allTanks]);
 
   const [tab, setTab] = useState<TwinTab>("scenarios");
-  const [customScenarios, setCustomScenarios] = useState<any[]>(() => loadLocal("tsea.gemeo10.customScenarios", []));
+  const [twinSubmenuOpen, setTwinSubmenuOpen] = useState(false); const [customScenarios, setCustomScenarios] = useState<any[]>(() => loadLocal("tsea.gemeo10.customScenarios", []));
   const [history, setHistory] = useState<any[]>(() => loadLocal("tsea.gemeo10.history", []));
   const [result, setResult] = useState<any>(() => loadLocal("tsea.gemeo10.lastResult", null));
   const [selectedScenario, setSelectedScenario] = useState<any>(null);
@@ -871,15 +871,76 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
     );
   }
 
-  return (
-    <div className="screen twinWorkspace">
-      <div className="operationTabs twinTabs">
-        <button className={tab === "scenarios" ? "" : "secondary"} onClick={() => setTab("scenarios")}>Cenários</button>
-        <button className={tab === "simulation" ? "" : "secondary"} onClick={() => setTab("simulation")}>Simulação</button>
-        <button className={tab === "result" ? "" : "secondary"} onClick={() => setTab("result")}>Resultado</button>
-        <button className={tab === "history" ? "" : "secondary"} onClick={() => setTab("history")}>Histórico</button>
-        <button className={tab === "technical" ? "" : "secondary"} onClick={() => setTab("technical")}>Dados Técnicos</button>
+  
+  /* TSEA_PAGE_SUBMENU_DRAWER_START:renderTwinSubmenuDrawer */
+  function renderTwinSubmenuDrawer() {
+    const submenuItems: { key: any; label: string; description: string }[] = [
+      { key: "scenarios" as any, label: "Cenários", description: "Criar e escolher cenários" },
+      { key: "simulation" as any, label: "Simulação", description: "Visual e componentes simulados" },
+      { key: "result" as any, label: "Resultado", description: "Diagnóstico da simulação" },
+      { key: "history" as any, label: "Histórico", description: "Execuções registradas" },
+      { key: "technical" as any, label: "Dados Técnicos", description: "Parâmetros e fórmulas" }
+    ];
+
+    return (
+      <div className="page-subnav-shell">
+        <button
+          className="page-subnav-toggle"
+          type="button"
+          aria-label="Abrir submenus de Gêmeo Digital"
+          title="Submenus"
+          onClick={() => setTwinSubmenuOpen(true)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+        {twinSubmenuOpen && (
+          <div
+            className="page-subnav-overlay"
+            role="presentation"
+            onClick={() => setTwinSubmenuOpen(false)}
+          />
+        )}
+
+        <aside className={`page-subnav-drawer ${twinSubmenuOpen ? "open" : ""}`}>
+          <div className="page-subnav-drawer-header">
+            <div>
+              <span>Gêmeo Digital</span>
+              <strong>Navegação rápida</strong>
+            </div>
+
+            <button className="btn ghost" type="button" onClick={() => setTwinSubmenuOpen(false)}>
+              Fechar
+            </button>
+          </div>
+
+          <div className="page-subnav-drawer-list">
+            {submenuItems.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className={tab === item.key ? "active" : ""}
+                onClick={() => {
+                  setTab(item.key);
+                  setTwinSubmenuOpen(false);
+                }}
+              >
+                <strong>{item.label}</strong>
+                <span>{item.description}</span>
+              </button>
+            ))}
+          </div>
+        </aside>
       </div>
+    );
+  }
+  /* TSEA_PAGE_SUBMENU_DRAWER_END:renderTwinSubmenuDrawer */
+
+return (
+    <div className="screen twinWorkspace">
+      {renderTwinSubmenuDrawer()}
 
       {tab === "scenarios" && renderScenarios()}
       {tab === "simulation" && renderSimulation()}
