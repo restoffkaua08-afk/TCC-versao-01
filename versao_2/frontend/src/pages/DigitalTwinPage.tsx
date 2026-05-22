@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+﻿import type { ComponentType } from "react";
 import { useMemo, useState } from "react";
 import { Badge, Chart, Empty, Field, fmt, Metric, Section, Table } from "../components/ui";
 
@@ -12,6 +12,33 @@ type DigitalTwinPageProps = {
   state: any;
 };
 
+
+function clampTankCount(value: unknown) {
+  const numeric = Number(value);
+  if (Number.isNaN(numeric)) return 1;
+  return Math.max(1, Math.min(3, Math.round(numeric)));
+}
+
+function TankQuantityStrip({ count, label = "Tanques configurados" }: { count: number; label?: string }) {
+  const normalized = clampTankCount(count);
+
+  return (
+    <div className="tank-count-strip">
+      <div>
+        <span>{label}</span>
+        <strong>{normalized} {normalized === 1 ? "tanque" : "tanques"}</strong>
+      </div>
+
+      <div className="tank-count-icons" aria-label="Quantidade de tanques">
+        {Array.from({ length: normalized }).map((_, index) => (
+          <span key={index}>T{index + 1}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 const DEFAULT_SCENARIO_FORM = {
   name: "Novo cenário de teste",
   description: "Cenário personalizado para validação operacional.",
@@ -20,8 +47,7 @@ const DEFAULT_SCENARIO_FORM = {
   notes: "",
   tank_type: "grande",
   tank_id: 1,
-  hose_id: 1,
-  recipe: "",
+  hose_id: 1, tank_count: 1, recipe: "",
   operator: "Operador TSEA",
   initial_pressure_mbar: 1013,
   target_pressure_mbar: 6.5,
@@ -86,13 +112,14 @@ function scenarioRows(scenario: any) {
     ["Categoria", scenario?.category || scenario?.tag || config.category || "--"],
     ["Nível de risco esperado", scenario?.expected_risk_level || config.expected_risk_level || "--"],
     ["Tanque", config.tank_type || config.tank_id || "--"],
+    ["Quantidade de tanques", `${clampTankCount(config.tank_count ?? 1)} ${clampTankCount(config.tank_count ?? 1) === 1 ? "tanque" : "tanques"}`],
     ["Mangueira", config.hose_id || "--"],
     ["Receita", config.recipe || "--"],
     ["Pressão inicial", fmt(config.initial_pressure_mbar, "mbar")],
     ["Pressão alvo", fmt(config.target_pressure_mbar, "mbar")],
     ["Pressão para acionar bomba Roots", fmt(config.secondary_start_pressure_mbar, "mbar")],
     ["Margem de erro", fmt(config.allowed_error_mbar, "mbar")],
-    ["Vazão de óleo", fmt(config.oil_flow_l_min, "L/min")],
+    ["Acionamento B2 simulada", fmt(config.oil_flow_l_min, "L/min")],
     ["Volume estimado", fmt(config.estimated_oil_volume_liters, "L")],
     ["Atraso do óleo", fmt(config.oil_delay_seconds, "s")],
     ["Condição da bomba", fmt((config.primary_pump_health ?? 1) * 100, "%")],
@@ -113,7 +140,7 @@ function buildPrintableScenario(scenario: any) {
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <title>Operação do Gêmeo Digital TSEA</title>
+  <title>Operação do Simulação Completa TSEA</title>
   <style>
     body { font-family: Arial, sans-serif; color: #1f2d27; padding: 24px; }
     h1 { margin: 0 0 10px; }
@@ -124,7 +151,7 @@ function buildPrintableScenario(scenario: any) {
   </style>
 </head>
 <body>
-  <h1>Operação do Gêmeo Digital TSEA</h1>
+  <h1>Operação do Simulação Completa TSEA</h1>
   <h2>Nome da simulação: ${scenario?.name || "--"}</h2>
   <table>${rows}</table>
 </body>
@@ -254,6 +281,8 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
     const hose = findHose(config);
     const tank = findTank(config);
     const tankVolume = Number(tank?.volume_liters || 1250);
+    const tankCount = clampTankCount(config?.tank_count ?? 1);
+    const totalTankVolume = tankVolume * tankCount;
     const structuralLimit = Number(tank?.structural_limit_mbar || 35);
     const hoseLoss = Number(config?.hose_loss_factor ?? hose?.loss_factor ?? 0.8);
     const targetPressure = Number(config?.target_pressure_mbar || 6.5);
@@ -270,8 +299,9 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
     const delayRisk = oilDelay * 0.2;
     const pumpRisk = (1 - primaryHealth) * 34 + (1 - secondaryHealth) * 28 + pumpWear;
     const failureRisk = (config?.simulate_hose_leak ? 22 : 0) + (config?.simulate_sensor_failure ? 18 : 0) + timeoutRisk;
-    const risk = Math.max(4, Math.min(98, 16 + hoseRisk + oilRisk + delayRisk + pumpRisk + failureRisk));
-    const estimatedTime = Math.round(Math.min(maxCycle, (tankVolume / 640) * 225 + hoseLoss * 44 + oilDelay * 1.7 + pumpRisk * 3 + timeoutRisk * 5));
+    const multiTankRisk = (tankCount - 1) * 5;
+    const risk = Math.max(4, Math.min(98, 16 + hoseRisk + oilRisk + delayRisk + pumpRisk + failureRisk + multiTankRisk));
+    const estimatedTime = Math.round(Math.min(maxCycle, (totalTankVolume / 640) * 225 + hoseLoss * 44 + oilDelay * 1.7 + pumpRisk * 3 + timeoutRisk * 5));
     const finalPressure = Math.max(targetPressure, targetPressure + hoseLoss * 0.7 + oilRisk * 0.08 + (config?.simulate_hose_leak ? 8 : 0));
     const safetyMargin = structuralLimit - finalPressure;
     const status = risk >= 82 || safetyMargin < 0 ? "critical" : risk >= 65 ? "warning" : "success";
@@ -323,6 +353,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
         safety_margin_mbar: safetyMargin,
         oil_flow_l_min: oilFlow,
         hose_loss_factor: hoseLoss,
+      tank_count: tankCount,
       },
       timeline,
       alerts,
@@ -469,7 +500,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
                 <div className="dashboardTankHeader">
                   <div>
                     <strong>{tank?.code || config.tank_type || "Tanque simulado"}</strong>
-                    <span>{tank?.type || "Cenário do Gêmeo Digital"}</span>
+                    <span>{tank?.type || "Cenário do Simulação Completa"}</span>
                   </div>
                   <Badge value={status} />
                 </div>
@@ -477,7 +508,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
                 <div className="dashboardReadings">
                   <div><span>Pressão atual</span><b>{fmt(pressure, "mbar")}</b></div>
                   <div><span>Pressão alvo</span><b>{fmt(expected, "mbar")}</b></div>
-                  <div><span>Volume de óleo</span><b>{fmt(oil, "L")}</b></div>
+                  <div><span>Pressão estimada no tanque</span><b>{fmt(oil, "L")}</b></div>
                   <div><span>Risco estrutural</span><b>{fmt(risk, "%")}</b></div>
                 </div>
 
@@ -551,7 +582,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
               <div className="sensorOilGroup">
                 <h3>Óleo</h3>
                 <div className="sideReadings">
-                  <div><span>Vazão de óleo</span><b>{fmt(config.oil_flow_l_min, "L/min")}</b></div>
+                  <div><span>Acionamento B2 simulada</span><b>{fmt(config.oil_flow_l_min, "L/min")}</b></div>
                   <div><span>Volume estimado</span><b>{fmt(oil, "L")}</b></div>
                   <div><span>Atraso do óleo</span><b>{fmt(config.oil_delay_seconds, "s")}</b></div>
                   <div><span>Status</span><b>{Number(config.oil_flow_l_min || 0) > 0 ? "Ativo" : "Aguardando"}</b></div>
@@ -574,7 +605,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
           <div className="operationModalHeader">
             <div>
               <strong>{modalMode === "view" ? "Dados do cenário" : modalMode === "edit" ? "Editar cenário" : "Criar cenário"}</strong>
-              <span>Especificações e parâmetros para simulação do Gêmeo Digital.</span>
+              <span>Especificações e parâmetros para simulação do Simulação Completa.</span>
             </div>
             <button className="secondary" onClick={() => setModalMode(null)}>Fechar</button>
           </div>
@@ -632,6 +663,18 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
             <div className="formGrid">
               <Field label="Tanque"><select value={scenarioForm.tank_id || allTanks?.[0]?.id || 1} onChange={(e) => setScenarioForm({ ...scenarioForm, tank_id: e.target.value })}>{(allTanks || []).map((tank: any, index: number) => <option key={tank.id || index} value={tank.id || index + 1}>{tank.code || `TQ-${index + 1}`}</option>)}</select></Field>
               <Field label="Tipo de tanque"><input value={scenarioForm.tank_type || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, tank_type: e.target.value })} /></Field>
+
+<Field label="Quantidade de tanques (1 a 3)">
+  <input
+    type="number"
+    min={1}
+    max={3}
+    step={1}
+    value={clampTankCount(scenarioForm.tank_count ?? 1)}
+    onChange={(e) => setScenarioForm({ ...scenarioForm, tank_count: clampTankCount(e.target.value) })}
+  />
+</Field>
+
               <Field label="Mangueira"><select value={scenarioForm.hose_id || allHoses?.[0]?.id || 1} onChange={(e) => setScenarioForm({ ...scenarioForm, hose_id: e.target.value })}>{(allHoses || []).map((hose: any, index: number) => <option key={hose.id || index} value={hose.id || index + 1}>{hose.code || `MG-${index + 1}`}</option>)}</select></Field>
               <Field label="Receita"><input value={scenarioForm.recipe || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, recipe: e.target.value })} /></Field>
               <Field label="Operador/responsável"><input value={scenarioForm.operator || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, operator: e.target.value })} /></Field>
@@ -657,7 +700,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
             <h3>Óleo</h3>
             <p>Informe vazão, volume estimado e atraso do óleo.</p>
             <div className="formGrid">
-              <Field label="Vazão de óleo"><input type="number" value={scenarioForm.oil_flow_l_min || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, oil_flow_l_min: Number(e.target.value) })} /></Field>
+              <Field label="Acionamento B2 simulada"><input type="number" value={scenarioForm.oil_flow_l_min || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, oil_flow_l_min: Number(e.target.value) })} /></Field>
               <Field label="Volume estimado"><input type="number" value={scenarioForm.estimated_oil_volume_liters || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, estimated_oil_volume_liters: Number(e.target.value) })} /></Field>
               <Field label="Atraso do óleo"><input type="number" value={scenarioForm.oil_delay_seconds || ""} onChange={(e) => setScenarioForm({ ...scenarioForm, oil_delay_seconds: Number(e.target.value) })} /></Field>
             </div>
@@ -705,7 +748,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
 
   function renderScenarios() {
     return (
-      <Section title="Cenários de simulação" subtitle="Escolha, visualize ou crie cenários para análise do Gêmeo Digital." action={<button onClick={() => { setScenarioForm(DEFAULT_SCENARIO_FORM); setCreateStep(1); setModalMode("create"); }}>Criar cenário</button>}>
+      <Section title="Cenários de simulação" subtitle="Escolha, visualize ou crie cenários para análise do Simulação Completa." action={<button onClick={() => { setScenarioForm(DEFAULT_SCENARIO_FORM); setCreateStep(1); setModalMode("create"); }}>Criar cenário</button>}>
         <div className="twinScenarioProGrid">
           {allScenarios.map(renderScenarioCard)}
         </div>
@@ -713,21 +756,22 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
     );
   }
 
-  function renderSimulation() {
-    const target = result;
-    const componentRows = [
+  function renderSimulation() { const target = result; const tankCount = clampTankCount(scenarioConfig(target)?.tank_count ?? target?.metrics?.tank_count ?? scenarioConfig(selectedScenario)?.tank_count ?? scenarioForm?.tank_count ?? 1); const componentRows = [
+    ["Quantidade de tanques", `${tankCount}`, "Escopo da simulação", "Configurado", `${tankCount} ${tankCount === 1 ? "tanque" : "tanques"}`, "Define quantos tanques participam do cenário."],
       ["Bomba primária", "Leybold SOGEVAC SV 630 B", "Evacuação inicial", "Operacional", "640 m³/h", "Base de cálculo do ciclo."],
       ["Bomba Roots", "Leybold RUVAC WSU 2001", "Reforço do vácuo", target?.metrics?.final_real_pressure_mbar <= scenarioConfig(target)?.secondary_start_pressure_mbar ? "Liberada" : "Condicionada", fmt(scenarioConfig(target)?.secondary_start_pressure_mbar, "mbar"), "Entrada depende da faixa segura."],
       ["Mangueira", target?.hose?.code || scenarioConfig(target)?.hose_id || "--", "Perda de carga", Number(target?.metrics?.hose_loss_factor || 0) > 1 ? "Atenção" : "Operacional", fmt(target?.metrics?.hose_loss_factor), "Impacta tempo e estabilidade."],
       ["Tanque", target?.tank?.code || scenarioConfig(target)?.tank_type || "--", "Volume e margem", statusText(target?.status), fmt(target?.metrics?.safety_margin_mbar, "mbar"), "Margem estrutural estimada."],
     ];
     const actionRows = [
+    ["Escopo do cenário", "Quantidade de tanques", `${tankCount}`, "Configurado", "Número de tanques usado na simulação."],
       ["Preparação", fmt(scenarioConfig(target)?.target_pressure_mbar, "mbar"), target?.scenario || "--", target ? "Concluída" : "Aguardando", "Parâmetros do cenário carregados."],
       ["Evacuação inicial", "Pressão decrescente", fmt(target?.metrics?.final_real_pressure_mbar, "mbar"), target ? "Simulada" : "Aguardando", "Cálculo baseado em tanque, bomba e perda."],
       ["Acionamento Roots", fmt(scenarioConfig(target)?.secondary_start_pressure_mbar, "mbar"), fmt(target?.metrics?.final_real_pressure_mbar, "mbar"), target ? "Avaliada" : "Aguardando", "Verifica entrada em faixa segura."],
-      ["Injeção de óleo", fmt(scenarioConfig(target)?.oil_flow_l_min, "L/min"), fmt(target?.metrics?.oil_flow_l_min, "L/min"), target ? "Simulada" : "Aguardando", "Afeta vedação e estabilidade."],
+      ["Acionamento B2 simulada", fmt(scenarioConfig(target)?.oil_flow_l_min, "L/min"), fmt(target?.metrics?.oil_flow_l_min, "L/min"), target ? "Simulada" : "Aguardando", "Afeta vedação e estabilidade."],
     ];
     const monitorRows = [
+    ["Quantidade de tanques", `${tankCount}`, `${tankCount}`, "un.", "Configurado"],
       ["Pressão alvo", fmt(scenarioConfig(target)?.target_pressure_mbar, "mbar"), fmt(target?.metrics?.final_real_pressure_mbar, "mbar"), "mbar", target ? statusText(target.status) : "--"],
       ["Tempo de ciclo", fmt(scenarioConfig(target)?.max_cycle_seconds, "s"), fmt(target?.metrics?.estimated_time_seconds, "s"), "s", "Calculado"],
       ["Óleo", fmt(scenarioConfig(target)?.oil_flow_l_min, "L/min"), fmt(target?.metrics?.oil_flow_l_min, "L/min"), "L/min", "Simulado"],
@@ -762,7 +806,8 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
         <Section title="Alertas gerados" subtitle="Alertas técnicos derivados do cenário executado.">
           <Table columns={["Alerta", "Severidade", "Causa provável", "Ação sugerida"]} rows={alertRows} />
         </Section>
-        {renderSimulationVisual(target)}
+        {<TankQuantityStrip count={tankCount} label="Tanques configurados na simulação" />}
+      {renderSimulationVisual(target)}
       </div>
     );
   }
@@ -834,7 +879,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
   function renderTechnical() {
     return (
       <div className="twinTechnicalGrid">
-        <Section title="Bombas" subtitle="Referências técnicas usadas no Gêmeo Digital.">
+        <Section title="Bombas" subtitle="Referências técnicas usadas no Simulação Completa.">
           <Table
             columns={["Sistema", "Modelo", "Dado técnico", "Função"]}
             rows={[
@@ -887,7 +932,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
         <button
           className="page-subnav-toggle"
           type="button"
-          aria-label="Abrir submenus de Gêmeo Digital"
+          aria-label="Abrir submenus de Simulação Completa"
           title="Submenus"
           onClick={() => setTwinSubmenuOpen(true)}
         >
@@ -907,7 +952,7 @@ export function DigitalTwinPage({ DigitalTwin, allHoses, allTanks, state }: Digi
         <aside className={`page-subnav-drawer ${twinSubmenuOpen ? "open" : ""}`}>
           <div className="page-subnav-drawer-header">
             <div>
-              <span>Gêmeo Digital</span>
+              <span>Simulação Completa</span>
               <strong>Navegação rápida</strong>
             </div>
 
@@ -951,3 +996,4 @@ return (
     </div>
   );
 }
+

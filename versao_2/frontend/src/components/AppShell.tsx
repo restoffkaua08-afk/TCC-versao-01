@@ -3,11 +3,10 @@
 export type View = "dashboard" | "operation" | "twin" | "traceability" | "parameters";
 
 const menu: { key: View; label: string; sub: string }[] = [
-  { key: "dashboard", label: "Painel", sub: "Resumo operacional" },
-  { key: "operation", label: "Operação", sub: "Configuração e execução" },
-  { key: "twin", label: "Gêmeo Digital", sub: "Simulação operacional" },
-  { key: "traceability", label: "Rastreabilidade", sub: "Histórico, logs e relatórios" },
-  { key: "parameters", label: "Parâmetros", sub: "Cadastros técnicos" },
+  { key: "dashboard", label: "Painel", sub: "Resumo do protótipo físico" },
+  { key: "operation", label: "Operação", sub: "Bomba, sensor e câmara" },
+  { key: "traceability", label: "Rastreabilidade", sub: "Logs e rampa real do protótipo" },
+  { key: "parameters", label: "Parâmetros", sub: "Cadastro do protótipo" },
 ];
 
 type AppShellProps = {
@@ -58,7 +57,7 @@ export function AppShell({
           <div className="brand-copy">
             <strong>TSEA</strong>
             <span>Supervisório Digital</span>
-            <small>Vácuo · Rastreabilidade · Gêmeo Digital</small>
+            <small>Vácuo · Rastreabilidade · Simulação Completa</small>
           </div>
 
           <button
@@ -125,7 +124,7 @@ export function AppShell({
           <div className="topbar-title">
             <span>TSEA · {pageTitle}</span>
             <h1>{pageTitle}</h1>
-            <p>Supervisão técnica do processo de vácuo, rastreabilidade e validação operacional.</p>
+            <p>Versão baseada no sistema oficial, reduzida para demonstrar o protótipo físico com bomba, sensor, mangueira e B2 simulada.</p>
           </div>
 
           <div className="topbar-status">{statusBadge}</div>

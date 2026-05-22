@@ -77,7 +77,7 @@ function TankProcessCard({ item, index }: { item: any; index: number }) {
         <div className="dashboardReadings">
           <div><span>Pressão atual</span><b>{fmt(pressure, "mbar")}</b></div>
           <div><span>Pressão alvo</span><b>{fmt(expected, "mbar")}</b></div>
-          <div><span>Volume de óleo</span><b>{fmt(oil, "L")}</b></div>
+          <div><span>Pressão estimada no tanque</span><b>{fmt(oil, "L")}</b></div>
           <div><span>Risco estrutural</span><b>{fmt(risk, "%")}</b></div>
         </div>
 
@@ -150,7 +150,7 @@ function SensorsOilCard({ state, tanksState }: { state: any; tanksState: any[] }
       <div className="sensorOilGroup">
         <h3>Óleo</h3>
         <div className="sideReadings">
-          <div><span>Vazão de óleo</span><b>{fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min, "L/min")}</b></div>
+          <div><span>Acionamento B2 simulada</span><b>{fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min, "L/min")}</b></div>
           <div><span>Volume estimado</span><b>{fmt(avgOil, "L")}</b></div>
           <div><span>Atraso do óleo</span><b>Aguardando</b></div>
           <div><span>Status</span><b>{oilEnabled ? "Ativo" : "Inativo"}</b></div>

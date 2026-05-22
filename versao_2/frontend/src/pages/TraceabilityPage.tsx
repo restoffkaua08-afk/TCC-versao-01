@@ -87,7 +87,7 @@ const DEMO_OPERATIONS: TraceItem[] = [
       "Operação iniciada pelo operador.",
       "Bomba primária acionada.",
       "Bomba Roots liberada após faixa segura.",
-      "Injeção de óleo concluída.",
+      "Acionamento B2 simulada concluída.",
     ],
   },
   {
@@ -106,11 +106,11 @@ const DEMO_OPERATIONS: TraceItem[] = [
     oil: "48 L · 1,8 L/min",
     risk: 63,
     result: "Ciclo concluído com acompanhamento recomendado.",
-    observations: "Vazão de óleo abaixo da referência e pressão final acima do alvo.",
+    observations: "Acionamento B2 simulada abaixo da referência e pressão final acima do alvo.",
     events: [
       "Operação iniciada.",
       "Curva de pressão apresentou desaceleração.",
-      "Sistema de óleo exigiu acompanhamento.",
+      "B2 simulada / lâmpada exigiu acompanhamento.",
       "Operação finalizada com atenção.",
     ],
   },
@@ -147,7 +147,7 @@ const DEMO_SIMULATIONS: TraceItem[] = [
     parameters: [
       "Pressão alvo: 8 mbar",
       "Roots: 50 mbar",
-      "Vazão de óleo: 1,7 L/min",
+      "Acionamento B2 simulada: 1,7 L/min",
       "Margem de erro: 8%",
     ],
   },
@@ -387,7 +387,7 @@ function simulationRecord(item: any, index: number): TraceItem {
   return {
     id,
     type: "Simulação",
-    title: item?.scenario || item?.name || item?.title || "Simulação do Gêmeo Digital",
+    title: item?.scenario || item?.name || item?.title || "Simulação do Simulação Completa",
     scenario: item?.scenario || item?.name || "Cenário simulado",
     date: item?.created_at || item?.date || new Date().toISOString(),
     user: item?.operator || item?.user || USERS[(index + 1) % USERS.length],
@@ -401,7 +401,7 @@ function simulationRecord(item: any, index: number): TraceItem {
     oil: `${fmt(config?.oil_flow_l_min || metrics?.oil_flow_l_min || 2, "L/min")}`,
     risk,
     pump: "B1/B2",
-    diagnosis: item?.diagnosis || "Diagnóstico preparado pela simulação do Gêmeo Digital.",
+    diagnosis: item?.diagnosis || "Diagnóstico preparado pela simulação do Simulação Completa.",
     recommendation: item?.recommendation || "Revisar parâmetros conforme status da simulação.",
     result: item?.result || "Simulação registrada para consulta técnica.",
     observations: item?.notes || "Cenário disponível para comparação e relatório.",
@@ -414,7 +414,7 @@ function simulationRecord(item: any, index: number): TraceItem {
     parameters: [
       `Pressão alvo: ${fmt(config?.target_pressure_mbar || 8, "mbar")}`,
       `Roots: ${fmt(config?.roots_start_pressure_mbar || 50, "mbar")}`,
-      `Vazão de óleo: ${fmt(config?.oil_flow_l_min || 2, "L/min")}`,
+      `Acionamento B2 simulada: ${fmt(config?.oil_flow_l_min || 2, "L/min")}`,
       `Risco: ${fmt(risk, "%")}`,
     ],
   };
@@ -439,7 +439,7 @@ function buildMachineTables(item: TraceItem) {
 
   const sensorRows = [
     ["Sensor de pressão", fmt(item.pressureFinal, "mbar"), "mbar", item.status, "Leitura associada ao tanque selecionado."],
-    ["Sistema de óleo", item.oil, "L / L/min", item.risk >= 65 ? "Atenção" : "Operacional", "Dados usados na análise de estabilidade."],
+    ["B2 simulada / lâmpada", item.oil, "L / L/min", item.risk >= 65 ? "Atenção" : "Operacional", "Dados usados na análise de estabilidade."],
     ["Mangueira", item.hose, "identificação", "Vinculada", "Elemento relacionado a perda de carga."],
   ];
 
@@ -917,7 +917,7 @@ export function TraceabilityPage({
               />
 
               <Table
-                columns={["Código", "Tipo", "Pressão atual/final", "Pressão alvo", "Volume de óleo", "Risco", "Status"]}
+                columns={["Código", "Tipo", "Pressão atual/final", "Pressão alvo", "Pressão estimada no tanque", "Risco", "Status"]}
                 rows={machines.tankRows}
               />
 

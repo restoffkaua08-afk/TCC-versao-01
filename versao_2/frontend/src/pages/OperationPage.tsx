@@ -19,6 +19,31 @@ type OperationPageProps = {
   tanksState: any[];
 };
 
+
+function clampTankCount(value: unknown) {
+  return 1;
+}
+
+function TankQuantityStrip({ count, label = "Tanques configurados" }: { count: number; label?: string }) {
+  const normalized = clampTankCount(count);
+
+  return (
+    <div className="tank-count-strip">
+      <div>
+        <span>{label}</span>
+        <strong>{normalized} {normalized === 1 ? "tanque" : "tanques"}</strong>
+      </div>
+
+      <div className="tank-count-icons" aria-label="Quantidade de tanques">
+        {Array.from({ length: normalized }).map((_, index) => (
+          <span key={index}>T{index + 1}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 function riskStatus(risk: number) {
   if (risk >= 82) return "critical";
   if (risk >= 65) return "warning";
@@ -54,7 +79,7 @@ function TankProcessCard({ item, index, cycleStatus }: { item: any; index: numbe
   const risk = Number(item?.collapse_risk_pct || 0);
   const pressure = Number(item?.pressure_mbar || 0);
   const expected = Number(item?.expected_pressure_mbar || 0);
-  const oil = Number(item?.oil_volume_liters || 0);
+  const estimatedTankPressure = Number(item?.effective_pressure_mbar ?? item?.pressure_mbar ?? 0); const oil = 0;
   const status = riskStatus(risk);
   const gasHeight = Math.max(16, Math.min(70, 74 - risk * 0.22));
   const pressureHeight = Math.max(8, Math.min(66, risk));
@@ -87,7 +112,7 @@ function TankProcessCard({ item, index, cycleStatus }: { item: any; index: numbe
         <div className="dashboardReadings">
           <div><span>Pressão atual</span><b>{fmt(pressure, "mbar")}</b></div>
           <div><span>Pressão alvo</span><b>{fmt(expected, "mbar")}</b></div>
-          <div><span>Volume de óleo</span><b>{fmt(oil, "L")}</b></div>
+          <div><span>Pressão estimada no tanque</span><b>{fmt(oil, "L")}</b></div>
           <div><span>Risco estrutural</span><b>{fmt(risk, "%")}</b></div>
         </div>
 
@@ -160,7 +185,7 @@ function SensorsOilCard({ state, tanksState }: { state: any; tanksState: any[] }
       <div className="sensorOilGroup">
         <h3>Óleo</h3>
         <div className="sideReadings">
-          <div><span>Vazão de óleo</span><b>{fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min, "L/min")}</b></div>
+          <div><span>Acionamento B2 simulada</span><b>{fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min, "L/min")}</b></div>
           <div><span>Volume estimado</span><b>{fmt(avgOil, "L")}</b></div>
           <div><span>Atraso do óleo</span><b>Aguardando</b></div>
           <div><span>Status</span><b>{oilEnabled ? "Ativo" : "Inativo"}</b></div>
@@ -190,7 +215,7 @@ function RecipeDetails({ recipe }: { recipe: any }) {
       <div><span>Pressão alvo</span><b>{fmt(recipe.target_pressure_mbar, "mbar")}</b></div>
       <div><span>Acionamento Roots</span><b>{fmt(recipe.roots_start_pressure_mbar, "mbar")}</b></div>
       <div><span>Tempo estimado</span><b>{fmt(recipe.max_cycle_seconds, "s")}</b></div>
-      <div><span>Vazão de óleo</span><b>{fmt(recipe.min_oil_flow_l_min, "L/min")}</b></div>
+      <div><span>Acionamento B2 simulada</span><b>{fmt(recipe.min_oil_flow_l_min, "L/min")}</b></div>
       <div><span>Tanque</span><b>{recipe.tank_type || "--"}</b></div>
       <div><span>Margem de erro</span><b>{fmt(recipe.max_tank_difference_mbar ?? recipe.structural_risk_limit, recipe.max_tank_difference_mbar ? "mbar" : "%")}</b></div>
       <div><span>Observações</span><b>{recipe.notes || "Parâmetros recebidos do cadastro."}</b></div>
@@ -217,8 +242,21 @@ export function OperationPage({
   const [recipeDraft, setRecipeDraft] = useState<any>({});
   const [manualStep, setManualStep] = useState(1);
 
-  const avgPressure = tanksState.reduce((sum: number, item: any) => sum + Number(item?.pressure_mbar || 0), 0) / Math.max(tanksState.length, 1);
-  const maxRisk = Math.max(0, ...tanksState.map((item: any) => Number(item?.collapse_risk_pct || 0)));
+  const activeTankCount = clampTankCount(operationConfig?.tank_count ?? tanksState.length ?? 1);
+  const visibleTanksState = Array.isArray(tanksState) ? tanksState.slice(0, activeTankCount) : [];
+  const operationVisualTanks = visibleTanksState.length
+    ? visibleTanksState
+    : Array.from({ length: activeTankCount }).map((_, index) => ({
+        tank: allTanks?.[index] || { code: `TQ-${index + 1}`, type: "Tanque de processo" },
+        hose: allHoses?.[index] || allHoses?.[0],
+        pressure_mbar: operationConfig?.target_pressure_mbar ?? 0,
+        expected_pressure_mbar: operationConfig?.target_pressure_mbar ?? 0,
+        oil_volume_liters: operationConfig?.estimated_oil_volume_liters ?? 0,
+        collapse_risk_pct: 0,
+        status_light: "green",
+      }));
+  const avgPressure = operationVisualTanks.reduce((sum: number, item: any) => sum + Number(item?.pressure_mbar || 0), 0) / Math.max(operationVisualTanks.length, 1);
+  const maxRisk = Math.max(0, ...operationVisualTanks.map((item: any) => Number(item?.collapse_risk_pct || 0)));
   const selectedRecipe = useMemo(
     () => allRecipes.find((recipe: any) => String(recipe.id || recipe.name) === String(selectedRecipeId)) || allRecipes[0],
     [allRecipes, selectedRecipeId]
@@ -246,6 +284,7 @@ export function OperationPage({
       max_cycle_seconds: recipe.max_cycle_seconds ?? current.max_cycle_seconds,
       oil_flow_l_min: recipe.min_oil_flow_l_min ?? recipe.oil_flow_l_min ?? current.oil_flow_l_min,
       tank_type: recipe.tank_type ?? current.tank_type,
+      tank_count: clampTankCount(recipe.tank_count ?? current.tank_count ?? 1),
     }));
     closeConfig();
   }
@@ -282,7 +321,8 @@ export function OperationPage({
         <div className="dashboardWorkArea operationIhmArea">
           <Section title="IHM da operação" subtitle="Tanques, pressão, óleo, risco e mangueira vinculada em tempo real.">
             <div className="dashboardTankList">
-              {tanksState.map((item: any, index: number) => (
+              <TankQuantityStrip count={activeTankCount} label="Tanques configurados na operação" />
+        {operationVisualTanks.map((item: any, index: number) => (
                 <TankProcessCard key={item?.tank?.id || index} item={item} index={index} cycleStatus={state?.cycle?.status} />
               ))}
             </div>
@@ -304,7 +344,7 @@ export function OperationPage({
               blocked={!state?.roots_pump?.running}
               performance={state?.roots_pump?.health_pct ?? (state?.roots_pump?.running ? 94 : 0)}
             />
-            <SensorsOilCard state={state} tanksState={tanksState} />
+            <SensorsOilCard state={state} tanksState={operationVisualTanks} />
           </aside>
         </div>
       </>
@@ -313,14 +353,14 @@ export function OperationPage({
 
   function renderInfo() {
     const firstTank = tanksState[0] || {};
-    const avgOil = tanksState.reduce((sum: number, item: any) => sum + Number(item?.oil_volume_liters || 0), 0) / Math.max(tanksState.length, 1);
+    const avgOil = operationVisualTanks.reduce((sum: number, item: any) => sum + Number(item?.oil_volume_liters || 0), 0) / Math.max(operationVisualTanks.length, 1);
 
     const machineRows = [
       ["B1", "Bomba primária", state?.primary_pump?.model || "Leybold SOGEVAC SV 630 B", "Evacuação inicial", state?.primary_pump?.running ? "Ligada" : "Desligada", fmt(state?.primary_pump?.health_pct ?? 96, "%"), state?.primary_pump?.running ? "Conectada" : "Em espera"],
       ["B2", "Bomba Roots", state?.roots_pump?.model || "Leybold RUVAC WSU 2001", "Reforço do vácuo", state?.roots_pump?.running ? "Ligada" : "Bloqueada", fmt(state?.roots_pump?.health_pct ?? 94, "%"), state?.roots_pump?.running ? "Conectada" : "Em espera"],
     ];
 
-    const tankRows = tanksState.map((item: any, index: number) => [
+    const tankRows = operationVisualTanks.map((item: any, index: number) => [
       item?.tank?.code || `TQ-${index + 1}`,
       item?.tank?.type || "Tanque de processo",
       fmt(item?.pressure_mbar, "mbar"),
@@ -331,7 +371,7 @@ export function OperationPage({
       <Badge value={riskStatus(Number(item?.collapse_risk_pct || 0))} />,
     ]);
 
-    const sensorRows = tanksState.map((item: any, index: number) => [
+    const sensorRows = operationVisualTanks.map((item: any, index: number) => [
       `SP-${item?.tank?.code || index + 1}`,
       "Pressão",
       fmt(item?.pressure_mbar, "mbar"),
@@ -342,7 +382,7 @@ export function OperationPage({
     ]);
 
     const oilRows = [
-      ["Vazão de óleo", fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min), "L/min", state?.oil_injection?.enabled ? "Ativo" : "Inativo", "Referência da lubrificação do ciclo."],
+      ["Acionamento B2 simulada", fmt(state?.oil_injection?.current_flow_l_min ?? state?.oil_injection?.target_flow_l_min), "L/min", state?.oil_injection?.enabled ? "Ativo" : "Inativo", "Referência da lubrificação do ciclo."],
       ["Volume estimado", fmt(avgOil), "L", avgOil > 0 ? "Operacional" : "Aguardando", "Média calculada pelos tanques monitorados."],
       ["Atraso do óleo", "--", "s", "Aguardando", "Sem atraso informado nos dados atuais."],
       ["Estado da lubrificação", state?.oil_injection?.enabled ? "Habilitada" : "Desabilitada", "--", state?.oil_injection?.enabled ? "Operacional" : "Em espera", "Condição atual da injeção de óleo."],
@@ -350,6 +390,7 @@ export function OperationPage({
     ];
 
     const traceRows = [
+    ["Quantidade de tanques", "Operação", activeTankCount, "tanques", "Configurado", "Define quantos tanques participam do ciclo."],
       ["Preparação", "Receita / operador", fmt(operationConfig?.target_pressure_mbar, "mbar"), state?.cycle?.status || "Parado", "Configurado", "Parâmetros carregados para a operação."],
       ["Evacuação inicial", "Bomba primária", "Pressão decrescente", fmt(avgPressure, "mbar"), state?.primary_pump?.running ? "Em execução" : "Em espera", "Bomba primária sustenta a redução inicial."],
       ["Acionamento da bomba Roots", "Bomba secundária", fmt(operationConfig?.roots_start_pressure_mbar, "mbar"), fmt(avgPressure, "mbar"), state?.roots_pump?.running ? "Liberado" : "Bloqueado", "Liberação depende da faixa de pressão."],
@@ -368,7 +409,7 @@ export function OperationPage({
         <Section title="Sensores" subtitle="Monitoramento das leituras e comunicação simulada do processo.">
           <Table columns={["Código", "Tipo", "Leitura atual", "Unidade", "Comunicação", "Última atualização", "Status"]} rows={sensorRows} />
         </Section>
-        <Section title="Sistema de óleo" subtitle="Condição de lubrificação, vazão, volume e vedação.">
+        <Section title="B2 simulada / lâmpada" subtitle="Condição de lubrificação, vazão, volume e vedação.">
           <Table columns={["Parâmetro", "Valor", "Unidade", "Status", "Observação"]} rows={oilRows} />
         </Section>
         <Section title="Rastreabilidade do ciclo" subtitle="Etapas do ciclo com referência esperada e condição atual.">
@@ -381,7 +422,7 @@ export function OperationPage({
   }
 
   function renderManualStep() {
-    const steps = ["Dados gerais", "Pressão", "Tempo e ciclo", "Óleo", "Segurança", "Revisar"];
+    const steps = ["Dados gerais", "Pressão", "Tempo e ciclo", "B2 simulada", "Segurança", "Revisar"];
 
     return (
       <div className="operationWizard">
@@ -403,6 +444,18 @@ export function OperationPage({
               <Field label="Tanque"><select value={operationConfig.tank_id} onChange={(e) => setOp("tank_id", e.target.value)}>{allTanks.map((tank: any) => <option key={tank.id || tank.code} value={tank.id || tank.code}>{tank.code || tank.name} · {tank.type || "tipo"}</option>)}</select></Field>
               <Field label="Mangueira"><select value={operationConfig.hose_id} onChange={(e) => setOp("hose_id", e.target.value)}>{allHoses.map((hose: any) => <option key={hose.id || hose.code} value={hose.id || hose.code}>{hose.code} · {fmt(hose.length_m, "m")}</option>)}</select></Field>
               <Field label="Receita de referência"><select value={operationConfig.recipe_id} onChange={(e) => setOp("recipe_id", e.target.value)}>{allRecipes.map((recipe: any) => <option key={recipe.id || recipe.name} value={recipe.id || recipe.name}>{recipe.name}</option>)}</select></Field>
+
+<Field label="Quantidade de tanques (1 a 3)">
+  <input
+    type="number"
+    min={1}
+    max={3}
+    step={1}
+    value={activeTankCount}
+    onChange={(e) => setOp("tank_count", clampTankCount(e.target.value))}
+  />
+</Field>
+
             </div>
           </div>
         )}
@@ -436,9 +489,9 @@ export function OperationPage({
         {manualStep === 4 && (
           <div className="operationStepPanel">
             <h3>Óleo</h3>
-            <p>Defina vazão, volume estimado e condição esperada do óleo.</p>
+            <p>Defina o acionamento demonstrativo da lâmpada que representa a segunda bomba/Roots.</p>
             <div className="formGrid">
-              <Field label="Vazão de óleo"><input type="number" value={operationConfig.oil_flow_l_min} onChange={(e) => setOp("oil_flow_l_min", Number(e.target.value))} /></Field>
+              <Field label="Acionamento B2 simulada"><input type="number" value={operationConfig.oil_flow_l_min} onChange={(e) => setOp("oil_flow_l_min", Number(e.target.value))} /></Field>
               <Field label="Volume estimado"><input type="number" value={operationConfig.estimated_oil_volume_liters || ""} onChange={(e) => setOp("estimated_oil_volume_liters", Number(e.target.value))} /></Field>
               <Field label="Status esperado do óleo"><input value={operationConfig.expected_oil_status || ""} onChange={(e) => setOp("expected_oil_status", e.target.value)} /></Field>
             </div>
@@ -550,7 +603,7 @@ export function OperationPage({
                 <Field label="Pressão alvo"><input type="number" value={recipeDraft.target_pressure_mbar || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, target_pressure_mbar: e.target.value })} /></Field>
                 <Field label="Acionamento Roots"><input type="number" value={recipeDraft.roots_start_pressure_mbar || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, roots_start_pressure_mbar: e.target.value })} /></Field>
                 <Field label="Tempo estimado"><input type="number" value={recipeDraft.max_cycle_seconds || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, max_cycle_seconds: e.target.value })} /></Field>
-                <Field label="Vazão de óleo"><input type="number" value={recipeDraft.min_oil_flow_l_min || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, min_oil_flow_l_min: e.target.value })} /></Field>
+                <Field label="Acionamento B2 simulada"><input type="number" value={recipeDraft.min_oil_flow_l_min || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, min_oil_flow_l_min: e.target.value })} /></Field>
               </div>
               <div className="modalActions">
                 <button className="secondary" onClick={() => setConfigMode("recipe-detail")}>Voltar</button>
