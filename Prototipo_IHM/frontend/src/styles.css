@@ -1,7 +1,7 @@
-﻿:root {
-  font-family: Inter, Arial, Helvetica, sans-serif;
+:root {
+  font-family: Arial, Helvetica, sans-serif;
   color: #e5e7eb;
-  background: #0a0f14;
+  background: #070b10;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -12,7 +12,7 @@
 
 body {
   margin: 0;
-  min-width: 1200px;
+  min-width: 1024px;
   min-height: 100vh;
   overflow: auto;
 }
@@ -29,37 +29,32 @@ button {
 
 .ihm-stage {
   min-height: 100vh;
-  padding: 28px;
+  padding: 20px;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at top left, rgba(34, 197, 94, 0.12), transparent 34rem),
-    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.10), transparent 30rem),
-    #060a0f;
+  background: #070b10;
 }
 
 .industrial-tablet {
   position: relative;
-  width: min(1380px, 96vw);
-  min-height: 850px;
-  padding: 54px 84px 88px;
-  border-radius: 44px;
-  background: linear-gradient(145deg, #1f2933, #05080d 46%, #151c25);
-  border: 8px solid #2f3a45;
+  width: min(1280px, 96vw);
+  min-height: 790px;
+  padding: 46px 76px 86px;
+  border-radius: 36px;
+  background: #161d26;
+  border: 8px solid #313b47;
   box-shadow:
-    0 40px 90px rgba(0, 0, 0, 0.62),
-    inset 0 0 0 3px rgba(255, 255, 255, 0.06),
-    inset 0 0 38px rgba(0, 0, 0, 0.75);
+    0 28px 70px rgba(0, 0, 0, 0.58),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.05);
 }
 
 .tablet-grip {
   position: absolute;
-  top: 24px;
+  top: 22px;
   width: 150px;
-  height: 12px;
+  height: 10px;
   border-radius: 999px;
-  background: #0b1017;
-  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.08);
+  background: #090d12;
 }
 
 .top-left {
@@ -71,27 +66,24 @@ button {
 }
 
 .ihm-screen {
-  min-height: 700px;
-  border-radius: 28px;
+  min-height: 660px;
+  border-radius: 22px;
   overflow: hidden;
-  background: #101820;
+  background: #0f1720;
   border: 3px solid #3b4652;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.06),
-    inset 0 0 40px rgba(0,0,0,0.45);
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto 1fr;
 }
 
 .ihm-topbar {
-  min-height: 88px;
-  padding: 18px 22px;
+  min-height: 82px;
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   gap: 18px;
   align-items: center;
-  background: #17212b;
-  border-bottom: 2px solid #2c3845;
+  background: #18222d;
+  border-bottom: 2px solid #2b3845;
 }
 
 .eyebrow {
@@ -113,7 +105,7 @@ p {
 .ihm-topbar h1 {
   margin-top: 4px;
   color: #ffffff;
-  font-size: 1.55rem;
+  font-size: 1.48rem;
 }
 
 .top-status-group {
@@ -127,7 +119,7 @@ p {
   align-items: center;
   min-height: 42px;
   padding: 0 16px;
-  border-radius: 999px;
+  border-radius: 10px;
   font-weight: 900;
   border: 2px solid transparent;
 }
@@ -148,32 +140,36 @@ p {
   color: #cbd5e1;
 }
 
-.status-pill.success {
-  background: rgba(34, 197, 94, 0.14);
-  border-color: rgba(34, 197, 94, 0.38);
+.status-pill.success,
+.info-tile.success {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.55);
 }
 
-.status-pill.warning {
-  background: rgba(250, 204, 21, 0.14);
-  border-color: rgba(250, 204, 21, 0.42);
+.status-pill.warning,
+.info-tile.warning {
+  background: rgba(250, 204, 21, 0.12);
+  border-color: rgba(250, 204, 21, 0.55);
 }
 
-.status-pill.critical {
-  background: rgba(239, 68, 68, 0.16);
-  border-color: rgba(239, 68, 68, 0.48);
+.status-pill.critical,
+.info-tile.critical {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.62);
 }
 
-.status-pill.neutral {
-  background: rgba(148, 163, 184, 0.14);
-  border-color: rgba(148, 163, 184, 0.34);
+.status-pill.neutral,
+.info-tile.neutral {
+  background: #18222d;
+  border-color: #344254;
 }
 
 .menu-button,
 .close-button {
   width: 50px;
   height: 50px;
-  border: 2px solid #475569;
-  border-radius: 14px;
+  border: 2px solid #4b5b6d;
+  border-radius: 12px;
   background: #0f172a;
   color: #e5e7eb;
   display: grid;
@@ -182,78 +178,39 @@ p {
 }
 
 .machine-line {
-  padding: 14px 18px;
+  padding: 12px 16px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  background: #0d141b;
+  gap: 10px;
+  background: #0b1118;
   border-bottom: 2px solid #26313c;
 }
 
 .info-tile {
-  padding: 12px;
-  border-radius: 14px;
-  background: #18222d;
-  border: 1px solid #334155;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px solid #344254;
   display: grid;
   gap: 4px;
+  min-height: 58px;
 }
 
 .info-tile span {
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .info-tile strong {
   color: #ffffff;
-  font-size: 1rem;
+  font-size: 0.96rem;
+  overflow-wrap: anywhere;
 }
 
 .ihm-content {
-  padding: 18px;
+  padding: 16px;
   min-height: 500px;
-}
-
-.ihm-footer {
-  min-height: 72px;
-  padding: 12px 18px;
-  background: #17212b;
-  border-top: 2px solid #2c3845;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-}
-
-.ihm-footer button,
-.primary-action,
-.secondary-action,
-.start-cycle,
-.operator-actions button,
-.pump-actions button,
-.alarm-actions button,
-.register-actions button {
-  border: 2px solid #475569;
-  border-radius: 16px;
-  background: #1f2a36;
-  color: #ffffff;
-  font-weight: 900;
-  cursor: pointer;
-  min-height: 58px;
-  transition: 0.15s ease;
-}
-
-.ihm-footer button:hover,
-.primary-action:hover,
-.secondary-action:hover,
-.start-cycle:hover,
-.operator-actions button:hover,
-.pump-actions button:hover,
-.alarm-actions button:hover,
-.register-actions button:hover {
-  background: #263445;
-  border-color: #38bdf8;
 }
 
 .start-layout,
@@ -262,11 +219,11 @@ p {
 .alarms-layout,
 .register-layout {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .start-layout {
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 1.15fr 0.85fr;
 }
 
 .hero-panel,
@@ -280,18 +237,20 @@ p {
 .alarm-card,
 .alarm-actions,
 .register-card,
-.register-actions {
+.register-actions,
+.oil-panel {
   border: 2px solid #334155;
-  border-radius: 20px;
+  border-radius: 16px;
   background: #111b24;
-  padding: 18px;
+  padding: 16px;
 }
 
 .hero-panel h2,
 .config-panel h2,
 .checklist-panel h2,
 .cycle-header-card h2,
-.register-card h2 {
+.register-card h2,
+.oil-panel h3 {
   color: #ffffff;
   margin: 6px 0 10px;
 }
@@ -303,36 +262,57 @@ p {
 
 .quick-status,
 .summary-grid {
-  margin-top: 18px;
+  margin-top: 16px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
 .action-panel,
 .register-actions {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .primary-action,
 .secondary-action,
-.register-actions button {
+.register-actions button,
+.operator-actions button,
+.alarm-actions button,
+.start-cycle {
+  min-height: 64px;
+  border: 2px solid #4b5b6d;
+  border-radius: 12px;
+  background: #1d2936;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.primary-action {
-  background: #166534;
+.primary-action,
+.start-cycle {
+  background: #14532d;
   border-color: #22c55e;
+}
+
+.primary-action:hover,
+.secondary-action:hover,
+.register-actions button:hover,
+.operator-actions button:hover,
+.alarm-actions button:hover,
+.start-cycle:hover {
+  border-color: #38bdf8;
+  filter: brightness(1.08);
 }
 
 .field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .field {
@@ -343,14 +323,14 @@ p {
 .field span {
   color: #94a3b8;
   font-weight: 900;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
 }
 
 .field select {
   width: 100%;
   min-height: 50px;
-  border-radius: 14px;
+  border-radius: 10px;
   border: 2px solid #475569;
   background: #0f172a;
   color: #ffffff;
@@ -365,7 +345,7 @@ p {
 
 .tank-selector button {
   min-height: 50px;
-  border-radius: 14px;
+  border-radius: 10px;
   border: 2px solid #475569;
   background: #0f172a;
   color: #ffffff;
@@ -374,22 +354,22 @@ p {
 }
 
 .tank-selector button.active {
-  background: #166534;
+  background: #14532d;
   border-color: #22c55e;
 }
 
 .mini-tank-line {
-  margin-top: 18px;
+  margin-top: 16px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .mini-tank-line div {
-  width: 120px;
-  height: 90px;
+  width: 110px;
+  height: 78px;
   border: 2px solid #475569;
-  border-radius: 18px;
+  border-radius: 14px;
   display: grid;
   place-items: center;
   background: #0f172a;
@@ -400,14 +380,21 @@ p {
   font-weight: 900;
 }
 
+.checklist-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
 .checklist {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .checklist button {
-  min-height: 52px;
-  border-radius: 14px;
+  min-height: 50px;
+  border-radius: 10px;
   border: 2px solid #475569;
   background: #0f172a;
   color: #ffffff;
@@ -421,28 +408,23 @@ p {
 
 .checklist button.checked {
   border-color: #22c55e;
-  background: rgba(34, 197, 94, 0.14);
+  background: rgba(34, 197, 94, 0.12);
 }
 
 .start-cycle {
   width: 100%;
-  margin-top: 16px;
-  background: #166534;
-  border-color: #22c55e;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
+  margin-top: 14px;
 }
 
 .start-cycle:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  filter: grayscale(0.6);
 }
 
 .operation-layout {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .cycle-header-card {
@@ -453,7 +435,7 @@ p {
 
 .tanks-visual-grid {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .tanks-visual-grid.count-1 {
@@ -469,14 +451,14 @@ p {
 }
 
 .tank-visual {
-  min-height: 300px;
+  min-height: 252px;
   border: 3px solid #334155;
-  border-radius: 24px;
-  background: #101820;
-  padding: 16px;
+  border-radius: 18px;
+  background: #0e1620;
+  padding: 14px;
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 14px;
   align-items: center;
 }
 
@@ -485,20 +467,20 @@ p {
 }
 
 .tank-visual.warning {
-  border-color: rgba(250, 204, 21, 0.65);
+  border-color: rgba(250, 204, 21, 0.68);
 }
 
 .tank-visual.critical {
-  border-color: rgba(239, 68, 68, 0.68);
+  border-color: rgba(239, 68, 68, 0.72);
 }
 
 .tank-drawing {
   position: relative;
-  height: 230px;
+  height: 204px;
   border: 4px solid #64748b;
-  border-radius: 34px;
+  border-radius: 28px;
   overflow: hidden;
-  background: #0b1218;
+  background: #081018;
   display: grid;
   place-items: center;
 }
@@ -507,7 +489,7 @@ p {
   position: relative;
   z-index: 3;
   color: #ffffff;
-  font-size: 1.35rem;
+  font-size: 1.28rem;
   font-weight: 950;
 }
 
@@ -515,26 +497,26 @@ p {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 55%;
-  background: rgba(245, 158, 11, 0.55);
+  width: 54%;
+  background: rgba(245, 158, 11, 0.62);
 }
 
-.tank-pressure {
+.tank-vacuum {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 45%;
-  background: rgba(59, 130, 246, 0.38);
+  width: 46%;
+  background: rgba(59, 130, 246, 0.4);
 }
 
 .tank-readings {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tank-readings div {
-  padding: 10px 12px;
-  border-radius: 14px;
+  padding: 9px 10px;
+  border-radius: 10px;
   background: #18222d;
   border: 1px solid #334155;
 }
@@ -542,38 +524,44 @@ p {
 .tank-readings span {
   display: block;
   color: #94a3b8;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .tank-readings strong {
   display: block;
-  margin-top: 3px;
+  margin-top: 2px;
   color: #ffffff;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .operation-bottom-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
-.pump-panel {
+.pump-panel,
+.oil-panel {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .pump-visual {
-  height: 90px;
+  height: 82px;
   border: 3px solid #64748b;
-  border-radius: 26px;
+  border-radius: 20px;
   display: grid;
   place-items: center;
   background: #0f172a;
 }
 
+.pump-visual.running {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+}
+
 .pump-visual span {
-  font-size: 1.5rem;
+  font-size: 1.42rem;
   color: #ffffff;
   font-weight: 950;
 }
@@ -585,28 +573,23 @@ p {
 
 .pump-panel p {
   color: #cbd5e1;
-  margin-top: 4px;
-}
-
-.pump-actions,
-.operator-actions {
-  display: grid;
-  gap: 8px;
+  margin-top: 3px;
+  font-size: 0.9rem;
 }
 
 .step-row {
   display: grid;
-  grid-template-columns: 34px 1fr;
+  grid-template-columns: 30px 1fr;
   gap: 8px;
   align-items: center;
-  padding: 8px;
-  border-radius: 12px;
+  padding: 7px;
+  border-radius: 10px;
   color: #cbd5e1;
 }
 
 .step-row span {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #334155;
   display: grid;
@@ -627,10 +610,23 @@ p {
   background: #0369a1;
 }
 
+.operator-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.operator-actions button {
+  min-height: 50px;
+}
+
+.alarms-layout {
+  grid-template-columns: 1.35fr 0.65fr;
+}
+
 .alarm-list,
 .alarm-actions {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .alarm-card {
@@ -655,11 +651,8 @@ p {
   border-color: #facc15;
 }
 
-.alarm-actions button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
+.alarm-card.success {
+  border-color: #22c55e;
 }
 
 .ack-message {
@@ -677,7 +670,7 @@ p {
   z-index: 10;
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .hardware-button button,
@@ -687,37 +680,37 @@ p {
   color: #ffffff;
   cursor: pointer;
   box-shadow:
-    inset 0 -8px 14px rgba(0,0,0,0.36),
-    0 10px 18px rgba(0,0,0,0.38);
+    inset 0 -7px 12px rgba(0,0,0,0.36),
+    0 8px 16px rgba(0,0,0,0.38);
 }
 
 .hardware-button span,
 .hardware-emergency span {
   color: #e5e7eb;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 950;
   letter-spacing: 0.08em;
 }
 
 .hardware-left {
-  left: 16px;
-  top: 360px;
+  left: 14px;
+  top: 340px;
 }
 
 .hardware-right {
-  right: 16px;
-  top: 360px;
+  right: 14px;
+  top: 340px;
 }
 
 .hardware-button button {
-  width: 74px;
-  height: 74px;
+  width: 72px;
+  height: 72px;
   background: #b91c1c;
 }
 
 .hardware-emergency {
   left: 50%;
-  bottom: 12px;
+  bottom: 10px;
   transform: translateX(-50%);
 }
 
@@ -732,19 +725,30 @@ p {
   position: absolute;
   inset: 0;
   z-index: 30;
-  background: rgba(0, 0, 0, 0.62);
+  background: rgba(0, 0, 0, 0.66);
   display: grid;
   place-items: center;
-  border-radius: 38px;
+  border-radius: 30px;
 }
 
-.ihm-menu-modal {
+.ihm-menu-modal,
+.confirm-modal {
   width: min(720px, 86%);
   background: #101820;
   border: 3px solid #475569;
-  border-radius: 24px;
-  padding: 22px;
-  box-shadow: 0 28px 80px rgba(0,0,0,0.62);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.62);
+}
+
+.confirm-modal {
+  width: min(580px, 82%);
+}
+
+.confirm-modal p {
+  color: #cbd5e1;
+  line-height: 1.45;
+  margin: 12px 0 18px;
 }
 
 .modal-header {
@@ -752,7 +756,7 @@ p {
   justify-content: space-between;
   gap: 18px;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .modal-header h2 {
@@ -763,16 +767,16 @@ p {
 .menu-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .menu-grid button {
-  min-height: 104px;
+  min-height: 100px;
   border: 2px solid #475569;
-  border-radius: 18px;
+  border-radius: 14px;
   background: #17212b;
   color: #ffffff;
-  padding: 16px;
+  padding: 14px;
   text-align: left;
   cursor: pointer;
 }
@@ -784,7 +788,7 @@ p {
 
 .menu-grid strong {
   display: block;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
 }
 
 .menu-grid span {
@@ -793,16 +797,42 @@ p {
   margin-top: 6px;
 }
 
-@media (max-width: 1250px) {
-  body {
-    min-width: 1000px;
-  }
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 
+.confirm-actions button {
+  min-height: 56px;
+  border-radius: 12px;
+  border: 2px solid #475569;
+  background: #1d2936;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primary-confirm {
+  background: #14532d !important;
+  border-color: #22c55e !important;
+}
+
+.danger-action {
+  background: #991b1b !important;
+  border-color: #ef4444 !important;
+}
+
+@media (max-width: 1180px) {
   .industrial-tablet {
     width: 1120px;
   }
 
   .operation-bottom-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tanks-visual-grid.count-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
