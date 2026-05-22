@@ -28,7 +28,8 @@ type TankData = {
   target: number;
   oil: number;
   air: number;
-  pressureLoad: number;
+  vacuum: number;
+  hoseLoss: number;
   condition: TankCondition;
 };
 
@@ -40,6 +41,7 @@ type ChecklistState = {
   oil: boolean;
   emergency: boolean;
   interlocks: boolean;
+  sensors: boolean;
 };
 
 type ConfirmAction = {
@@ -51,11 +53,11 @@ type ConfirmAction = {
 };
 
 const menuItems: { key: Screen; label: string; description: string }[] = [
-  { key: "inicio", label: "Início", description: "Status geral da máquina" },
-  { key: "preparacao", label: "Preparação", description: "Tanques e checklist" },
-  { key: "operacao", label: "Operação", description: "Monitoramento do ciclo" },
-  { key: "alarmes", label: "Alarmes", description: "Falhas e bloqueios" },
-  { key: "registro", label: "Registro", description: "Resumo do ciclo" }
+  { key: "inicio", label: "Início", description: "Estado geral da máquina" },
+  { key: "preparacao", label: "Preparação", description: "Configurar ciclo e liberar checklist" },
+  { key: "operacao", label: "Operação", description: "Monitoramento automático do ciclo" },
+  { key: "alarmes", label: "Alarmes", description: "Falhas, bloqueios e reconhecimento" },
+  { key: "registro", label: "Registro", description: "Resumo final da operação" }
 ];
 
 const stages = [
@@ -70,17 +72,9 @@ const stages = [
 function tone(value: string) {
   const lower = value.toLowerCase();
 
-  if (lower.includes("bloque") || lower.includes("crítico") || lower.includes("falha") || lower.includes("emergência")) {
-    return "critical";
-  }
-
-  if (lower.includes("atenção") || lower.includes("aguard") || lower.includes("paus")) {
-    return "warning";
-  }
-
-  if (lower.includes("operação") || lower.includes("normal") || lower.includes("pronta") || lower.includes("liberado") || lower.includes("online")) {
-    return "success";
-  }
+  if (lower.includes("bloque") || lower.includes("crítico") || lower.includes("falha") || lower.includes("emergência")) return "critical";
+  if (lower.includes("atenção") || lower.includes("aguard") || lower.includes("paus") || lower.includes("rápida")) return "warning";
+  if (lower.includes("operação") || lower.includes("normal") || lower.includes("pronta") || lower.includes("liberado") || lower.includes("online")) return "success";
 
   return "neutral";
 }
@@ -93,11 +87,24 @@ function formatTime(seconds: number) {
 
 function stageFromElapsed(status: CycleStatus, elapsed: number) {
   if (status === "Bloqueada" || status === "Pronta") return 0;
-  if (elapsed < 25) return 1;
-  if (elapsed < 70) return 2;
-  if (elapsed < 135) return 3;
-  if (elapsed < 170) return 4;
+  if (elapsed < 24) return 1;
+  if (elapsed < 90) return 2;
+  if (elapsed < 160) return 3;
+  if (elapsed < 195) return 4;
   return 5;
+}
+
+function expectedStageTime(stage: number) {
+  const map = [
+    "Aguardando liberação",
+    "Referência: queda inicial controlada",
+    "Referência real: até ~24 min",
+    "Referência real: enchimento lento ~40 min",
+    "Estabilização e conferência",
+    "Ciclo concluído"
+  ];
+
+  return map[stage] ?? "Em acompanhamento";
 }
 
 function makeTanks(count: number, status: CycleStatus, elapsed: number): TankData[] {
@@ -106,6 +113,8 @@ function makeTanks(count: number, status: CycleStatus, elapsed: number): TankDat
   const blocked = status === "Bloqueada";
 
   return Array.from({ length: count }).map((_, index) => {
+    const hoseLoss = count === 1 ? 0.8 : count === 2 ? 1.7 + index * 0.2 : 2.6 + index * 0.3;
+
     if (blocked) {
       return {
         code: `TQ-0${index + 1}`,
@@ -113,7 +122,8 @@ function makeTanks(count: number, status: CycleStatus, elapsed: number): TankDat
         target: 8,
         oil: 0,
         air: 100,
-        pressureLoad: 0,
+        vacuum: 0,
+        hoseLoss,
         condition: "Bloqueio"
       };
     }
@@ -125,24 +135,26 @@ function makeTanks(count: number, status: CycleStatus, elapsed: number): TankDat
         target: 8,
         oil: 0,
         air: 100,
-        pressureLoad: 0,
+        vacuum: 0,
+        hoseLoss,
         condition: "Normal"
       };
     }
 
-    const simulatedDrop = Math.max(8 + index * 0.6, 1013 * Math.exp(-elapsed / 13) + index * 0.7);
-    const oil = stage >= 3 ? Math.min(60, 12 + (elapsed - 70) * 0.42 + index * 3) : 0;
-    const pressureLoad = Math.min(86, Math.max(18, ((1013 - simulatedDrop) / 1013) * 82));
-    const air = Math.max(8, 76 - pressureLoad * 0.4 - oil * 0.3);
-    const condition: TankCondition = status === "Atenção" || (count === 3 && index === 2 && elapsed > 45) ? "Atenção" : "Normal";
+    const basePressure = Math.max(8 + hoseLoss, 1013 * Math.exp(-elapsed / 15) + hoseLoss);
+    const oil = stage >= 3 ? Math.min(62, 10 + (elapsed - 90) * 0.36 + index * 3) : 0;
+    const vacuum = Math.min(88, Math.max(12, ((1013 - basePressure) / 1013) * 86));
+    const air = Math.max(8, 72 - vacuum * 0.35 - oil * 0.22);
+    const condition: TankCondition = status === "Atenção" || (count === 3 && index === 2 && elapsed > 50) ? "Atenção" : "Normal";
 
     return {
       code: `TQ-0${index + 1}`,
-      pressure: simulatedDrop,
+      pressure: basePressure,
       target: 8,
       oil,
       air,
-      pressureLoad,
+      vacuum,
+      hoseLoss,
       condition
     };
   });
@@ -164,7 +176,8 @@ function App() {
     tanks: true,
     oil: false,
     emergency: true,
-    interlocks: true
+    interlocks: true,
+    sensors: true
   });
   const [b1Running, setB1Running] = useState(false);
   const [b2Running, setB2Running] = useState(false);
@@ -176,9 +189,15 @@ function App() {
   const checklistReady = Object.values(checklist).every(Boolean);
   const stageIndex = stageFromElapsed(cycleStatus, elapsed);
   const tanks = useMemo(() => makeTanks(tankCount, cycleStatus, elapsed), [tankCount, cycleStatus, elapsed]);
+
   const permission = checklistReady && !emergency ? "Liberado" : "Bloqueado";
   const alarmStatus = emergency ? "Emergência geral" : cycleStatus === "Atenção" ? "Atenção operacional" : "Sem alarme";
   const plcStatus = cycleStatus === "Bloqueada" ? "Bloqueado" : "Online simulado";
+  const sensorStatus = checklist.sensors ? "Sensores OK" : "Falha sensor";
+  const interlockStatus = checklist.interlocks && checklist.emergency ? "Liberado" : "Bloqueado";
+  const rampStatus = cycleStatus === "Em operação" && elapsed < 24 ? "Rampa inicial" : cycleStatus === "Em operação" ? "Acompanhando" : "Aguardando";
+  const avgPressure = tanks.reduce((sum, tank) => sum + tank.pressure, 0) / Math.max(tanks.length, 1);
+  const finalStage = stageIndex >= 5;
 
   useEffect(() => {
     if (cycleStatus !== "Em operação" && cycleStatus !== "Atenção") return;
@@ -191,17 +210,15 @@ function App() {
   }, [cycleStatus]);
 
   useEffect(() => {
-    if (cycleStatus === "Em operação" && stageIndex >= 2) {
-      setB2Running(true);
-    }
+    if (cycleStatus === "Em operação" && stageIndex >= 2) setB2Running(true);
 
-    if (cycleStatus === "Em operação" && stageIndex >= 5) {
+    if (cycleStatus === "Em operação" && finalStage) {
       setB1Running(false);
       setB2Running(false);
       setCycleStatus("Pronta");
       setScreen("registro");
     }
-  }, [cycleStatus, stageIndex]);
+  }, [cycleStatus, stageIndex, finalStage]);
 
   function startCycle() {
     if (!checklistReady) {
@@ -212,7 +229,7 @@ function App() {
 
     setConfirmAction({
       title: "Iniciar ciclo",
-      body: "Confirmar início do ciclo? A sequência das etapas será conduzida automaticamente pelo CLP/simulação.",
+      body: "Confirmar início do ciclo? A sequência será conduzida automaticamente pelo CLP/simulação.",
       confirmLabel: "Iniciar",
       onConfirm: () => {
         setEmergency(false);
@@ -246,7 +263,7 @@ function App() {
   function requestStopPump(pump: "B1" | "B2") {
     setConfirmAction({
       title: `Parada ${pump}`,
-      body: `Solicitar parada individual da bomba ${pump}. Em operação real, o CLP valida intertravamentos antes de executar.`,
+      body: `Solicitar parada individual da bomba ${pump}. Em operação real, o CLP validaria intertravamentos antes de executar.`,
       confirmLabel: `Parar ${pump}`,
       danger: true,
       onConfirm: () => {
@@ -261,7 +278,7 @@ function App() {
   function requestPause() {
     setConfirmAction({
       title: "Solicitar pausa",
-      body: "Solicitar pausa operacional ao CLP/simulação? A operação entra em atenção.",
+      body: "Solicitar pausa operacional ao CLP/simulação? A operação entrará em atenção.",
       confirmLabel: "Solicitar pausa",
       onConfirm: () => {
         setCycleStatus("Atenção");
@@ -287,8 +304,11 @@ function App() {
   function finishCycle() {
     setConfirmAction({
       title: "Finalizar ciclo",
-      body: "Encerrar operação simulada e gerar resumo do ciclo?",
+      body: finalStage
+        ? "Encerrar operação simulada e gerar resumo?"
+        : "O ciclo ainda não chegou à finalização automática. Deseja encerrar como finalização manual simulada?",
       confirmLabel: "Finalizar",
+      danger: !finalStage,
       onConfirm: () => {
         setCycleStatus("Pronta");
         setB1Running(false);
@@ -342,8 +362,8 @@ function App() {
           <section className="machine-line">
             <InfoTile label="CLP" value={plcStatus} tone={tone(plcStatus)} />
             <InfoTile label="Permissão" value={permission} tone={tone(permission)} />
-            <InfoTile label="Etapa" value={stages[stageIndex]} tone="neutral" />
-            <InfoTile label="Alarme" value={alarmStatus} tone={tone(alarmStatus)} />
+            <InfoTile label="Sensores" value={sensorStatus} tone={tone(sensorStatus)} />
+            <InfoTile label="Intertrav." value={interlockStatus} tone={tone(interlockStatus)} />
           </section>
 
           <section className="ihm-content">
@@ -385,6 +405,8 @@ function App() {
                 stageIndex={stageIndex}
                 cycleStatus={cycleStatus}
                 elapsed={elapsed}
+                rampStatus={rampStatus}
+                avgPressure={avgPressure}
                 requestPause={requestPause}
                 requestResume={requestResume}
                 finishCycle={finishCycle}
@@ -412,6 +434,7 @@ function App() {
                 recipe={recipe}
                 cycleStatus={cycleStatus}
                 elapsed={elapsed}
+                avgPressure={avgPressure}
                 resetCycle={resetCycle}
               />
             )}
@@ -419,18 +442,11 @@ function App() {
         </main>
 
         {menuOpen && (
-          <MenuModal
-            screen={screen}
-            setScreen={setScreen}
-            close={() => setMenuOpen(false)}
-          />
+          <MenuModal screen={screen} setScreen={setScreen} close={() => setMenuOpen(false)} />
         )}
 
         {confirmAction && (
-          <ConfirmModal
-            action={confirmAction}
-            close={() => setConfirmAction(null)}
-          />
+          <ConfirmModal action={confirmAction} close={() => setConfirmAction(null)} />
         )}
       </div>
     </div>
@@ -499,8 +515,7 @@ function StartScreen({
         </div>
 
         <p className="operator-note">
-          A IHM local serve para preparar ciclo, acompanhar processo, reconhecer alarmes e registrar operação.
-          A sequência de etapas é controlada pelo CLP/simulação, não pelo operador.
+          A sequência do processo é automática. O operador prepara o ciclo, acompanha leituras, reconhece alarmes e registra a operação.
         </p>
       </section>
 
@@ -548,7 +563,8 @@ function PreparationScreen(props: {
     { key: "tanks", label: "Tanques posicionados" },
     { key: "oil", label: "Óleo disponível" },
     { key: "emergency", label: "Emergência liberada" },
-    { key: "interlocks", label: "Intertravamentos liberados" }
+    { key: "interlocks", label: "Intertravamentos liberados" },
+    { key: "sensors", label: "Sensores comunicando" }
   ];
 
   return (
@@ -647,6 +663,8 @@ function OperationScreen(props: {
   stageIndex: number;
   cycleStatus: CycleStatus;
   elapsed: number;
+  rampStatus: string;
+  avgPressure: number;
   requestPause: () => void;
   requestResume: () => void;
   finishCycle: () => void;
@@ -658,10 +676,16 @@ function OperationScreen(props: {
         <div>
           <span className="eyebrow">CICLO EM ANDAMENTO</span>
           <h2>OP-IHM-0001</h2>
-          <p>Etapa automática: {stages[props.stageIndex]} · Tempo: {formatTime(props.elapsed)}</p>
+          <p>Etapa automática: {stages[props.stageIndex]} · Tempo demonstrativo: {formatTime(props.elapsed)}</p>
         </div>
 
         <StatusPill label={props.cycleStatus} />
+      </section>
+
+      <section className="process-strip">
+        <InfoTile label="Rampa de vácuo" value={props.rampStatus} tone={tone(props.rampStatus)} />
+        <InfoTile label="Pressão média" value={`${props.avgPressure.toFixed(1)} mbar`} tone="neutral" />
+        <InfoTile label="Referência etapa" value={expectedStageTime(props.stageIndex)} tone="neutral" />
       </section>
 
       <section className={`tanks-visual-grid count-${props.tanks.length}`}>
@@ -721,7 +745,7 @@ function OperationScreen(props: {
 
 function TankVisual({ tank }: { tank: TankData }) {
   const airHeight = Math.min(82, Math.max(14, tank.air));
-  const pressureHeight = Math.min(86, Math.max(12, tank.pressureLoad));
+  const vacuumHeight = Math.min(86, Math.max(12, tank.vacuum));
   const oilHeight = Math.min(70, Math.max(0, tank.oil));
 
   return (
@@ -731,8 +755,8 @@ function TankVisual({ tank }: { tank: TankData }) {
           <span>AR</span>
         </div>
 
-        <div className="tank-column pressure" style={{ height: `${pressureHeight}%` }}>
-          <span>PRESSÃO</span>
+        <div className="tank-column vacuum" style={{ height: `${vacuumHeight}%` }}>
+          <span>VÁCUO</span>
         </div>
 
         <div className="tank-column oil" style={{ height: `${oilHeight}%` }}>
@@ -746,6 +770,7 @@ function TankVisual({ tank }: { tank: TankData }) {
         <Reading label="Pressão" value={`${tank.pressure.toFixed(1)} mbar`} />
         <Reading label="Alvo" value={`${tank.target.toFixed(1)} mbar`} />
         <Reading label="Óleo" value={`${tank.oil.toFixed(0)} L`} />
+        <Reading label="Perda mangueira" value={`${tank.hoseLoss.toFixed(1)} mbar`} />
         <Reading label="Condição" value={tank.condition} />
       </div>
     </article>
@@ -787,10 +812,10 @@ function AlarmsScreen(props: {
     },
     {
       id: "ALM-002",
-      title: "Atraso no óleo",
+      title: "Rampa inicial rápida",
       severity: "Atenção",
-      cause: "Vazão abaixo da referência.",
-      action: "Verificar linha de óleo e mangueira."
+      cause: "Queda inicial de pressão precisa ser acompanhada.",
+      action: "Verificar pressão do tanque e estabilidade da mangueira."
     }
   ];
 
@@ -839,6 +864,7 @@ function RegisterScreen(props: {
   recipe: string;
   cycleStatus: CycleStatus;
   elapsed: number;
+  avgPressure: number;
   resetCycle: () => void;
 }) {
   return (
@@ -853,7 +879,8 @@ function RegisterScreen(props: {
           <InfoTile label="Tanques" value={`${props.tankCount}`} tone="neutral" />
           <InfoTile label="Mangueira" value={props.hose} tone="neutral" />
           <InfoTile label="Receita" value={props.recipe} tone="neutral" />
-          <InfoTile label="Tempo" value={formatTime(props.elapsed)} tone="neutral" />
+          <InfoTile label="Tempo demo" value={formatTime(props.elapsed)} tone="neutral" />
+          <InfoTile label="Pressão média" value={`${props.avgPressure.toFixed(1)} mbar`} tone="neutral" />
           <InfoTile label="Status" value={props.cycleStatus} tone={tone(props.cycleStatus)} />
         </div>
       </section>
