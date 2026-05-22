@@ -749,7 +749,7 @@ function TseaTwinRecoveryPanel({ state, allTanks, allHoses }: any) {
       id: "base-seguro",
       name: "Ciclo seguro padrão",
       description: "Parâmetros conservadores para operação com margem ampliada.",
-      config: { tank_type: "grande", hose_id: 1, target_pressure_mbar: 8, roots_start_pressure_mbar: 55, oil_flow_l_min: 2, max_cycle_seconds: 780, pump_health_factor: 1 }
+      config: { tank_type: "grande", tank_count: 1, hose_id: 1, target_pressure_mbar: 8, roots_start_pressure_mbar: 55, oil_flow_l_min: 2, max_cycle_seconds: 780, pump_health_factor: 1 }
     },
     {
       id: "base-produtivo",
