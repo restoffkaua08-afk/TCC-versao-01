@@ -3,9 +3,9 @@
   color: #080b09;
   background: #d7dbd7;
 
-  --screen: #d8ddd8;
+  --screen: #d9ddd9;
   --panel: #f7fbf7;
-  --panel-2: #e8ece8;
+  --panel-2: #e7ebe7;
   --line: #101410;
   --muted: #5e6860;
 
@@ -37,8 +37,7 @@ body {
 }
 
 /* =========================================================
-   TABLET INDUSTRIAL SIMULADO
-   Cada tela principal vira o corpo do tablet.
+   TABLET INDUSTRIAL
 ========================================================= */
 
 .boot,
@@ -47,29 +46,30 @@ body {
 .registros-dia,
 .operacao,
 .finalizacao {
-  width: min(1320px, calc(100vw - 28px));
-  height: min(790px, calc(100vh - 28px));
+  width: min(1360px, calc(100vw - 24px));
+  height: min(805px, calc(100vh - 24px));
   min-height: 690px;
-  margin: 14px auto;
+  margin: 12px auto;
   position: relative;
   isolation: isolate;
   overflow: hidden;
 
-  padding: 110px 205px 92px;
+  /* menos borda desperdiçada, mais tela útil */
+  padding: 92px 172px 74px;
 
-  border-radius: 92px 104px 92px 104px;
+  border-radius: 88px 100px 88px 100px;
 
   background:
-    radial-gradient(circle at 74px 50%, #e8ffff 0 27px, #59fff1 28px 34px, #0d8c80 35px 43px, #111 44px 51px, transparent 52px),
-    radial-gradient(circle at calc(100% - 74px) 50%, #ff3340 0 29px, #d20d18 30px 38px, #111 39px 49px, transparent 50px),
+    radial-gradient(circle at 72px 50%, #e8ffff 0 27px, #59fff1 28px 34px, #0d8c80 35px 43px, #111 44px 51px, transparent 52px),
+    radial-gradient(circle at calc(100% - 72px) 50%, #ff3340 0 29px, #d20d18 30px 38px, #111 39px 49px, transparent 50px),
 
-    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) left 114px / 132px 7px no-repeat,
-    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) left 180px / 132px 7px no-repeat,
-    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) left calc(100% - 142px) / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) left 112px / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) left 176px / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) left calc(100% - 138px) / 132px 7px no-repeat,
 
-    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) right 114px / 132px 7px no-repeat,
-    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) right 180px / 132px 7px no-repeat,
-    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) right calc(100% - 142px) / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) right 112px / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) right 176px / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) right calc(100% - 138px) / 132px 7px no-repeat,
 
     radial-gradient(ellipse at 50% 48%, rgba(255,255,255,0.86), rgba(255,255,255,0.25) 48%, transparent 72%),
     linear-gradient(145deg, #fafbf6 0%, #e3e7e0 48%, #cad1cb 100%);
@@ -81,7 +81,7 @@ body {
     inset 0 18px 36px rgba(255,255,255,0.65);
 }
 
-/* Tela interna do tablet */
+/* tela interna alinhada com o novo padding */
 .boot::before,
 .inicial::before,
 .preparo::before,
@@ -90,14 +90,14 @@ body {
 .finalizacao::before {
   content: "";
   position: absolute;
-  left: 185px;
-  right: 185px;
-  top: 82px;
-  bottom: 70px;
+  left: 154px;
+  right: 154px;
+  top: 64px;
+  bottom: 52px;
   z-index: 0;
   pointer-events: none;
 
-  border-radius: 14px;
+  border-radius: 12px;
   border: 7px solid #111;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.16), transparent 34%),
@@ -109,7 +109,6 @@ body {
     0 8px 20px rgba(0,0,0,0.25);
 }
 
-/* Conteudo fica dentro da tela verde/cinza */
 .boot > *,
 .inicial > :not(.drawer),
 .preparo > :not(.drawer),
@@ -120,7 +119,6 @@ body {
   z-index: 2;
 }
 
-/* Remove decoracao antiga */
 .boot::after,
 .inicial::after,
 .preparo::after,
@@ -153,7 +151,6 @@ body {
   letter-spacing: 0.2em;
   color: #eaffea;
   text-shadow: 0 0 22px rgba(61,255,61,0.8);
-  animation: bootPulse 1.6s ease both;
 }
 
 .boot-sub {
@@ -161,21 +158,6 @@ body {
   font-weight: 900;
   letter-spacing: 0.26em;
   color: #9bff9b;
-  animation: bootPulse 1.6s ease both;
-}
-
-@keyframes bootPulse {
-  0% {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-  35% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 /* =========================================================
@@ -223,7 +205,7 @@ body {
 }
 
 /* =========================================================
-   TELA INICIAL
+   INICIO
 ========================================================= */
 
 .inicial {
@@ -232,14 +214,14 @@ body {
 }
 
 .buttons {
-  width: min(720px, 100%);
+  width: min(760px, 100%);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 26px;
 }
 
 .big-btn {
-  min-height: 180px;
+  min-height: 190px;
   border: 7px solid #111;
   border-radius: 0;
   background: var(--panel);
@@ -256,45 +238,50 @@ body {
 }
 
 /* =========================================================
-   TELAS DE PREPARO / REGISTRO / FINALIZACAO
+   TELAS DE PREPARO / REGISTROS / FINALIZACAO
 ========================================================= */
 
 .preparo,
 .registros-dia,
 .finalizacao {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 14px;
+  grid-template-rows: 48px minmax(0, 1fr) 58px;
+  gap: 10px;
 }
 
 .preparo h2,
 .registros-dia h2,
 .finalizacao h2 {
   margin: 0;
-  font-size: 1.55rem;
+  font-size: 1.35rem;
   font-weight: 950;
   letter-spacing: 0.03em;
   border-bottom: 5px solid #111;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .recipes {
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
+  overflow: hidden;
 }
 
 .recipe-card {
   background: var(--panel);
   border: 5px solid #9da59e;
   border-radius: 0;
-  padding: 14px;
+  padding: 12px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  min-height: 200px;
+  min-height: 0;
   font-weight: 850;
+  overflow: hidden;
 }
 
 .recipe-card.selected {
@@ -303,27 +290,27 @@ body {
 }
 
 .recipe-title {
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 950;
   border-bottom: 3px solid #111;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 .recipe-note {
   background: #fff4be;
   border: 3px solid #d39a16;
-  padding: 8px;
+  padding: 6px;
   font-weight: 900;
 }
 
 .field {
   display: grid;
-  gap: 6px;
-  margin: 12px 0;
+  gap: 5px;
+  margin: 8px 0;
 }
 
 .field label {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 950;
   text-transform: uppercase;
 }
@@ -332,17 +319,17 @@ body {
 .field select,
 textarea {
   width: 100%;
-  min-height: 48px;
+  min-height: 42px;
   border: 4px solid #777;
   background: #fff;
-  padding: 0 12px;
-  font-size: 1rem;
+  padding: 0 10px;
+  font-size: 0.95rem;
   font-weight: 850;
 }
 
 textarea {
-  min-height: 88px;
-  padding: 10px;
+  min-height: 78px;
+  padding: 8px;
 }
 
 .checklist {
@@ -350,26 +337,26 @@ textarea {
   overflow: auto;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin: 12px 0;
+  gap: 8px;
+  margin: 8px 0;
 }
 
 .checklist label {
-  min-height: 52px;
+  min-height: 44px;
   border: 4px solid #777;
   background: #fff;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 12px;
-  font-size: 0.86rem;
+  gap: 10px;
+  padding: 0 10px;
+  font-size: 0.78rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .checklist input {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .next-btn,
@@ -378,12 +365,12 @@ textarea {
 .finalizacao > button,
 .registros-dia > button,
 .preparo > button {
-  min-height: 54px;
+  min-height: 50px;
   border: 5px solid #111;
   background: var(--panel);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 950;
-  padding: 0 18px;
+  padding: 0 16px;
   cursor: pointer;
 }
 
@@ -405,18 +392,19 @@ button:disabled {
   background: var(--panel);
   border: 5px solid #111;
   border-radius: 0;
-  padding: 14px;
+  padding: 12px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   font-weight: 900;
+  overflow: auto;
 }
 
 .oil-warning,
 .oil-ok {
   border: 4px solid #111;
-  padding: 12px;
+  padding: 10px;
   font-weight: 950;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 .oil-warning {
@@ -436,36 +424,36 @@ button:disabled {
 }
 
 /* =========================================================
-   OPERACAO
+   OPERACAO - melhor aproveitamento da tela interna
 ========================================================= */
 
 .operacao {
   display: grid;
-  grid-template-rows: 66px minmax(0, 1fr) 82px;
-  gap: 10px;
+  grid-template-rows: 58px minmax(0, 1fr) 66px;
+  gap: 8px;
 }
 
 .topbar {
-  min-height: 64px;
+  min-height: 58px;
   background: var(--panel);
   border: 5px solid #111;
   border-radius: 0;
-  padding: 0 14px;
+  padding: 0 10px;
   display: grid;
-  grid-template-columns: 58px 0.8fr 1.35fr 0.9fr 1.2fr;
+  grid-template-columns: 50px 0.75fr 1.35fr 0.9fr 1.1fr;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-weight: 950;
-  font-size: 1rem;
+  font-size: 0.92rem;
   overflow: hidden;
 }
 
 .menu-btn {
-  width: 48px;
-  height: 44px;
+  width: 42px;
+  height: 38px;
   border: 4px solid #111;
   background: #fff;
-  font-size: 1.45rem;
+  font-size: 1.28rem;
   font-weight: 950;
   cursor: pointer;
 }
@@ -473,22 +461,22 @@ button:disabled {
 .topbar > div {
   height: 100%;
   border-left: 2px solid #c8cec8;
-  padding-left: 8px;
+  padding-left: 7px;
   display: grid;
   align-content: center;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 
 .topbar span {
-  font-size: 0.56rem;
+  font-size: 0.5rem;
   font-weight: 950;
   letter-spacing: 0.08em;
   color: #48524b;
 }
 
 .topbar strong {
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 950;
   white-space: nowrap;
   overflow: hidden;
@@ -508,23 +496,23 @@ button:disabled {
   background: var(--screen);
   border: 5px solid #111;
   border-radius: 0;
-  padding: 14px;
+  padding: 10px;
   overflow: hidden;
 }
 
 .bottom-tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
 .bottom-tabs button {
-  min-height: 72px;
+  min-height: 66px;
   border: 6px solid #111;
   border-radius: 0;
   background: var(--panel);
   color: #111;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 950;
   cursor: pointer;
 }
@@ -535,15 +523,15 @@ button:disabled {
 }
 
 /* =========================================================
-   ABA REGULADORES
+   ABA REGULADORES - mais visual, menos embolado
 ========================================================= */
 
 .tanks-grid {
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 12px;
   align-items: stretch;
 }
 
@@ -551,19 +539,20 @@ button:disabled {
   background: var(--panel);
   border: 5px solid #111;
   border-radius: 0;
-  padding: 14px;
+  padding: 12px;
   text-align: center;
   display: grid;
+  grid-template-rows: auto auto auto auto auto;
   align-content: start;
-  gap: 8px;
+  gap: 6px;
   font-weight: 900;
   overflow: hidden;
 }
 
 .tank-card::before {
   content: "";
-  width: 92px;
-  height: 138px;
+  width: 84px;
+  height: 118px;
   justify-self: center;
   border: 5px solid #111;
   border-radius: 50% / 12%;
@@ -573,7 +562,7 @@ button:disabled {
 }
 
 .tank-card > div:first-child {
-  font-size: 1.85rem;
+  font-size: 1.55rem;
   font-weight: 950;
 }
 
@@ -581,7 +570,7 @@ button:disabled {
 .ok {
   background: var(--green);
   border: 3px solid #098000;
-  padding: 8px;
+  padding: 6px;
   font-weight: 950;
 }
 
@@ -593,19 +582,20 @@ button:disabled {
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(230px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 10px;
 }
 
 .bombas-grid > div {
   background: var(--panel);
   border: 5px solid #111;
   border-radius: 0;
-  padding: 18px;
+  padding: 12px;
   display: grid;
   place-items: center;
   text-align: center;
-  font-size: 1.02rem;
+  font-size: 0.95rem;
   font-weight: 950;
   overflow: hidden;
 }
@@ -613,12 +603,12 @@ button:disabled {
 .bombas-grid > div:nth-child(1)::before,
 .bombas-grid > div:nth-child(2)::before {
   content: "";
-  width: 68px;
-  height: 68px;
+  width: 58px;
+  height: 58px;
   border: 5px solid #111;
   background: var(--blue);
-  border-radius: 10px;
-  margin-bottom: 8px;
+  border-radius: 8px;
+  margin-bottom: 6px;
 }
 
 /* =========================================================
@@ -629,9 +619,9 @@ button:disabled {
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.15fr 1fr 1fr;
-  grid-auto-rows: minmax(76px, auto);
-  gap: 12px;
+  grid-template-columns: 1.25fr repeat(2, 1fr);
+  grid-auto-rows: minmax(66px, 1fr);
+  gap: 10px;
   overflow: hidden;
 }
 
@@ -639,8 +629,8 @@ button:disabled {
   background: var(--panel);
   border: 5px solid #111;
   border-radius: 0;
-  padding: 14px;
-  font-size: 0.98rem;
+  padding: 10px;
+  font-size: 0.92rem;
   font-weight: 950;
   display: grid;
   place-items: center;
@@ -650,19 +640,19 @@ button:disabled {
 
 .oleo-grid > div:nth-child(1) {
   grid-row: span 3;
-  font-size: 1.25rem;
+  font-size: 1.12rem;
   position: relative;
-  padding-top: 155px;
+  padding-top: 132px;
 }
 
 .oleo-grid > div:nth-child(1)::before {
   content: "";
   position: absolute;
-  top: 18px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
-  width: 98px;
-  height: 125px;
+  width: 88px;
+  height: 108px;
   border: 5px solid #111;
   border-radius: 50% / 12%;
   background: linear-gradient(to top, var(--orange) 0 70%, #f1f1f1 70% 100%);
@@ -676,14 +666,14 @@ button:disabled {
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr 1fr;
-  gap: 14px;
+  grid-template-columns: 1.05fr 0.9fr 1.05fr;
+  gap: 10px;
   overflow: hidden;
 }
 
 .etapas {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   align-content: start;
   margin: 0;
 }
@@ -692,8 +682,8 @@ button:disabled {
   border: 4px solid #999;
   border-radius: 0;
   background: #efefef;
-  padding: 10px;
-  font-size: 0.82rem;
+  padding: 8px;
+  font-size: 0.74rem;
   font-weight: 950;
 }
 
@@ -713,9 +703,9 @@ button:disabled {
   background: var(--panel);
   border: 5px solid #111;
   border-radius: 0;
-  padding: 14px;
+  padding: 12px;
   display: grid;
-  gap: 8px;
+  gap: 7px;
   align-content: start;
   font-weight: 900;
   overflow: auto;
@@ -725,9 +715,9 @@ button:disabled {
   background: var(--panel);
   border: 5px solid #111;
   border-radius: 0;
-  padding: 12px;
+  padding: 10px;
   font-family: Consolas, monospace;
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   overflow: auto;
 }
 
@@ -740,7 +730,7 @@ button:disabled {
   overflow: auto;
   list-style: none;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
   padding: 0;
 }
@@ -748,13 +738,13 @@ button:disabled {
 .registros-dia li {
   background: var(--panel);
   border: 4px solid #111;
-  padding: 14px;
+  padding: 12px;
   font-weight: 900;
 }
 
 .finalizacao {
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: 48px minmax(0, 1fr) 58px;
 }
 
 .finalizacao h2 {
@@ -785,7 +775,7 @@ button:disabled {
 
 .alarm-screen {
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: 48px minmax(0, 1fr) 58px;
 }
 
 .alarm-screen h2 {
