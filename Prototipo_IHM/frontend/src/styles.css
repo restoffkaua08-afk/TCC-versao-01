@@ -621,3 +621,147 @@ button:disabled {
     transform: scale(0.82);
   }
 }
+/* PATCH FINAL - TOPBAR, ALARMES, OLEO, FINALIZACAO */
+.topbar {
+  grid-template-columns: 64px 1fr 1.25fr 1fr 1.35fr !important;
+}
+
+.topbar > div {
+  height: 100%;
+  border-left: 2px solid #c8cec8;
+  padding-left: 10px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.topbar span {
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  color: #48524b;
+}
+
+.topbar strong {
+  font-size: 0.92rem;
+  font-weight: 950;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.alarm-mini.ok {
+  background: #dff8d7;
+}
+
+.alarm-mini.bad {
+  background: #ffd1d1;
+}
+
+.oil-warning,
+.oil-ok {
+  border: 4px solid #111;
+  padding: 12px;
+  font-weight: 950;
+  margin: 10px 0;
+}
+
+.oil-warning {
+  background: #ffd1d1;
+}
+
+.oil-ok {
+  background: #dff8d7;
+}
+
+.warn-text {
+  color: #9b1111;
+  font-weight: 950;
+  background: #ffd1d1;
+  border: 3px solid #9b1111;
+  padding: 8px;
+}
+
+.alarm-screen {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr auto;
+}
+
+.alarm-screen h2 {
+  grid-column: 1 / 3;
+}
+
+.alarm-summary {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: stretch;
+}
+
+.alarm-log {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: stretch;
+  min-height: 100%;
+}
+
+.alarm-screen > button {
+  grid-column: 2;
+  justify-self: end;
+}
+
+.finalizacao {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr auto;
+}
+
+.finalizacao h2 {
+  grid-column: 1 / 3;
+}
+
+.finalizacao .resumo {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: stretch;
+  overflow: auto;
+}
+
+.finalizacao .checklist {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: stretch;
+  overflow: auto;
+  margin: 0;
+}
+
+.finalizacao > button {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: end;
+  min-width: 220px;
+}
+
+.content-area {
+  overflow: hidden !important;
+}
+
+.tanks-grid,
+.bombas-grid,
+.oleo-grid,
+.info-grid {
+  min-height: 0;
+}
+
+@media (max-width: 980px), (max-height: 680px) {
+  .topbar {
+    grid-template-columns: 56px 1fr 1fr 1fr 1fr !important;
+  }
+
+  .topbar strong {
+    font-size: 0.76rem;
+  }
+
+  .topbar span {
+    font-size: 0.52rem;
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -11,7 +11,8 @@ type Phase =
   | "revisao" 
   | "operacao" 
   | "finalizacao" 
-  | "registros_dia";
+  | "registros_dia"
+  | "alarmes";
 
 type OperationTab = "reguladores" | "bombas" | "oleo" | "informacoes";
 type Status = "PRONTO" | "EM CICLO" | "PAUSADO" | "FINALIZADO" | "BLOQUEADO";
@@ -71,6 +72,12 @@ function fmt(v: number, u: string) { return `${v.toFixed(v>=100?1:2)} ${u}`; }
 function timeFmt(s: number) { return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,"0")}`; }
 function now() { return new Date().toLocaleTimeString("pt-BR"); }
 
+function oilPerTank(recipe: Recipe) {
+  if (recipe.id === "GRA-002") return 65;
+  if (recipe.id === "CRI-003") return 45;
+  return 50;
+}
+
 function App() {
   const [phase, setPhase] = useState<Phase>("boot");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -78,7 +85,13 @@ function App() {
   const [status, setStatus] = useState<Status>("PRONTO");
   const [elapsed, setElapsed] = useState(0);
   const [operationId, setOperationId] = useState("");
-  const [registros, setRegistros] = useState<Registro[]>([]);
+  const [registros, setRegistros] = useState<Registro[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("tsea_ihm_registros_dia") || "[]");
+    } catch {
+      return [];
+    }
+  });
   const [recipeId, setRecipeId] = useState<RecipeKey>("PAD-001");
   const [qtdTanques, setQtdTanques] = useState(3);
   const [hoseId, setHoseId] = useState<HoseKey>("MG-02");
@@ -95,6 +108,12 @@ function App() {
 
   const recipe = recipes.find(r=>r.id===recipeId)!;
   const hose = hoses.find(h=>h.id===hoseId)!;
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("tsea_ihm_registros_dia", JSON.stringify(registros));
+    } catch {}
+  }, [registros]);
 
   useEffect(() => {
     if (phase==="boot") setTimeout(()=>setPhase("inicial"), 2000);
@@ -162,12 +181,23 @@ function App() {
   const oilRestante = Math.max(0, oleoColocado - oilInjetado);
   const allCheckedPre = Object.values(checklistPre).every(v=>v===true);
   const allCheckedPos = Object.entries(checklistPos).filter(([k])=>k!=="observacao").every(([,v])=>v===true);
+  const oilNeeded = qtdTanques * oilPerTank(recipe);
+  const oilInsuficiente = oleoColocado < oilNeeded;
+  const etapaAtual = etapa();
+  const alarmText =
+    status === "BLOQUEADO"
+      ? "BLOQUEIO"
+      : oilInsuficiente
+        ? "OLEO INSUF."
+        : status === "FINALIZADO"
+          ? "FINALIZADO"
+          : "NORMAL";
 
   const menu = () => (
     <div className={`drawer ${drawerOpen?"open":""}`}>
-      <div><button onClick={()=>setDrawerOpen(false)}>✕</button></div>
+      <div><button onClick={()=>setDrawerOpen(false)}>âœ•</button></div>
       <button disabled={phase!=="operacao" || status!=="FINALIZADO"} onClick={()=>setPhase("finalizacao")}>FINALIZAR OPERACAO</button>
-      <button>ALARMES (sim)</button>
+      <button onClick={()=>{setDrawerOpen(false); setPhase("alarmes");}}>ALARMES</button>
       <button disabled={phase==="operacao" && status!=="FINALIZADO"} onClick={reiniciar}>INICIO</button>
     </div>
   );
@@ -184,7 +214,7 @@ function App() {
   );
   if (phase==="registros_dia") return (
     <div className="registros-dia">
-      <button onClick={()=>setPhase("inicial")}>← VOLTAR</button>
+      <button onClick={()=>setPhase("inicial")}>â† VOLTAR</button>
       <h2>REGISTROS DO DIA</h2>
       <ul>{registros.map(r=><li key={r.id}>{r.horario} | {r.status} | {r.qtdTanques} tanque(s)</li>)}</ul>
       {menu()}
@@ -209,10 +239,13 @@ function App() {
   if (phase==="preparar_dados") return (
     <div className="preparo">
       <h2>DADOS DA OPERACAO</h2>
-      <div className="field"><label>Quantidade de tanques</label><input type="number" min={1} max={3} value={qtdTanques} onChange={e=>setQtdTanques(Number(e.target.value))}/></div>
+      <div className="field"><label>Quantidade de tanques</label><input type="number" min={1} max={3} value={qtdTanques} onChange={e=>setQtdTanques(Math.max(1, Math.min(3, Number(e.target.value) || 1)))}/></div>
       <div className="field"><label>Mangueira</label><select value={hoseId} onChange={e=>setHoseId(e.target.value as HoseKey)}>{hoses.map(h=><option key={h.id} value={h.id}>{h.descricao}</option>)}</select></div>
-      <div className="field"><label>Oleo no reservatorio (L)</label><input type="number" value={oleoColocado} onChange={e=>setOleoColocado(Number(e.target.value))}/></div>
-      <button className="next-btn" onClick={()=>setPhase("checklist_pre")}>CONTINUAR</button>
+      <div className="field"><label>Oleo no reservatorio (L)</label><input type="number" min={0} value={oleoColocado} onChange={e=>setOleoColocado(Math.max(0, Number(e.target.value) || 0))}/></div>
+      <div className={oilInsuficiente ? "oil-warning" : "oil-ok"}>
+        Oleo necessario para esta operacao: {oilNeeded} L
+      </div>
+      <button className="next-btn" disabled={oilInsuficiente} onClick={()=>setPhase("checklist_pre")}>CONTINUAR</button>
       {menu()}
     </div>
   );
@@ -230,20 +263,26 @@ function App() {
     <div className="preparo">
       <h2>REVISAO FINAL</h2>
       <div className="resumo">
-        <p>Receita: {recipe.title}</p><p>Tanques: {qtdTanques}</p><p>Mangueira: {hose.descricao}</p><p>Oleo: {oleoColocado} L</p>
+        <p>Receita: {recipe.title}</p><p>Tanques: {qtdTanques}</p><p>Mangueira: {hose.descricao}</p><p>Oleo colocado: {oleoColocado} L</p><p>Oleo necessario: {oilNeeded} L</p>{oilInsuficiente && <p className="warn-text">Volume de oleo insuficiente para iniciar.</p>}
       </div>
       <button className="cancel-btn" onClick={()=>setPhase("inicial")}>CANCELAR</button>
-      <button className="start-btn" onClick={()=>{setOperationId(`OP-${Date.now()}`); setStatus("EM CICLO"); setElapsed(0); setLogs([]); setPhase("operacao");}}>INICIAR</button>
+      <button className="start-btn" disabled={oilInsuficiente || !allCheckedPre} onClick={()=>{setOperationId(`OP-${Date.now()}`); setStatus("EM CICLO"); setElapsed(0); setLogs([{time:now(), msg:"Operacao iniciada"}]); setPhase("operacao");}}>INICIAR</button>
       {menu()}
     </div>
   );
   if (phase==="operacao") return (
     <div className="operacao">
-      <div className="topbar"><button className="menu-btn" onClick={()=>setDrawerOpen(true)}>☰</button><div>{status}</div><div>{timeFmt(elapsed)} / {timeFmt(recipe.tempoEstimado)}</div></div>
+      <div className="topbar">
+        <button className="menu-btn" onClick={()=>setDrawerOpen(true)}>â˜°</button>
+        <div><span>STATUS</span><strong>{status}</strong></div>
+        <div><span>ETAPA</span><strong>{etapaAtual}</strong></div>
+        <div className={alarmText === "NORMAL" || alarmText === "FINALIZADO" ? "alarm-mini ok" : "alarm-mini bad"}><span>ALARME</span><strong>{alarmText}</strong></div>
+        <div><span>TEMPO</span><strong>{timeFmt(elapsed)} / {timeFmt(recipe.tempoEstimado)}</strong></div>
+      </div>
       <div className="content-area">
         {tab==="reguladores" && <div className="tanks-grid">{tanques.map(t=><div key={t.id} className="tank-card"><div>{t.id}</div><div>{fmt(t.pressao,"mbar")}</div><div>Perda: {fmt(t.perda,"mbar")}</div><div>Oleo: {fmt(t.oleo,"L")}</div><div className="ok">OK</div></div>)}</div>}
         {tab==="bombas" && <div className="bombas-grid"><div>B1 PRIMARIA: {status==="EM CICLO"?"LIGADA":"DESLIGADA"}</div><div>B2 ROOTS: {b2Ligada?"LIGADA":"AGUARDANDO"}</div><div>PRESSAO MAQUINA: {fmt(pressaoMaquina,"mbar")}</div><div>PRESSAO MEDIA: {fmt(pressaoMedia,"mbar")}</div><div>SENSOR: COMUNICANDO</div><div>VACUO: ATIVO</div></div>}
-        {tab==="oleo" && <div className="oleo-grid"><div>RESERVATORIO: {oleoColocado} L</div><div>SAINDO: {fmt(oilInjetado,"L")}</div><div>RESTANTE: {fmt(oilRestante,"L")}</div><div>VAZAO: {oilLigada?"NORMAL":"AGUARDANDO"}</div><div>TEMP: 60°C</div><div>LINHA: CONECTADA</div><div>OLEO POR TANQUE:</div>{tanques.map(t=><div key={t.id}>{t.id}: {fmt(t.oleo,"L")}</div>)}</div>}
+        {tab==="oleo" && <div className="oleo-grid"><div>RESERVATORIO: {oleoColocado} L</div><div>SAINDO: {fmt(oilInjetado,"L")}</div><div>RESTANTE: {fmt(oilRestante,"L")}</div><div>VAZAO: {oilLigada?"NORMAL":"AGUARDANDO"}</div><div>TEMP: 60Â°C</div><div>LINHA: CONECTADA</div><div>OLEO POR TANQUE:</div>{tanques.map(t=><div key={t.id}>{t.id}: {fmt(t.oleo,"L")}</div>)}</div>}
         {tab==="informacoes" && <div className="info-grid"><div className="etapas">{["Preparo","VACUO INICIAL","VACUO PROFUNDO","INJECAO DE OLEO","ESTABILIZACAO","FINALIZACAO"].map(e=><div key={e} className={etapa()===e?"active":(elapsed>recipe.b2StartSeg&&e==="VACUO INICIAL"?"done":(elapsed>recipe.oilStartSeg&&e==="VACUO PROFUNDO"?"done":(elapsed>recipe.estabilizacaoSeg&&e==="INJECAO DE OLEO"?"done":(elapsed>=recipe.tempoEstimado&&e==="ESTABILIZACAO"?"done":""))))}>{e}</div>)}</div><div><p>ID: {operationId}</p><p>Receita: {recipe.title}</p><p>Operador: OPERADOR 01</p><p>Tanques: {qtdTanques}</p><p>Mangueira: {hose.descricao}</p><p>Tempo: {timeFmt(elapsed)}</p></div><div className="logs">{logs.slice(0,8).map(l=><div key={l.time}>[{l.time}] {l.msg}</div>)}</div></div>}
       </div>
       <div className="bottom-tabs">
@@ -252,10 +291,31 @@ function App() {
       {menu()}
     </div>
   );
+
+  if (phase==="alarmes") return (
+    <div className="finalizacao alarm-screen">
+      <h2>ALARMES E EVENTOS</h2>
+      <div className="resumo alarm-summary">
+        <p>Status: {status}</p>
+        <p>Etapa: {etapaAtual}</p>
+        <p>Alarme: {alarmText}</p>
+        <p>Pressao maquina: {fmt(pressaoMaquina,"mbar")}</p>
+        <p>Pressao media: {fmt(pressaoMedia,"mbar")}</p>
+        <p>Oleo colocado: {oleoColocado} L</p>
+        <p>Oleo necessario: {oilNeeded} L</p>
+      </div>
+      <div className="logs alarm-log">
+        {logs.length === 0 ? <div>Sem eventos registrados.</div> : logs.map(l=><div key={l.time}>[{l.time}] {l.msg}</div>)}
+      </div>
+      <button onClick={()=>setPhase("operacao")}>VOLTAR PARA OPERACAO</button>
+      {menu()}
+    </div>
+  );
+
   if (phase==="finalizacao") return (
     <div className="finalizacao">
       <h2>CHECKLIST FINAL</h2>
-      <div className="resumo"><p>ID: {operationId}</p><p>Receita: {recipe.title}</p><p>Tanques: {qtdTanques}</p><p>Mangueira: {hose.descricao}</p><p>Tempo: {timeFmt(elapsed)}</p><p>Pressao final: ~{fmt(pressaoMedia,"mbar")}</p><p>Oleo colocado: {oleoColocado} L</p><p>Oleo injetado: ~{Math.min(oleoColocado,qtdTanques*50)} L</p></div>
+      <div className="resumo"><p>ID: {operationId}</p><p>Receita: {recipe.title}</p><p>Tanques: {qtdTanques}</p><p>Mangueira: {hose.descricao}</p><p>Tempo: {timeFmt(elapsed)}</p><p>Pressao final: ~{fmt(pressaoMedia,"mbar")}</p><p>Oleo colocado: {oleoColocado} L</p><p>Oleo injetado: ~{Math.min(oleoColocado, oilNeeded)} L</p></div>
       <div className="checklist">
         {Object.entries(checklistPos).map(([k,v])=>k!=="observacao"&&<label key={k}><input type="checkbox" checked={v as boolean} onChange={e=>setChecklistPos(prev=>({...prev,[k]:e.target.checked}))}/> {k.toUpperCase()}</label>)}
         <label>Observacao:</label><textarea value={checklistPos.observacao} onChange={e=>setChecklistPos(prev=>({...prev,observacao:e.target.value}))}/>
