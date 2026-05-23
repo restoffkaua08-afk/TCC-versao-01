@@ -815,3 +815,393 @@ button.danger {
     font-size: 0.52rem;
   }
 }
+
+/* CORRECAO DE ESPACAMENTO E SOBREPOSICAO - IHM TSEA */
+.ihm-device {
+  width: min(1180px, calc(100vw - 24px)) !important;
+  height: min(730px, calc(100vh - 24px)) !important;
+  min-height: 650px !important;
+  padding: 58px 132px 66px !important;
+}
+
+.ihm-screen {
+  overflow: hidden !important;
+}
+
+.operation-layout {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-rows: 68px 34px 28px minmax(0, 1fr) 64px !important;
+  gap: 0 !important;
+  padding: 10px !important;
+  overflow: hidden !important;
+}
+
+.top-cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  min-height: 0 !important;
+}
+
+.top-card {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 5px 6px !important;
+  overflow: hidden !important;
+}
+
+.top-card span {
+  font-size: 0.52rem !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.top-card strong {
+  font-size: 0.75rem !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.alarm-bar {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  margin: 4px 0 !important;
+  font-size: 0.76rem !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+}
+
+.valve-strip {
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  gap: 5px !important;
+  margin-bottom: 4px !important;
+  overflow: hidden !important;
+}
+
+.valve-strip span {
+  font-size: 0.52rem !important;
+  padding: 0 4px !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.process-area {
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  display: grid !important;
+  grid-template-columns: minmax(290px, 1.1fr) minmax(215px, 0.75fr) minmax(210px, 0.72fr) !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+}
+
+.process-area > * {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.tanks-area {
+  align-content: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  height: 100% !important;
+}
+
+.tanks-1 {
+  grid-template-columns: 145px !important;
+}
+
+.tanks-2 {
+  grid-template-columns: repeat(2, 122px) !important;
+}
+
+.tanks-3 {
+  grid-template-columns: repeat(3, 96px) !important;
+}
+
+.tank-block {
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+.tank-block h2 {
+  font-size: 1.45rem !important;
+}
+
+.tank-cylinder {
+  width: 58px !important;
+  height: 76px !important;
+}
+
+.tank-cylinder::before {
+  height: 17px !important;
+}
+
+.tank-segment span {
+  font-size: 0.38rem !important;
+}
+
+.tank-status {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.tank-pressure {
+  min-width: 76px !important;
+  padding: 4px 5px !important;
+  font-size: 0.56rem !important;
+}
+
+.tank-label {
+  font-size: 0.55rem !important;
+}
+
+.tank-block small {
+  font-size: 0.48rem !important;
+  line-height: 1.05 !important;
+  max-width: 92px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.machines-area {
+  display: grid !important;
+  grid-template-rows: auto auto 1fr !important;
+  align-content: center !important;
+  gap: 12px !important;
+  height: 100% !important;
+}
+
+.pump-row {
+  grid-template-columns: 18px 60px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  min-height: 62px !important;
+}
+
+.pump-led,
+.oil-led {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.pump-motor {
+  width: 24px !important;
+  height: 30px !important;
+}
+
+.pump-motor::before {
+  width: 34px !important;
+  height: 6px !important;
+}
+
+.pump-lines {
+  gap: 4px !important;
+}
+
+.pump-lines i {
+  width: 34px !important;
+  height: 5px !important;
+}
+
+.pump-row h2 {
+  font-size: 1.45rem !important;
+}
+
+.pump-row strong {
+  font-size: 0.66rem !important;
+}
+
+.pump-row span {
+  font-size: 0.52rem !important;
+  line-height: 1.05 !important;
+}
+
+.event-mini {
+  display: none !important;
+}
+
+.oil-area {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-rows: 18px 86px auto auto 1fr !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 3px !important;
+  overflow: hidden !important;
+}
+
+.oil-tank {
+  width: 62px !important;
+  height: 86px !important;
+}
+
+.oil-tank::before {
+  height: 16px !important;
+}
+
+.oil-fill {
+  font-size: 0.52rem !important;
+}
+
+.oil-area h2 {
+  font-size: 1.1rem !important;
+  line-height: 1 !important;
+}
+
+.oil-area > strong {
+  font-size: 0.58rem !important;
+  line-height: 1 !important;
+}
+
+.oil-metrics {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 3px !important;
+  font-size: 0.48rem !important;
+  line-height: 1.05 !important;
+  overflow: hidden !important;
+}
+
+.oil-metrics span {
+  border: 1px solid #c9c9c9 !important;
+  background: #f7fbfb !important;
+  padding: 2px !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.bottom-buttons {
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 58px !important;
+  padding-top: 7px !important;
+  gap: 7px !important;
+  overflow: hidden !important;
+}
+
+.bottom-buttons button {
+  min-width: 0 !important;
+  min-height: 48px !important;
+  border-width: 4px !important;
+  overflow: hidden !important;
+}
+
+.bottom-buttons button span {
+  font-size: 0.62rem !important;
+}
+
+.bottom-buttons button strong {
+  font-size: 0.62rem !important;
+  white-space: nowrap !important;
+}
+
+/* Telas secundarias */
+.simple-screen {
+  overflow: hidden !important;
+  padding: 12px !important;
+  grid-template-rows: 54px minmax(0, 1fr) auto !important;
+}
+
+.simple-screen header {
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.simple-screen h1 {
+  font-size: 1.35rem !important;
+}
+
+.simple-screen p {
+  font-size: 0.68rem !important;
+}
+
+.prep-grid {
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.prep-card {
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 10px !important;
+  gap: 7px !important;
+}
+
+.prep-card h2 {
+  font-size: 1rem !important;
+}
+
+.prep-card label {
+  font-size: 0.66rem !important;
+}
+
+.prep-card select,
+.prep-card input {
+  height: 34px !important;
+  min-height: 34px !important;
+}
+
+.check-line,
+.select-row button {
+  min-height: 34px !important;
+  font-size: 0.72rem !important;
+}
+
+.record-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+.info-card {
+  min-width: 0 !important;
+  padding: 8px !important;
+}
+
+.info-card span {
+  font-size: 0.58rem !important;
+}
+
+.info-card strong {
+  font-size: 0.78rem !important;
+  overflow-wrap: anywhere !important;
+}
+
+.record-log {
+  max-height: 112px !important;
+  overflow: auto !important;
+}
+
+.alarm-list {
+  min-height: 0 !important;
+  overflow: auto !important;
+}
+
+.alarm-card {
+  padding: 9px !important;
+}
+
+@media (max-width: 1180px), (max-height: 760px) {
+  .ihm-device {
+    transform: scale(0.9) !important;
+    transform-origin: center !important;
+  }
+}
+
+@media (max-height: 690px) {
+  .ihm-device {
+    transform: scale(0.82) !important;
+  }
+}
