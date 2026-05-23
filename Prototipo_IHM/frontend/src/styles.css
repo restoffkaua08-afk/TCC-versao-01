@@ -12,7 +12,7 @@
 
 body {
   margin: 0;
-  min-width: 1180px;
+  min-width: 1080px;
   min-height: 100vh;
   overflow: auto;
 }
@@ -27,11 +27,16 @@ button {
   user-select: none;
 }
 
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .ihm-page {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 18px;
+  padding: 14px;
   background:
     radial-gradient(circle, #c8ced0 1px, transparent 1px),
     linear-gradient(135deg, #eef0ee, #dfe4e1);
@@ -40,12 +45,12 @@ button {
 
 .ihm-device {
   position: relative;
-  width: 1160px;
-  height: 720px;
-  padding: 88px 190px 84px;
-  border-radius: 70px 90px 70px 90px;
-  background:
-    linear-gradient(145deg, #f7f8f4, #d7ddd8);
+  width: min(1160px, calc(100vw - 32px));
+  height: min(720px, calc(100vh - 32px));
+  min-height: 650px;
+  padding: 72px 164px 76px;
+  border-radius: 64px 84px 64px 84px;
+  background: linear-gradient(145deg, #f7f8f4, #d7ddd8);
   border: 7px solid #cbd2cc;
   box-shadow:
     0 28px 70px rgba(30, 40, 45, 0.34),
@@ -72,8 +77,8 @@ button {
 
 .side-light {
   position: absolute;
-  width: 76px;
-  height: 76px;
+  width: 74px;
+  height: 74px;
   top: 305px;
   border-radius: 50%;
   border: 6px solid #2f3832;
@@ -83,7 +88,7 @@ button {
 }
 
 .side-light.green {
-  left: 56px;
+  left: 50px;
   background: #60fff0;
   box-shadow:
     inset 0 -7px 12px rgba(0,0,0,0.22),
@@ -91,7 +96,7 @@ button {
 }
 
 .side-light.red {
-  right: 56px;
+  right: 50px;
   background: #ef1d28;
   box-shadow:
     inset 0 -7px 12px rgba(0,0,0,0.22),
@@ -100,19 +105,19 @@ button {
 
 .side-caption {
   position: absolute;
-  top: 392px;
-  width: 150px;
+  top: 390px;
+  width: 142px;
   text-align: center;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 950;
 }
 
 .side-caption.left {
-  left: 19px;
+  left: 16px;
 }
 
 .side-caption.right {
-  right: 19px;
+  right: 16px;
 }
 
 .ihm-screen {
@@ -129,46 +134,63 @@ button {
 .operation-layout {
   height: 100%;
   display: grid;
-  grid-template-rows: 88px 40px 1fr 78px;
-  gap: 0;
-  padding: 14px;
+  grid-template-rows: 76px 38px minmax(0, 1fr) 72px;
+  padding: 12px;
 }
 
 .top-cards {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
 }
 
 .top-card {
   background: #f5f7f5;
   border: 2px solid #c4cbc4;
-  padding: 7px;
+  padding: 6px;
   display: grid;
   align-content: center;
-  gap: 3px;
+  gap: 2px;
+}
+
+.top-card.highlight {
+  border-color: #0f172a;
+}
+
+.top-card.ok {
+  background: #dff8d7;
+}
+
+.top-card.warn {
+  background: #fff0aa;
+}
+
+.top-card.bad {
+  background: #ffb8b8;
 }
 
 .top-card span {
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 950;
   letter-spacing: 0.04em;
 }
 
 .top-card strong {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 950;
 }
 
 .alarm-bar {
-  margin: 8px 0;
+  margin: 7px 0;
   border: 3px solid #1d1d1d;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 950;
-  letter-spacing: 0.04em;
-  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  font-size: 0.88rem;
+  text-align: center;
+  padding: 0 10px;
 }
 
 .alarm-bar.ok {
@@ -188,8 +210,8 @@ button {
 
 .process-area {
   display: grid;
-  grid-template-columns: 1.1fr 0.7fr 0.55fr;
-  gap: 12px;
+  grid-template-columns: minmax(280px, 1.1fr) minmax(230px, 0.72fr) minmax(150px, 0.48fr);
+  gap: 10px;
   align-items: center;
   min-height: 0;
 }
@@ -197,37 +219,42 @@ button {
 .tanks-area {
   display: grid;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   justify-content: center;
 }
 
 .tanks-1 {
-  grid-template-columns: 140px;
+  grid-template-columns: 150px;
 }
 
 .tanks-2 {
-  grid-template-columns: repeat(2, 130px);
+  grid-template-columns: repeat(2, 132px);
 }
 
 .tanks-3 {
-  grid-template-columns: repeat(3, 120px);
+  grid-template-columns: repeat(3, 112px);
 }
 
 .tank-block {
   display: grid;
   justify-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .tank-block h2 {
   margin: 0;
-  font-size: 2.1rem;
+  font-size: 1.85rem;
   line-height: 1;
 }
 
+.tank-block small {
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
 .tank-cylinder {
-  width: 70px;
-  height: 88px;
+  width: 68px;
+  height: 92px;
   border: 3px solid #111;
   border-radius: 50% / 13%;
   background: #e8ffff;
@@ -244,7 +271,7 @@ button {
   left: -3px;
   right: -3px;
   top: -3px;
-  height: 22px;
+  height: 20px;
   border: 3px solid #111;
   border-radius: 50%;
   background: #c8f5ff;
@@ -253,6 +280,15 @@ button {
 
 .tank-segment {
   width: 100%;
+  display: grid;
+  place-items: center;
+  min-height: 10px;
+}
+
+.tank-segment span {
+  font-size: 0.46rem;
+  font-weight: 950;
+  color: #000;
 }
 
 .tank-segment.air {
@@ -268,8 +304,8 @@ button {
 }
 
 .tank-status {
-  width: 50px;
-  height: 50px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   margin-top: 2px;
 }
@@ -288,15 +324,15 @@ button {
 
 .tank-pressure {
   background: #1ee310;
-  padding: 8px 12px;
-  font-size: 0.73rem;
+  padding: 6px 8px;
+  font-size: 0.66rem;
   border: 2px solid #10a509;
-  min-width: 92px;
+  min-width: 86px;
   text-align: center;
 }
 
 .tank-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 950;
 }
 
@@ -314,20 +350,20 @@ button {
 
 .machines-area {
   display: grid;
-  gap: 25px;
+  gap: 18px;
 }
 
 .pump-row {
   display: grid;
-  grid-template-columns: 24px 86px 1fr;
+  grid-template-columns: 22px 74px 1fr;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .pump-led,
 .oil-led {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #050505;
 }
@@ -345,8 +381,8 @@ button {
 }
 
 .pump-motor {
-  width: 34px;
-  height: 40px;
+  width: 30px;
+  height: 36px;
   background: #2510b7;
   position: relative;
 }
@@ -356,7 +392,7 @@ button {
   position: absolute;
   left: -7px;
   bottom: 0;
-  width: 46px;
+  width: 42px;
   height: 7px;
   background: #2510b7;
 }
@@ -368,24 +404,24 @@ button {
 
 .pump-lines i {
   display: block;
-  width: 48px;
+  width: 42px;
   height: 6px;
   background: #2510b7;
 }
 
 .pump-row h2 {
   margin: 0;
-  font-size: 2.2rem;
+  font-size: 1.9rem;
 }
 
 .pump-row strong {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .pump-row span {
   display: block;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 900;
 }
 
@@ -393,12 +429,12 @@ button {
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .oil-tank {
-  width: 82px;
-  height: 116px;
+  width: 74px;
+  height: 112px;
   border: 4px solid #111;
   border-radius: 50% / 10%;
   background: #f1f1f1;
@@ -414,7 +450,7 @@ button {
   left: -4px;
   right: -4px;
   top: -4px;
-  height: 22px;
+  height: 20px;
   border: 4px solid #111;
   border-radius: 50%;
   background: #f1f1f1;
@@ -426,49 +462,52 @@ button {
   background: #ff862e;
   display: grid;
   place-items: center;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 950;
 }
 
 .oil-area h2 {
   margin: 0;
-  font-size: 1.65rem;
+  font-size: 1.42rem;
 }
 
 .oil-area strong,
 .oil-area span {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-weight: 950;
 }
 
 .bottom-buttons {
-  border-top: 6px solid #000;
-  padding-top: 10px;
+  border-top: 5px solid #000;
+  padding-top: 9px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 9px;
 }
 
 .bottom-buttons button {
-  border: 6px solid #030303;
+  border: 5px solid #030303;
   background: #f7fbfb;
   display: grid;
   place-items: center;
-  gap: 4px;
-  font-size: 1.1rem;
+  gap: 2px;
   font-weight: 950;
 }
 
+.bottom-buttons button span {
+  font-size: 0.78rem;
+}
+
 .bottom-buttons button strong {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
 }
 
 .simple-screen {
   height: 100%;
-  padding: 18px;
+  padding: 16px;
   display: grid;
-  grid-template-rows: 60px 1fr auto;
-  gap: 14px;
+  grid-template-rows: 62px 1fr auto;
+  gap: 12px;
 }
 
 .simple-screen header {
@@ -478,41 +517,50 @@ button {
 }
 
 .simple-screen h1,
-.simple-screen h2 {
+.simple-screen h2,
+.simple-screen p {
   margin: 0;
+}
+
+.simple-screen p {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .simple-screen header button,
 .command-row button,
 .start-button {
-  min-height: 44px;
+  min-height: 42px;
   border: 4px solid #000;
   background: #f7fbfb;
   font-weight: 950;
-  padding: 0 18px;
+  padding: 0 16px;
 }
 
 .prep-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 12px;
+  min-height: 0;
 }
 
 .prep-card {
   background: #efefef;
   border: 3px solid #999;
-  padding: 14px;
+  padding: 12px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  overflow: auto;
 }
 
 .prep-card label {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 950;
 }
 
 .prep-card select {
-  height: 42px;
+  height: 40px;
   border: 3px solid #777;
   background: #fff;
   font-weight: 900;
@@ -526,7 +574,7 @@ button {
 
 .select-row button,
 .check-line {
-  min-height: 42px;
+  min-height: 40px;
   border: 3px solid #777;
   background: #fff;
   font-weight: 950;
@@ -547,24 +595,26 @@ button {
 }
 
 .check-line span {
-  width: 26px;
+  width: 34px;
   height: 26px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: #ddd;
   display: grid;
   place-items: center;
+  font-size: 0.72rem;
 }
 
 .alarm-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
+  align-content: start;
 }
 
 .alarm-card {
   border: 4px solid #111;
-  padding: 14px;
+  padding: 12px;
   display: grid;
-  gap: 6px;
+  gap: 5px;
   font-weight: 900;
 }
 
@@ -593,30 +643,37 @@ button.danger {
 
 .record-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+  align-content: start;
 }
 
 .info-card {
   background: #f7fbfb;
   border: 3px solid #999;
-  padding: 14px;
+  padding: 12px;
   display: grid;
-  gap: 5px;
+  gap: 4px;
 }
 
 .info-card span {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 950;
 }
 
 .info-card strong {
-  font-size: 1rem;
+  font-size: 0.96rem;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1180px), (max-height: 760px) {
   .ihm-device {
     transform: scale(0.92);
     transform-origin: center;
+  }
+}
+
+@media (max-height: 690px) {
+  .ihm-device {
+    transform: scale(0.84);
   }
 }

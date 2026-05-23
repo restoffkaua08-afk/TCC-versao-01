@@ -1,9 +1,9 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
 type Screen = "operacao" | "preparo" | "alarmes" | "registro";
-type Status = "PRONTO" | "EM CICLO" | "PAUSADO" | "ATENÃ‡ÃƒO" | "BLOQUEADO" | "FINALIZADO";
+type Status = "PRONTO" | "EM CICLO" | "PAUSADO" | "ATENCAO" | "BLOQUEADO" | "FINALIZADO";
 type Recipe = "padrao" | "grande" | "critico";
 type AlarmTone = "ok" | "warn" | "bad";
 
@@ -11,44 +11,56 @@ type TankState = {
   code: string;
   pressureTank: number;
   pressureMachine: number;
+  hoseLoss: number;
   oil: number;
   vacuum: number;
   air: number;
   status: AlarmTone;
 };
 
-const recipes: Record<Recipe, { label: string; target: number; oilTarget: number; ramp: string; attention: string }> = {
+type Checklist = {
+  hose: boolean;
+  upperValve: boolean;
+  lowerValve: boolean;
+  tanks: boolean;
+  oil: boolean;
+  emergency: boolean;
+  sensors: boolean;
+  interlocks: boolean;
+};
+
+const stages = [
+  "PREPARO",
+  "VACUO INICIAL",
+  "VACUO PROFUNDO",
+  "INJECAO DE OLEO",
+  "ESTABILIZACAO",
+  "FINALIZACAO"
+];
+
+const recipes: Record<Recipe, { label: string; target: number; oilTarget: number; ramp: string; note: string }> = {
   padrao: {
-    label: "PADRÃƒO",
+    label: "PADRAO",
     target: 8,
     oilTarget: 50,
     ramp: "NORMAL",
-    attention: "Ciclo padrÃ£o para tanques comuns."
+    note: "Ciclo padrao para tanques comuns."
   },
   grande: {
     label: "TANQUE GRANDE",
     target: 12,
     oilTarget: 65,
     ramp: "MONITORADA",
-    attention: "Acompanhar tempo de queda e perda de carga."
+    note: "Acompanhar tempo de queda e perda de carga."
   },
   critico: {
-    label: "TANQUE CRÃTICO",
+    label: "TANQUE CRITICO",
     target: 35,
     oilTarget: 45,
     ramp: "BRANDA",
-    attention: "Aplicar vÃ¡cuo mais conservador e acompanhamento especial."
+    note: "Aplicar vacuo mais conservador e acompanhamento especial."
   }
 };
-
-const stages = [
-  "PREPARO",
-  "VÃCUO INICIAL",
-  "VÃCUO PROFUNDO",
-  "INJEÃ‡ÃƒO DE Ã“LEO",
-  "ESTABILIZAÃ‡ÃƒO",
-  "FINALIZAÃ‡ÃƒO"
-];
 
 function fmt(value: number, unit: string) {
   if (!Number.isFinite(value)) return `-- ${unit}`;
@@ -81,51 +93,78 @@ function machinePressure(elapsed: number, recipe: Recipe) {
 }
 
 function makeTanks(count: number, status: Status, elapsed: number, recipe: Recipe): TankState[] {
-  const running = status === "EM CICLO" || status === "PAUSADO" || status === "ATENÃ‡ÃƒO";
   const stage = getStageIndex(status, elapsed);
+  const running = status === "EM CICLO" || status === "PAUSADO" || status === "ATENCAO";
 
   return Array.from({ length: count }).map((_, index) => {
+    const hoseLoss = 0.7 + index * 0.35 + (count - 1) * 0.42;
+
+    if (status === "BLOQUEADO") {
+      return {
+        code: `T${index + 1}`,
+        pressureMachine: 1013,
+        pressureTank: 1013,
+        hoseLoss,
+        air: 100,
+        vacuum: 0,
+        oil: 0,
+        status: "bad"
+      };
+    }
+
     if (!running) {
       return {
         code: `T${index + 1}`,
         pressureMachine: 1013,
         pressureTank: 1013,
-        air: 68,
-        vacuum: 12,
-        oil: 20,
+        hoseLoss,
+        air: 72,
+        vacuum: 10,
+        oil: 18,
         status: "ok"
       };
     }
 
-    const loss = 0.7 + index * 0.35 + (count - 1) * 0.42;
     const pMachine = machinePressure(elapsed, recipe);
-    const pTank = Math.max(recipes[recipe].target, pMachine + loss);
+    const pTank = Math.max(recipes[recipe].target, pMachine + hoseLoss);
 
     const oilProgress = stage >= 3 ? Math.min(1, Math.max(0, (elapsed - 90) / 75)) : 0;
     const oil = 18 + oilProgress * 48;
     const vacuum = Math.min(62, Math.max(10, ((1013 - pTank) / 1013) * 62));
     const air = Math.max(8, 78 - vacuum - oil * 0.35);
 
-    const attention = recipe === "critico" && stage <= 2;
-    const statusTone: AlarmTone = attention ? "warn" : "ok";
+    const attention = status === "ATENCAO" || (recipe === "critico" && stage <= 2);
 
     return {
       code: `T${index + 1}`,
       pressureMachine: pMachine,
       pressureTank: pTank,
+      hoseLoss,
       air,
       vacuum,
       oil,
-      status: statusTone
+      status: attention ? "warn" : "ok"
     };
   });
 }
 
-function alarmMessage(status: Status, recipe: Recipe, checklistOk: boolean) {
-  if (status === "BLOQUEADO") return { tone: "bad" as AlarmTone, text: "EMERGÃŠNCIA / BLOQUEIO ATIVO â€” verificar mÃ¡quina antes de liberar." };
-  if (!checklistOk) return { tone: "warn" as AlarmTone, text: "CHECKLIST PENDENTE â€” inÃ­cio do ciclo bloqueado." };
-  if (status === "ATENÃ‡ÃƒO") return { tone: "warn" as AlarmTone, text: "ATENÃ‡ÃƒO OPERACIONAL â€” acompanhar pressÃ£o, bombas e Ã³leo." };
-  if (recipe === "critico" && status === "EM CICLO") return { tone: "warn" as AlarmTone, text: "TANQUE CRÃTICO â€” rampa branda e acompanhamento especial." };
+function getAlarm(status: Status, recipe: Recipe, checklistOk: boolean) {
+  if (status === "BLOQUEADO") {
+    return { tone: "bad" as AlarmTone, text: "EMERGENCIA / BLOQUEIO ATIVO - verificar maquina antes de liberar." };
+  }
+
+  if (!checklistOk) {
+    return { tone: "warn" as AlarmTone, text: "CHECKLIST PENDENTE - inicio do ciclo bloqueado." };
+  }
+
+  if (status === "ATENCAO") {
+    return { tone: "warn" as AlarmTone, text: "ATENCAO OPERACIONAL - acompanhar pressao, bombas e oleo." };
+  }
+
+  if (recipe === "critico" && status === "EM CICLO") {
+    return { tone: "warn" as AlarmTone, text: "TANQUE CRITICO - rampa branda e acompanhamento especial." };
+  }
+
   return { tone: "ok" as AlarmTone, text: "SEM ALARME ATIVO" };
 }
 
@@ -136,17 +175,17 @@ function App() {
   const [tankCount, setTankCount] = useState(3);
   const [recipe, setRecipe] = useState<Recipe>("padrao");
   const [operator, setOperator] = useState("OPERADOR 01");
-  const [shift, setShift] = useState("MANHÃƒ");
+  const [shift, setShift] = useState("MANHA");
 
-  const [checklist, setChecklist] = useState({
-    hose: true,
-    upperValve: true,
-    lowerValve: true,
-    tanks: true,
-    oil: true,
+  const [checklist, setChecklist] = useState<Checklist>({
+    hose: false,
+    upperValve: false,
+    lowerValve: false,
+    tanks: false,
+    oil: false,
     emergency: true,
-    sensor: true,
-    interlocks: true
+    sensors: false,
+    interlocks: false
   });
 
   const checklistOk = Object.values(checklist).every(Boolean);
@@ -161,7 +200,7 @@ function App() {
   const b2Running = status === "EM CICLO" && stageIndex === 2;
   const oilRunning = status === "EM CICLO" && stageIndex >= 3 && stageIndex <= 4;
 
-  const alarm = alarmMessage(status, recipe, checklistOk);
+  const alarm = getAlarm(status, recipe, checklistOk);
 
   useEffect(() => {
     if (status !== "EM CICLO") return;
@@ -182,7 +221,7 @@ function App() {
 
   function startCycle() {
     if (!checklistOk) {
-      setStatus("ATENÃ‡ÃƒO");
+      setStatus("ATENCAO");
       setScreen("preparo");
       return;
     }
@@ -198,9 +237,9 @@ function App() {
       return;
     }
 
-    if (status === "PAUSADO" || status === "ATENÃ‡ÃƒO") {
+    if (status === "PAUSADO" || status === "ATENCAO") {
       if (!checklistOk) {
-        setStatus("ATENÃ‡ÃƒO");
+        setStatus("ATENCAO");
         setScreen("preparo");
         return;
       }
@@ -221,8 +260,10 @@ function App() {
   }
 
   function finishSafe() {
-    setStatus("FINALIZADO");
-    setScreen("registro");
+    if (status === "EM CICLO" || status === "PAUSADO" || status === "ATENCAO") {
+      setStatus("FINALIZADO");
+      setScreen("registro");
+    }
   }
 
   return (
@@ -235,10 +276,10 @@ function App() {
         <div className="device-groove gr2" />
         <div className="device-groove gr3" />
 
-        <button className="side-light green" aria-label="operaÃ§Ã£o em andamento" />
+        <button className="side-light green" onClick={() => setScreen("operacao")} aria-label="pronto ou em ciclo" />
         <span className="side-caption left">PRONTO / EM CICLO</span>
 
-        <button className="side-light red" onClick={emergency} aria-label="operaÃ§Ã£o parada" />
+        <button className="side-light red" onClick={emergency} aria-label="parada ou bloqueio" />
         <span className="side-caption right">PARADA / BLOQUEIO</span>
 
         <main className="ihm-screen">
@@ -288,6 +329,7 @@ function App() {
 
           {screen === "registro" && (
             <RecordScreen
+              avgMachinePressure={avgMachinePressure}
               avgTankPressure={avgTankPressure}
               elapsed={elapsed}
               operator={operator}
@@ -325,21 +367,19 @@ function OperationScreen(props: {
   tankCount: number;
   tanks: TankState[];
 }) {
-  const actionLabel = props.status === "EM CICLO" ? "PAUSAR CICLO" : props.status === "PAUSADO" ? "RETOMAR" : "INICIAR CICLO";
+  const actionLabel = props.status === "EM CICLO" ? "PAUSAR" : props.status === "PAUSADO" ? "RETOMAR" : "INICIAR";
 
   return (
     <section className="operation-layout">
       <div className="top-cards">
-        <TopCard label="PRESSÃƒO TANQUE" value={fmt(props.avgTankPressure, "mbar")} />
-        <TopCard label="PRESSÃƒO MÃQUINA" value={fmt(props.avgMachinePressure, "mbar")} />
+        <TopCard label="PRESSAO TANQUE" value={fmt(props.avgTankPressure, "mbar")} highlight />
+        <TopCard label="PRESSAO MAQUINA" value={fmt(props.avgMachinePressure, "mbar")} highlight />
+        <TopCard label="ETAPA" value={props.stage} highlight />
+        <TopCard label="ALARME" value={props.alarm.tone === "ok" ? "NORMAL" : props.alarm.tone === "warn" ? "ATENCAO" : "BLOQUEIO"} tone={props.alarm.tone} />
+        <TopCard label="RECEITA" value={recipes[props.recipe].label} />
         <TopCard label="RAMPA" value={recipes[props.recipe].ramp} />
-        <TopCard label="ETAPA" value={props.stage} />
         <TopCard label="TANQUES" value={String(props.tankCount)} />
         <TopCard label="TEMPO" value={timeFmt(props.elapsed)} />
-        <TopCard label="LINHA VÃCUO" value={props.stageIndex >= 1 && props.stageIndex <= 2 ? "ATIVA" : "AGUARDANDO"} />
-        <TopCard label="LINHA Ã“LEO" value={props.oilRunning ? "INJETANDO" : "AGUARDANDO"} />
-        <TopCard label="VÃLVULA SUPERIOR" value="ABERTA" />
-        <TopCard label="VÃLVULA INFERIOR" value="FECHADA" />
       </div>
 
       <div className={`alarm-bar ${props.alarm.tone}`}>
@@ -354,7 +394,7 @@ function OperationScreen(props: {
         </div>
 
         <div className="machines-area">
-          <PumpVisual label="B1" title="BOMBA PRIMÃRIA" running={props.b1Running} />
+          <PumpVisual label="B1" title="BOMBA PRIMARIA" running={props.b1Running} />
           <PumpVisual label="B2" title="BOMBA ROOTS" running={props.b2Running} />
         </div>
 
@@ -362,18 +402,19 @@ function OperationScreen(props: {
       </div>
 
       <div className="bottom-buttons">
-        <button onClick={() => props.setScreen("preparo")}>â–£<strong>PREPARO</strong></button>
-        <button onClick={props.status === "PRONTO" || props.status === "FINALIZADO" ? props.startCycle : props.pauseOrResume}>â–£<strong>{actionLabel}</strong></button>
-        <button onClick={() => props.setScreen("alarmes")}>â†“<strong>ALARMES</strong></button>
-        <button onClick={() => props.setScreen("registro")}>â–£<strong>REGISTRO</strong></button>
+        <button onClick={() => props.setScreen("preparo")}><span>01</span><strong>PREPARO</strong></button>
+        <button onClick={props.status === "PRONTO" || props.status === "FINALIZADO" ? props.startCycle : props.pauseOrResume}><span>02</span><strong>{actionLabel}</strong></button>
+        <button onClick={props.finishSafe} disabled={props.status === "PRONTO" || props.status === "FINALIZADO" || props.status === "BLOQUEADO"}><span>03</span><strong>ENCERRAR</strong></button>
+        <button onClick={() => props.setScreen("alarmes")}><span>04</span><strong>ALARMES</strong></button>
+        <button onClick={() => props.setScreen("registro")}><span>05</span><strong>REGISTRO</strong></button>
       </div>
     </section>
   );
 }
 
-function TopCard({ label, value }: { label: string; value: string }) {
+function TopCard({ label, value, highlight = false, tone = "ok" }: { label: string; value: string; highlight?: boolean; tone?: AlarmTone }) {
   return (
-    <div className="top-card">
+    <div className={`top-card ${highlight ? "highlight" : ""} ${tone}`}>
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
@@ -386,14 +427,21 @@ function TankVisual({ tank }: { tank: TankState }) {
       <h2>{tank.code}</h2>
 
       <div className="tank-cylinder">
-        <div className="tank-segment air" style={{ height: `${tank.air}%` }} />
-        <div className="tank-segment vacuum" style={{ height: `${tank.vacuum}%` }} />
-        <div className="tank-segment oil" style={{ height: `${tank.oil}%` }} />
+        <div className="tank-segment air" style={{ height: `${tank.air}%` }}>
+          <span>AR</span>
+        </div>
+        <div className="tank-segment vacuum" style={{ height: `${tank.vacuum}%` }}>
+          <span>VACUO</span>
+        </div>
+        <div className="tank-segment oil" style={{ height: `${tank.oil}%` }}>
+          <span>OLEO</span>
+        </div>
       </div>
 
       <div className={`tank-status ${tank.status}`} />
       <strong className="tank-pressure">{fmt(tank.pressureTank, "mbar")}</strong>
-      <span className={`tank-label ${tank.status}`}>{tank.status === "ok" ? "OK" : tank.status === "warn" ? "ATENÃ‡ÃƒO" : "BLOQUEADO"}</span>
+      <span className={`tank-label ${tank.status}`}>{tank.status === "ok" ? "OK" : tank.status === "warn" ? "ATENCAO" : "BLOQUEADO"}</span>
+      <small>Perda: {fmt(tank.hoseLoss, "mbar")}</small>
     </article>
   );
 }
@@ -430,18 +478,18 @@ function OilVisual({ running, stageIndex }: { running: boolean; stageIndex: numb
           <strong>{running ? "INJ." : "AGD."}</strong>
         </div>
       </div>
-      <h2>Ã“LEO</h2>
+      <h2>OLEO</h2>
       <strong>{running ? "INJETANDO" : "AGUARDANDO"}</strong>
-      <span>60 Â°C Â±5 Â°C</span>
+      <span>60 C +/- 5 C</span>
     </article>
   );
 }
 
 function PrepScreen(props: {
-  checklist: Record<string, boolean>;
+  checklist: Checklist;
   operator: string;
   recipe: Recipe;
-  setChecklist: (value: any) => void;
+  setChecklist: (value: Checklist) => void;
   setOperator: (value: string) => void;
   setRecipe: (value: Recipe) => void;
   setScreen: (screen: Screen) => void;
@@ -451,27 +499,30 @@ function PrepScreen(props: {
   startCycle: () => void;
   tankCount: number;
 }) {
-  const checks = [
+  const checks: Array<[keyof Checklist, string]> = [
     ["hose", "Mangueiras conectadas"],
-    ["upperValve", "VÃ¡lvula superior aberta"],
-    ["lowerValve", "VÃ¡lvula inferior fechada"],
+    ["upperValve", "Valvula superior aberta"],
+    ["lowerValve", "Valvula inferior fechada"],
     ["tanks", "Tanques posicionados"],
-    ["oil", "Ã“leo disponÃ­vel"],
-    ["emergency", "EmergÃªncia liberada"],
-    ["sensor", "Sensores comunicando"],
+    ["oil", "Oleo disponivel"],
+    ["emergency", "Emergencia liberada"],
+    ["sensors", "Sensores comunicando"],
     ["interlocks", "Intertravamentos liberados"]
-  ] as const;
+  ];
 
   return (
     <section className="simple-screen">
       <header>
-        <h1>PREPARO DO CICLO</h1>
+        <div>
+          <h1>PREPARO DO CICLO</h1>
+          <p>Confirmar condicoes minimas antes de liberar a operacao.</p>
+        </div>
         <button onClick={() => props.setScreen("operacao")}>VOLTAR</button>
       </header>
 
       <div className="prep-grid">
         <div className="prep-card">
-          <h2>ConfiguraÃ§Ã£o</h2>
+          <h2>Configuracao</h2>
 
           <label>Quantidade de tanques</label>
           <div className="select-row">
@@ -484,21 +535,21 @@ function PrepScreen(props: {
 
           <label>Receita</label>
           <select value={props.recipe} onChange={(e) => props.setRecipe(e.target.value as Recipe)}>
-            <option value="padrao">PadrÃ£o</option>
+            <option value="padrao">Padrao</option>
             <option value="grande">Tanque grande</option>
-            <option value="critico">Tanque crÃ­tico</option>
+            <option value="critico">Tanque critico</option>
           </select>
 
           <label>Operador</label>
           <select value={props.operator} onChange={(e) => props.setOperator(e.target.value)}>
             <option>OPERADOR 01</option>
             <option>OPERADOR 02</option>
-            <option>MANUTENÃ‡ÃƒO</option>
+            <option>MANUTENCAO</option>
           </select>
 
           <label>Turno</label>
           <select value={props.shift} onChange={(e) => props.setShift(e.target.value)}>
-            <option>MANHÃƒ</option>
+            <option>MANHA</option>
             <option>TARDE</option>
             <option>NOITE</option>
           </select>
@@ -507,14 +558,14 @@ function PrepScreen(props: {
         </div>
 
         <div className="prep-card">
-          <h2>Checklist de liberaÃ§Ã£o</h2>
+          <h2>Checklist de liberacao</h2>
           {checks.map(([key, label]) => (
             <button
               key={key}
               className={`check-line ${props.checklist[key] ? "checked" : ""}`}
               onClick={() => props.setChecklist({ ...props.checklist, [key]: !props.checklist[key] })}
             >
-              <span>{props.checklist[key] ? "âœ“" : "!"}</span>
+              <span>{props.checklist[key] ? "OK" : "!"}</span>
               {label}
             </button>
           ))}
@@ -528,39 +579,43 @@ function AlarmsScreen({ alarm, emergency, reset, setScreen, status }: { alarm: {
   return (
     <section className="simple-screen">
       <header>
-        <h1>ALARMES</h1>
+        <div>
+          <h1>ALARMES</h1>
+          <p>Eventos que exigem atencao ou bloqueio operacional.</p>
+        </div>
         <button onClick={() => setScreen("operacao")}>VOLTAR</button>
       </header>
 
       <div className="alarm-list">
         <article className={`alarm-card ${alarm.tone}`}>
-          <strong>ALM-001 Â· Estado atual</strong>
+          <strong>ALM-001 - Estado atual</strong>
           <span>{alarm.text}</span>
-          <p>{status === "BLOQUEADO" ? "Inspecionar a operaÃ§Ã£o antes de liberar novo ciclo." : "Sem bloqueio crÃ­tico ativo."}</p>
+          <p>{status === "BLOQUEADO" ? "Inspecionar a operacao antes de liberar novo ciclo." : "Sem bloqueio critico ativo."}</p>
         </article>
 
         <article className="alarm-card warn">
-          <strong>ALM-002 Â· Rampa de vÃ¡cuo</strong>
+          <strong>ALM-002 - Rampa de vacuo</strong>
           <span>Monitoramento preventivo</span>
-          <p>Acompanhar queda inicial de pressÃ£o e diferenÃ§a entre mÃ¡quina e tanque.</p>
+          <p>Acompanhar queda inicial de pressao e diferenca entre maquina e tanque.</p>
         </article>
 
         <article className="alarm-card warn">
-          <strong>ALM-003 Â· Ã“leo</strong>
+          <strong>ALM-003 - Oleo</strong>
           <span>Monitoramento de processo</span>
-          <p>Verificar temperatura, vazÃ£o e volume durante a etapa de injeÃ§Ã£o.</p>
+          <p>Verificar temperatura, vazao e volume durante a etapa de injecao.</p>
         </article>
       </div>
 
       <div className="command-row">
         <button onClick={reset}>RESETAR</button>
-        <button className="danger" onClick={emergency}>EMERGÃŠNCIA</button>
+        <button className="danger" onClick={emergency}>EMERGENCIA</button>
       </div>
     </section>
   );
 }
 
 function RecordScreen(props: {
+  avgMachinePressure: number;
   avgTankPressure: number;
   elapsed: number;
   operator: string;
@@ -571,10 +626,15 @@ function RecordScreen(props: {
   status: Status;
   tankCount: number;
 }) {
+  const finalizado = props.status === "FINALIZADO";
+
   return (
     <section className="simple-screen">
       <header>
-        <h1>REGISTRO DO CICLO</h1>
+        <div>
+          <h1>REGISTRO DO CICLO</h1>
+          <p>{finalizado ? "Resumo final do ciclo." : "Registro parcial da operacao atual."}</p>
+        </div>
         <button onClick={() => props.setScreen("operacao")}>VOLTAR</button>
       </header>
 
@@ -584,9 +644,10 @@ function RecordScreen(props: {
         <Info label="Tanques" value={String(props.tankCount)} />
         <Info label="Receita" value={recipes[props.recipe].label} />
         <Info label="Tempo" value={timeFmt(props.elapsed)} />
-        <Info label="PressÃ£o mÃ©dia" value={fmt(props.avgTankPressure, "mbar")} />
+        <Info label="Pressao tanque" value={fmt(props.avgTankPressure, "mbar")} />
+        <Info label="Pressao maquina" value={fmt(props.avgMachinePressure, "mbar")} />
         <Info label="Status" value={props.status} />
-        <Info label="Registro" value="Aguardando integraÃ§Ã£o" />
+        <Info label="Registro" value={finalizado ? "Ciclo finalizado" : "Parcial / em andamento"} />
       </div>
 
       <div className="command-row">
