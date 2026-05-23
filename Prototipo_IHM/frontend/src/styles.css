@@ -677,3 +677,141 @@ button.danger {
     transform: scale(0.84);
   }
 }
+/* AJUSTES TSEA OFICIAL - OLEO, MANGUEIRA, VALVULAS E LOGS */
+.operation-layout {
+  grid-template-rows: 76px 38px 32px minmax(0, 1fr) 72px;
+}
+
+.valve-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.valve-strip span {
+  border: 2px solid #111;
+  background: #f8faf8;
+  display: grid;
+  place-items: center;
+  font-size: 0.62rem;
+  font-weight: 950;
+  text-align: center;
+}
+
+.valve-strip span.ok {
+  background: #d7ffd3;
+}
+
+.valve-strip span.bad {
+  background: #ffb3b3;
+}
+
+.oil-metrics {
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 0.58rem;
+  font-weight: 950;
+  text-align: center;
+}
+
+.oil-metrics span {
+  display: block;
+}
+
+.event-mini {
+  border: 3px solid #777;
+  background: #f7fbfb;
+  padding: 6px;
+  display: grid;
+  gap: 3px;
+  max-height: 86px;
+  overflow: hidden;
+}
+
+.event-mini strong {
+  font-size: 0.66rem;
+}
+
+.event-mini span {
+  font-size: 0.55rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.event-list,
+.record-log {
+  display: grid;
+  gap: 5px;
+  max-height: 130px;
+  overflow: auto;
+}
+
+.event-list span,
+.record-log span {
+  display: block;
+  border: 2px solid #bbb;
+  background: #fff;
+  padding: 5px;
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.event-list span.ok,
+.record-log span.ok {
+  border-color: #22c55e;
+  background: #e8ffe5;
+}
+
+.event-list span.warn,
+.record-log span.warn {
+  border-color: #d99a16;
+  background: #fff4c7;
+}
+
+.event-list span.bad,
+.record-log span.bad {
+  border-color: #dc2626;
+  background: #ffd5d5;
+}
+
+.record-log {
+  border: 3px solid #999;
+  background: #f7fbfb;
+  padding: 10px;
+}
+
+.record-log strong {
+  font-size: 0.85rem;
+}
+
+.prep-card input {
+  height: 40px;
+  border: 3px solid #777;
+  background: #fff;
+  font-weight: 900;
+  padding: 0 10px;
+}
+
+.prep-note {
+  border: 2px solid #d99a16;
+  background: #fff4c7;
+  padding: 8px;
+  font-size: 0.72rem !important;
+  font-weight: 950 !important;
+}
+
+.tank-block small {
+  text-align: center;
+}
+
+@media (max-height: 760px) {
+  .event-mini {
+    display: none;
+  }
+
+  .oil-metrics {
+    font-size: 0.52rem;
+  }
+}
