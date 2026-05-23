@@ -215,7 +215,7 @@ function RecipeDetails({ recipe }: { recipe: any }) {
       <div><span>Pressão alvo</span><b>{fmt(recipe.target_pressure_mbar, "mbar")}</b></div>
       <div><span>Acionamento Roots</span><b>{fmt(recipe.roots_start_pressure_mbar, "mbar")}</b></div>
       <div><span>Tempo estimado</span><b>{fmt(recipe.max_cycle_seconds, "s")}</b></div>
-      <div><span>Acionamento B2 simulada</span><b>{fmt(recipe.min_roots_start_pressure_mbar, "mbar")}</b></div>
+      <div><span>Acionamento B2 simulada</span><b>{fmt(recipe.roots_start_pressure_mbar, "mbar")}</b></div>
       <div><span>Tanque</span><b>{recipe.tank_type || "--"}</b></div>
       <div><span>Margem de erro</span><b>{fmt(recipe.max_tank_difference_mbar ?? recipe.structural_risk_limit, recipe.max_tank_difference_mbar ? "mbar" : "%")}</b></div>
       <div><span>Observações</span><b>{recipe.notes || "Parâmetros recebidos do cadastro."}</b></div>
@@ -282,7 +282,6 @@ export function OperationPage({
       target_pressure_mbar: recipe.target_pressure_mbar ?? current.target_pressure_mbar,
       roots_start_pressure_mbar: recipe.roots_start_pressure_mbar ?? current.roots_start_pressure_mbar,
       max_cycle_seconds: recipe.max_cycle_seconds ?? current.max_cycle_seconds,
-      roots_start_pressure_mbar: recipe.min_roots_start_pressure_mbar ?? recipe.roots_start_pressure_mbar ?? current.roots_start_pressure_mbar,
       tank_type: recipe.tank_type ?? current.tank_type,
       tank_count: clampTankCount(recipe.tank_count ?? current.tank_count ?? 1),
     }));
@@ -296,7 +295,6 @@ export function OperationPage({
       target_pressure_mbar: Number(recipeDraft.target_pressure_mbar ?? selectedRecipe?.target_pressure_mbar),
       roots_start_pressure_mbar: Number(recipeDraft.roots_start_pressure_mbar ?? selectedRecipe?.roots_start_pressure_mbar),
       max_cycle_seconds: Number(recipeDraft.max_cycle_seconds ?? selectedRecipe?.max_cycle_seconds),
-      min_roots_start_pressure_mbar: Number(recipeDraft.min_roots_start_pressure_mbar ?? selectedRecipe?.min_roots_start_pressure_mbar),
     });
   }
 
@@ -603,7 +601,7 @@ export function OperationPage({
                 <Field label="Pressão alvo"><input type="number" value={recipeDraft.target_pressure_mbar || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, target_pressure_mbar: e.target.value })} /></Field>
                 <Field label="Acionamento Roots"><input type="number" value={recipeDraft.roots_start_pressure_mbar || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, roots_start_pressure_mbar: e.target.value })} /></Field>
                 <Field label="Tempo estimado"><input type="number" value={recipeDraft.max_cycle_seconds || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, max_cycle_seconds: e.target.value })} /></Field>
-                <Field label="Acionamento B2 simulada"><input type="number" value={recipeDraft.min_roots_start_pressure_mbar || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, min_roots_start_pressure_mbar: e.target.value })} /></Field>
+                <Field label="Acionamento B2 simulada"><input type="number" value={recipeDraft.roots_start_pressure_mbar || ""} onChange={(e) => setRecipeDraft({ ...recipeDraft, roots_start_pressure_mbar: e.target.value })} /></Field>
               </div>
               <div className="modalActions">
                 <button className="secondary" onClick={() => setConfigMode("recipe-detail")}>Voltar</button>

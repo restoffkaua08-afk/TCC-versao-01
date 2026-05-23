@@ -8,7 +8,28 @@ import { ParametersPage } from "./pages/ParametersPage";
 import { TraceabilityPage } from "./pages/TraceabilityPage";
 import "./styles.css";
 
-const API = "http://127.0.0.1:8000/api";
+/* TSEA_V2_PHYSICAL_LOCAL_RESET_START */
+const TSEA_V2_RESET_KEY = "tsea_v2_physical_clean_reset_20260522_v2";
+if (typeof window !== "undefined" && localStorage.getItem(TSEA_V2_RESET_KEY) !== "done") {
+  Object.keys(localStorage).forEach((key) => {
+    const normalized = key.toLowerCase();
+    if (
+      normalized.includes("tsea") ||
+      normalized.includes("operation") ||
+      normalized.includes("simulation") ||
+      normalized.includes("trace") ||
+      normalized.includes("record") ||
+      normalized.includes("dashboard")
+    ) {
+      localStorage.removeItem(key);
+    }
+  });
+  localStorage.setItem(TSEA_V2_RESET_KEY, "done");
+}
+/* TSEA_V2_PHYSICAL_LOCAL_RESET_END */
+
+
+const API = "http://127.0.0.1:8001/api";
 
 type TwinTab = "scenarios" | "manual" | "result" | "assistant" | "technical";
 type ParamTab = "tanks" | "hoses" | "recipes" | "formulas" | "operators";
