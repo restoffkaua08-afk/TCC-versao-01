@@ -765,3 +765,256 @@ button:disabled {
     font-size: 0.52rem;
   }
 }
+
+/* =========================================================
+   TSEA IHM - TABLET INDUSTRIAL SIMULADO
+   Mantem a logica atual e coloca o sistema dentro da tela.
+========================================================= */
+
+body {
+  overflow: auto !important;
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+    linear-gradient(135deg, #edf0ed, #cfd7d1) !important;
+  background-size: 18px 18px, auto !important;
+}
+
+/* Cada tela principal vira o corpo fisico do tablet */
+.inicial,
+.preparo,
+.registros-dia,
+.operacao,
+.finalizacao {
+  width: min(1320px, calc(100vw - 28px)) !important;
+  height: min(820px, calc(100vh - 28px)) !important;
+  min-height: 720px !important;
+  margin: 14px auto !important;
+
+  /* espaco interno equivalente a borda fisica do tablet */
+  padding: 122px 205px 104px !important;
+
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+
+  border: 0 !important;
+  border-radius: 86px 98px 86px 98px !important;
+
+  /* corpo do tablet + botoes laterais + ranhuras */
+  background:
+    radial-gradient(circle at 74px 50%, #dffffc 0 28px, #57fff0 29px 34px, #0d857a 35px 43px, #111 44px 50px, transparent 51px),
+    radial-gradient(circle at calc(100% - 74px) 50%, #ff3340 0 29px, #d20d18 30px 38px, #111 39px 48px, transparent 49px),
+
+    linear-gradient(90deg, transparent 0 35px, rgba(0,0,0,0.11) 35px 92px, transparent 92px) left 112px / 130px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 35px, rgba(0,0,0,0.11) 35px 92px, transparent 92px) left 176px / 130px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 35px, rgba(0,0,0,0.11) 35px 92px, transparent 92px) left calc(100% - 138px) / 130px 7px no-repeat,
+
+    linear-gradient(90deg, transparent 0 35px, rgba(0,0,0,0.11) 35px 92px, transparent 92px) right 112px / 130px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 35px, rgba(0,0,0,0.11) 35px 92px, transparent 92px) right 176px / 130px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 35px, rgba(0,0,0,0.11) 35px 92px, transparent 92px) right calc(100% - 138px) / 130px 7px no-repeat,
+
+    radial-gradient(ellipse at center, rgba(255,255,255,0.82), rgba(255,255,255,0.06) 58%, transparent 70%),
+    linear-gradient(145deg, #f8f8f3, #d8ddd7 58%, #cbd2cc) !important;
+
+  box-shadow:
+    0 34px 78px rgba(20, 30, 25, 0.38),
+    inset 0 0 0 7px rgba(255,255,255,0.74),
+    inset 0 -24px 42px rgba(60,70,64,0.14),
+    inset 0 18px 34px rgba(255,255,255,0.62) !important;
+}
+
+/* Tela preta/cinza dentro do tablet */
+.inicial::before,
+.preparo::before,
+.registros-dia::before,
+.operacao::before,
+.finalizacao::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 185px !important;
+  right: 185px !important;
+  top: 88px !important;
+  bottom: 76px !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+
+  border-radius: 14px !important;
+  border: 7px solid #111 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.18), transparent 32%),
+    #d8dcd8 !important;
+
+  box-shadow:
+    inset 0 0 0 4px #6f7c72,
+    inset 0 0 22px rgba(0,0,0,0.18),
+    0 8px 20px rgba(0,0,0,0.25) !important;
+}
+
+/* Remove bolinha decorativa antiga */
+.inicial::after,
+.preparo::after,
+.registros-dia::after,
+.operacao::after,
+.finalizacao::after {
+  display: none !important;
+}
+
+/* Todo o conteudo fica por cima da tela interna */
+.inicial > :not(.drawer),
+.preparo > :not(.drawer),
+.registros-dia > :not(.drawer),
+.operacao > :not(.drawer),
+.finalizacao > :not(.drawer) {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Drawer sempre acima do tablet */
+.drawer {
+  z-index: 3000 !important;
+}
+
+/* Ajustes para a area interna parecer tela de IHM e nao site */
+.inicial,
+.preparo,
+.registros-dia,
+.operacao,
+.finalizacao {
+  color: #080bizacao {
+  color09 !important;
+}
+
+.inicial {
+  display: grid !important;
+  place-items: center !important;
+}
+
+.buttons {
+  width: min(720px, 100%) !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 24px !important;
+  margin: 0 !important;
+}
+
+.big-btn {
+  min-height: 180px !important;
+  border-radius: 0 !important;
+  border: 7px solid #111 !important;
+  background: #f7fbf7 !important;
+  color: #111 !important;
+  box-shadow: inset 0 -10px 0 rgba(0,0,0,0.08) !important;
+}
+
+/* Operacao dentro da tela */
+.operacao {
+  grid-template-rows: 66px minmax(0, 1fr) 82px !important;
+  gap: 10px !important;
+}
+
+.topbar {
+  border-radius: 0 !important;
+  border: 5px solid #111 !important;
+  background: #f7fbf7 !important;
+  min-height: 64px !important;
+}
+
+.content-area {
+  background: #d9ddd9 !important;
+  border: 5px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 14px !important;
+  overflow: hidden !important;
+}
+
+.bottom-tabs {
+  gap: 12px !important;
+}
+
+.bottom-tabs button {
+  border-radius: 0 !important;
+  border: 6px solid #111 !important;
+  background: #f7fbf7 !important;
+  min-height: 72px !important;
+  font-size: 1rem !important;
+}
+
+.bottom-tabs button.active {
+  background: #1f2937 !important;
+  color: #fff !important;
+}
+
+/* Telas de preparo, registros e finalizacao cabendo na tela interna */
+.preparo,
+.registros-dia,
+.finalizacao {
+  overflow: hidden !important;
+}
+
+.preparo h2,
+.registros-dia h2,
+.finalizacao h2 {
+  font-size: 1.65rem !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+.recipes {
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.recipe-card {
+  min-height: 200px !important;
+  border-radius: 0 !important;
+}
+
+.checklist {
+  min-height: 0 !important;
+  overflow: auto !important;
+}
+
+.resumo {
+  border-radius: 0 !important;
+}
+
+/* Melhor uso visual das subtelas */
+.tanks-grid,
+.bombas-grid,
+.oleo-grid,
+.info-grid {
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.tank-card,
+.bombas-grid > div,
+.oleo-grid > div,
+.info-grid > div:nth-child(2),
+.logs {
+  border-radius: 0 !important;
+}
+
+/* Responsividade para notebook */
+@media (max-width: 1220px), (max-height: 760px) {
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operacao,
+  .finalizacao {
+    transform: scale(0.9) !important;
+    transform-origin: top center !important;
+    margin-top: 8px !important;
+  }
+}
+
+@media (max-width: 1040px), (max-height: 680px) {
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operacao,
+  .finalizacao {
+    transform: scale(0.82) !important;
+  }
+}
