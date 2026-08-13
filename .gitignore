@@ -1,7 +1,33 @@
-﻿.venv/
-node_modules/
-dist/
+# Python
+.venv/
+venv/
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Node.js
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+*.log
+
+# Environment and secrets
 .env
-.env.local
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local data
+*.db
+*.sqlite
+*.sqlite3
+
+# Editors and systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
