@@ -1,117 +1,338 @@
-# Protótipo TSEA V-Twin (Bancada IoT SENAI)
+# TSEA V-Twin
 
-Sistema de demonstração do projeto TSEA V-Twin para controle, monitoramento,
-rastreabilidade e geração de gráficos do processo de vácuo em tanques/reguladores.
+<div align="center">
 
-A validação física foi realizada utilizando a **bancada IoT do SENAI** equipada
-com CLP Altus XP325 e três motores elétricos representando os atuadores
-industriais (Bomba B1, Bomba B2 e Sistema de Óleo). A arquitetura lógica
-permanece idêntica à proposta industrial, alterando apenas o meio físico
-utilizado para demonstração.
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&height=220&color=0:071A2B,50:004B76,100:00A7E1&text=TSEA%20V-Twin&fontColor=FFFFFF&fontSize=46&fontAlignY=38&animation=fadeIn&desc=Automação%2C%20supervisão%20e%20rastreabilidade%20industrial&descAlignY=59&descSize=16" />
 
-## Arquitetura
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=19&duration=2800&pause=900&color=00A7E1&center=true&vCenter=true&width=900&lines=Supervis%C3%A3o+industrial+em+tempo+real;Integra%C3%A7%C3%A3o+entre+software%2C+CLP+e+Node-RED;Rastreabilidade+e+controle+de+opera%C3%A7%C3%B5es;Projeto+integrador+desenvolvido+no+SENAI" />
 
+<br>
+
+Sistema integrado para automação, supervisão e rastreabilidade de operações industriais, conectando interfaces web, API, Node-RED e CLP.
+
+<br><br>
+
+![Status](https://img.shields.io/badge/STATUS-PROTÓTIPO%20FUNCIONAL-00A7E1?style=for-the-badge&labelColor=071A2B)
+![TCC](https://img.shields.io/badge/PROJETO-TCC%20SENAI-F7941D?style=for-the-badge&labelColor=071A2B)
+![Arquitetura](https://img.shields.io/badge/ARQUITETURA-IOT%20INDUSTRIAL-00A7E1?style=for-the-badge&labelColor=071A2B)
+
+</div>
+
+<br>
+
+# `> PROJECT.OVERVIEW`
+
+## Automação e supervisão aplicadas a um problema industrial real
+
+O **TSEA V-Twin** é uma solução de automação, supervisão e rastreabilidade desenvolvida para representar um processo real do chão de fábrica da **TSEA Energia**.
+
+O projeto surgiu da necessidade de integrar informações operacionais que, em um ambiente industrial, podem ficar distribuídas entre equipamentos, operadores e setores administrativos. Essa falta de integração dificulta o acompanhamento do processo, a identificação de falhas, a rastreabilidade das operações e a análise dos dados gerados durante a produção.
+
+A solução conecta o ambiente físico ao digital e centraliza as informações do processo. Operadores e responsáveis pela gestão podem comandar operações, acompanhar estados, consultar registros, visualizar indicadores e analisar o comportamento dos equipamentos.
+
+O sistema integra:
+
+- uma **IHM para o operador**;
+- um **painel gerencial e administrativo**;
+- uma **API central desenvolvida com FastAPI**;
+- comunicação industrial utilizando **Modbus TCP**;
+- automação de fluxos por meio do **Node-RED**;
+- um **CLP Altus XP325**;
+- rastreabilidade, gráficos e registros operacionais;
+- uma bancada física com motores e sinalizadores representando os atuadores industriais.
+
+O resultado é um protótipo funcional capaz de demonstrar como software, automação e mecatrônica podem trabalhar juntos para melhorar a visibilidade, a organização e o controle de um processo industrial.
+
+> Este repositório apresenta uma solução acadêmica e funcional baseada em um cenário industrial real. Ele não representa um sistema oficial ou produto comercial da TSEA Energia.
+
+<br>
+
+# `> CORE.TECH_STACK`
+
+<div align="center">
+
+## Tecnologias principais
+
+### Linguagens
+
+<img src="https://skillicons.dev/icons?i=python,ts,js,html,css&theme=dark" />
+
+<br><br>
+
+### Front-end
+
+<img src="https://skillicons.dev/icons?i=react,vite&theme=dark" />
+
+<br><br>
+
+### Desenvolvimento e versionamento
+
+<img src="https://skillicons.dev/icons?i=git,github,vscode,powershell&theme=dark" />
+
+<br><br>
+
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
+![Node-RED](https://img.shields.io/badge/Node--RED-8F0000?style=for-the-badge&logo=nodered&logoColor=white)
+![Modbus TCP](https://img.shields.io/badge/Modbus-TCP-00599C?style=for-the-badge)
+![PLC](https://img.shields.io/badge/PLC-Altus%20XP325-F7941D?style=for-the-badge)
+![Structured Text](https://img.shields.io/badge/PLC-Structured%20Text-1B4F72?style=for-the-badge)
+
+</div>
+
+<br>
+
+# `> ACADEMIC.CONTEXT`
+
+## Trabalho de Conclusão de Curso — SENAI
+
+O TSEA V-Twin foi desenvolvido como **Trabalho de Conclusão de Curso do Técnico em Desenvolvimento de Sistemas no SENAI**.
+
+O projeto ultrapassou o desenvolvimento de uma aplicação web convencional ao integrar conhecimentos de diferentes áreas:
+
+- desenvolvimento de software e interfaces industriais;
+- APIs e comunicação entre sistemas;
+- automação industrial e Internet das Coisas;
+- redes e protocolo Modbus TCP;
+- programação de CLP e Node-RED;
+- supervisão e rastreabilidade;
+- integração entre software e componentes físicos.
+
+A validação foi realizada utilizando uma **bancada IoT do SENAI**, equipada com um CLP Altus XP325 e motores elétricos que representam os atuadores do processo industrial.
+
+Os comandos realizados pela interface percorrem o Gateway e o Node-RED até chegarem ao CLP, responsável pelo acionamento dos componentes da bancada. Essa etapa tornou possível demonstrar fisicamente o funcionamento da solução e aplicar, em um único projeto, os conhecimentos adquiridos durante o curso.
+
+<div align="center">
+
+[![Publicação no LinkedIn](https://img.shields.io/badge/VER%20APRESENTAÇÃO%20DO%20PROJETO-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/posts/kau%C3%A3-restoff-2821163a0_senai-desenvolvimentodesistemas-tecnologia-ugcPost-7490098613986004992-9BbY/)
+
+</div>
+
+<br>
+
+# `> PROJECT.PREVIEW`
+
+<div align="center">
+
+## Demonstração do sistema
+
+<!-- Adicione um GIF de 5 a 8 segundos em .github/assets/demo-ihm.gif -->
+
+### Operação pela IHM
+
+<!-- Remova este comentário quando o arquivo demo-ihm.gif for adicionado.
+<img width="100%" src="./.github/assets/demo-ihm.gif" alt="Demonstração da operação no TSEA V-Twin" />
+-->
+
+<!-- Adicione a captura em .github/assets/ihm-operador.png -->
+
+### IHM do operador
+
+<!-- Remova este comentário quando a imagem ihm-operador.png for adicionada.
+<img width="100%" src="./.github/assets/ihm-operador.png" alt="Interface da IHM do operador" />
+-->
+
+<!-- Adicione a captura em .github/assets/sistema-gerente.png -->
+
+### Supervisão e rastreabilidade
+
+<!-- Remova este comentário quando a imagem sistema-gerente.png for adicionada.
+<img width="100%" src="./.github/assets/sistema-gerente.png" alt="Painel de supervisão e rastreabilidade" />
+-->
+
+</div>
+
+<br>
+
+# `> SYSTEM.FEATURES`
+
+## Funcionalidades
+
+### Operação industrial
+
+- preparação e início de operações pela IHM;
+- acompanhamento dos estados do processo;
+- acionamento dos componentes físicos da bancada;
+- comunicação com CLP por Modbus TCP;
+- execução de sequências de automação;
+- tratamento de comandos de emergência.
+
+### Supervisão e gestão
+
+- painel gerencial para acompanhamento das operações;
+- visualização de indicadores e estados;
+- acompanhamento de tanques, bombas e atuadores;
+- gerenciamento de receitas e parâmetros;
+- consulta ao histórico operacional;
+- gráficos e dados de rastreabilidade.
+
+### Integrações
+
+- Gateway desenvolvido com FastAPI;
+- comunicação HTTP entre interfaces e API;
+- integração entre Gateway e Node-RED;
+- comunicação Modbus TCP com o CLP Altus XP325;
+- suporte à integração com Google Planilhas;
+- persistência local de registros e configurações.
+
+<br>
+
+# `> SYSTEM.ARCHITECTURE`
+
+## Arquitetura da solução
+
+```mermaid
+flowchart TD
+    A[IHM do operador] --> C[Gateway FastAPI]
+    B[Sistema gerente] --> C
+    C --> D[Node-RED]
+    D --> E[CLP Altus XP325]
+    E --> F[Bancada física]
+    F --> C
 ```
-IHM (React)              -> http://127.0.0.1:5178
-Sistema Gerente (React)  -> http://127.0.0.1:5173
-Gateway FastAPI          -> http://127.0.0.1:8020
-Node-RED (Modbus TCP)    -> http://127.0.0.1:1880
-CLP Altus XP325          -> 172.24.10.10:502 (Modbus TCP)
-```
 
-Fluxo de comando:
+### Fluxo de uma operação
 
-```
-IHM → POST /api/operation/start → Gateway
-Gateway → POST /tsea/api/cycle → Node-RED
-Node-RED → write_coil/write_register Modbus → CLP XP325
-CLP XP325 → energiza Q0.0/Q0.1/Q0.2/Q0.3/Q0.4/Q0.5 → Motores + Faróis
-```
+1. O operador inicia uma operação pela IHM.
+2. A interface envia o comando ao Gateway FastAPI.
+3. O Gateway registra a operação e encaminha o comando ao Node-RED.
+4. O Node-RED converte o comando para Modbus TCP.
+5. O CLP executa a lógica programada.
+6. Motores e sinalizadores representam os atuadores industriais.
+7. Os estados retornam ao sistema para supervisão e rastreabilidade.
 
-## Estrutura principal
+<br>
 
-```txt
-prototipo-tsea/
+# `> SYSTEM.COMPONENTS`
+
+| Componente | Responsabilidade |
+|---|---|
+| IHM do operador | Preparação, controle e acompanhamento da operação |
+| Sistema gerente | Supervisão, indicadores, gráficos, cadastros e relatórios |
+| Gateway FastAPI | Centralização de estados, comandos, dados e integrações |
+| Node-RED | Ponte entre requisições HTTP e comunicação Modbus TCP |
+| CLP Altus XP325 | Execução da lógica de controle e acionamento físico |
+| Bancada IoT | Representação física dos equipamentos industriais |
+| Camada de dados | Receitas, registros, telemetria e rastreabilidade |
+
+<br>
+
+# `> PROJECT.STRUCTURE`
+
+```text
+TCC-versao-01/
 ├── gateway_fisico/
 │   └── backend/
-│       ├── app/
-│       │   ├── main.py                       (núcleo do Gateway)
-│       │   ├── plc_modbus_bridge.py          (Modbus TCP direto)
-│       │   ├── node_red_bridge.py            (cliente Node-RED)  ← NOVO
-│       │   ├── real_bridge.py                (cadastros reais)
-│       │   ├── charts_bridge.py              (gráficos)
-│       │   └── google_sheets_bridge.py       (Sheets/CSV)
-│       ├── config/plc_map.json               (mapa Modbus)        ← ATUALIZADO
-│       └── data/                             (persistência)
 ├── ihm_operador/
 │   └── frontend/
-│       ├── src/
-│       ├── package.json
-│       └── vite.config.ts
 ├── sistema_gerente/
 │   └── frontend/
-│       ├── src/
-│       ├── package.json
-│       └── vite.config.ts
-├── node_red/                                                       ← NOVO
-│   ├── README.md
-│   └── flows.json                                                  ← NOVO
+├── node_red/
+│   ├── flows.json
+│   └── README.md
+├── plc/
+│   └── TSEA_MAIN.st
 ├── scripts/
 ├── docs/
-├── README.md
-└── CONTRATO_PLC_TSEA.md
+├── .github/
+│   └── assets/
+└── README.md
 ```
 
-## Portas
+<br>
 
-* Gateway/API: <http://127.0.0.1:8020>
-* IHM do operador: <http://127.0.0.1:5178>
-* Sistema gerente: <http://127.0.0.1:5173>
-* Node-RED: <http://127.0.0.1:1880>
+# `> GETTING.STARTED`
 
-## Como abrir
+## Pré-requisitos
+
+- Node.js e npm;
+- Python 3;
+- PowerShell;
+- Node-RED;
+- acesso ao CLP apenas para a integração física.
+
+## Instalação
 
 ```powershell
-# Sobe Gateway + Gerente + IHM
-powershell -ExecutionPolicy Bypass -File .\scripts\abrir_tsea_completo.ps1
+git clone https://github.com/restoffkaua08-afk/TCC-versao-01.git
+cd TCC-versao-01
 
-# Em outro terminal, sobe o Node-RED
+cd gateway_fisico/backend
+python -m venv .venv_gateway
+.\.venv_gateway\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+cd ..\..\ihm_operador\frontend
+npm install
+
+cd ..\..\sistema_gerente\frontend
+npm install
+```
+
+## Execução
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\abrir_tsea_completo.ps1
+```
+
+Para iniciar também a integração com Node-RED:
+
+```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\iniciar_node_red.ps1
 ```
 
-## Endpoints novos (Bancada IoT SENAI)
+| Serviço | Endereço |
+|---|---|
+| Sistema gerente | `http://127.0.0.1:5173` |
+| IHM do operador | `http://127.0.0.1:5178` |
+| Gateway/API | `http://127.0.0.1:8020` |
+| Node-RED | `http://127.0.0.1:1880` |
 
-| Método | URL                            | Função                                                  |
-| ------ | ------------------------------ | ------------------------------------------------------- |
-| POST   | `/api/operation/start`          | Inicia operação + chama Node-RED                        |
-| POST   | `/api/operation/emergency`      | Aciona emergência + chama Node-RED                      |
-| GET    | `/api/node-red/status`          | Status atual do Node-RED                                |
-| GET    | `/api/node-red/health`          | Ping no Node-RED                                        |
-| GET    | `/api/plc/map`                  | Mapa Modbus (6 coils + 3 status + 2 registradores)     |
+<br>
 
-## Componentes
+# `> SECURITY.NOTES`
 
-### Gateway/API
+- arquivos `.env` não devem ser versionados;
+- credenciais e tokens OAuth devem permanecer apenas no ambiente local;
+- o `.env.example` deve conter somente valores demonstrativos;
+- endereços e parâmetros do CLP devem ser revisados antes de usar outra bancada;
+- comandos físicos devem ser testados em ambiente supervisionado.
 
-Backend FastAPI responsável por estado da operação, receitas, mangueiras,
-comandos, rastreabilidade, gráficos e integração com Google Planilhas. Também
-encaminha comandos para o Node-RED (Bancada IoT SENAI).
+<br>
 
-### Node-RED
+# `> PROJECT.STATUS`
 
-Ponte HTTP ↔ Modbus TCP com o CLP XP325. Define a sequência de acionamento
-dos motores/faróis conforme a etapa da operação. Flow em `node_red/flows.json`.
+![Status](https://img.shields.io/badge/PROJETO-TCC%20CONCLUÍDO-00A7E1?style=for-the-badge&labelColor=071A2B)
 
-### IHM do Operador
+O projeto encontra-se em estado de **protótipo funcional**, com interfaces, Gateway, integração Node-RED, comunicação com CLP e demonstração física realizadas.
 
-Interface para o operador preparar e iniciar a operação. Visualiza o estado em
-tempo real vindo do Gateway, que reflete o estado real da bancada.
+Possíveis evoluções futuras:
 
-### Sistema Gerente
+- testes automatizados;
+- autenticação com persistência segura;
+- banco de dados dedicado;
+- conteinerização dos serviços;
+- monitoramento e logs centralizados;
+- pipeline de integração contínua.
 
-Interface gerencial para acompanhar operação, cadastros, indicadores, gráficos
-e relatórios.
+<br>
 
-## Segurança
+# `> DEVELOPER`
 
-Arquivos `.local.json`, tokens OAuth e segredos Google não devem ser commitados.
+<div align="center">
+
+## Kauã Restoff
+
+Desenvolvedor de software interessado em engenharia de software, automação, inteligência artificial e soluções aplicadas a problemas reais.
+
+[![GitHub](https://img.shields.io/badge/GitHub-restoffkaua08--afk-181717?style=for-the-badge&logo=github)](https://github.com/restoffkaua08-afk)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Kauã%20Restoff-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/kauã-restoff-2821163a0)
+
+</div>
+
+<br>
+
+<div align="center">
+
+Desenvolvido como Trabalho de Conclusão do Curso Técnico em Desenvolvimento de Sistemas no SENAI.
+
+</div>
