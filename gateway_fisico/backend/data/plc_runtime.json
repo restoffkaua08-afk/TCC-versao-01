@@ -1,0 +1,16 @@
+{
+  "last_sync_at": null,
+  "last_error": null,
+  "simulated_inputs": {
+    "emergency": false,
+    "sensor_out1_npn": false,
+    "sensor_out2_pnp": false,
+    "feedback_pump_b1": false,
+    "feedback_pump_b2": false,
+    "feedback_oil": false,
+    "plc_online": true,
+    "sensor_online": true
+  },
+  "last_inputs": {},
+  "last_outputs": {}
+}

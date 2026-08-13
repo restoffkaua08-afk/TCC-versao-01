@@ -1,0 +1,167 @@
+[
+  {
+    "id": "tab.tsea",
+    "type": "tab",
+    "label": "TSEA IoT SENAI",
+    "disabled": false,
+    "info": "Flow do TSEA V-Twin para a bancada IoT do SENAI. Faz a ponte HTTP <-> Modbus TCP com o CLP Altus XP325."
+  },
+  {
+    "id": "modbus-config",
+    "type": "modbus-client",
+    "name": "XP325 @ 172.24.10.10:502",
+    "host": "172.24.10.10",
+    "port": "502",
+    "unit_id": "1",
+    "timeout": 2000,
+    "clientType": "tcp"
+  },
+
+  {
+    "id": "http-cycle",
+    "type": "http in",
+    "z": "tab.tsea",
+    "name": "POST /tsea/api/cycle",
+    "url": "/tsea/api/cycle",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 150,
+    "y": 120,
+    "wires": [["function-cycle"]]
+  },
+
+  {
+    "id": "function-cycle",
+    "type": "function",
+    "z": "tab.tsea",
+    "name": "Marcar ciclo ativo (sem Modbus)",
+    "func": "// Apenas marca o estado interno. O ST do XP325 faz a sequencia sozinho.\nvar state = flow.get('tsea_state') || {};\nstate.ciclo_ativo = true;\nstate.finalizado = false;\nstate.emergencia_ativa = false;\nstate.etapa_atual = 10;\nstate.codigo_alarme = 0;\nstate.last_cycle_at = new Date().toISOString();\nflow.set('tsea_state', state);\n\nmsg.payload = {\n    ok: true,\n    forwarded: true,\n    mode: 'bancada_iot_senai',\n    operation_id: msg.payload && msg.payload.operation_id ? msg.payload.operation_id : null,\n    sequence: [\n        { etapa: 10, duration_s: 5, motor: 'Motor 1 (Bomba B1)' },\n        { etapa: 20, duration_s: 5, motor: 'Motor 2 (Bomba B2)' },\n        { etapa: 30, duration_s: 5, motor: 'Motor 3 (Sistema de Oleo)' },\n        { etapa: 40, duration_s: 0, motor: 'FINALIZADO' }\n    ],\n    timestamp: new Date().toISOString()\n};\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 420,
+    "y": 120,
+    "wires": [["http-cycle-resp"]]
+  },
+
+  {
+    "id": "http-cycle-resp",
+    "type": "http response",
+    "z": "tab.tsea",
+    "name": "responder 200",
+    "statusCode": "200",
+    "headers": {},
+    "x": 700,
+    "y": 120,
+    "wires": [[]]
+  },
+
+  {
+    "id": "http-emergency",
+    "type": "http in",
+    "z": "tab.tsea",
+    "name": "POST /tsea/api/emergency",
+    "url": "/tsea/api/emergency",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 160,
+    "y": 240,
+    "wires": [["function-emergency"]]
+  },
+
+  {
+    "id": "function-emergency",
+    "type": "function",
+    "z": "tab.tsea",
+    "name": "Marcar emergencia (sem Modbus)",
+    "func": "var state = flow.get('tsea_state') || {};\nstate.ciclo_ativo = false;\nstate.finalizado = false;\nstate.emergencia_ativa = true;\nstate.etapa_atual = -1;\nstate.codigo_alarme = 1;\nstate.last_emergency_at = new Date().toISOString();\nflow.set('tsea_state', state);\n\nmsg.payload = {\n    ok: true,\n    forwarded: true,\n    mode: 'emergency',\n    actions: [\n        'Motor 1 OFF (Q0.0)',\n        'Motor 2 OFF (Q0.1)',\n        'Motor 3 OFF (Q0.2)',\n        'Farol vermelho ON (Q0.5)'\n    ],\n    timestamp: new Date().toISOString()\n};\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 440,
+    "y": 240,
+    "wires": [["http-emergency-resp"]]
+  },
+
+  {
+    "id": "http-emergency-resp",
+    "type": "http response",
+    "z": "tab.tsea",
+    "name": "responder 200",
+    "statusCode": "200",
+    "headers": {},
+    "x": 700,
+    "y": 240,
+    "wires": [[]]
+  },
+
+  {
+    "id": "http-status",
+    "type": "http in",
+    "z": "tab.tsea",
+    "name": "GET /tsea/api/status",
+    "url": "/tsea/api/status",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 150,
+    "y": 360,
+    "wires": [["function-status"]]
+  },
+
+  {
+    "id": "function-status",
+    "type": "function",
+    "z": "tab.tsea",
+    "name": "Status (cache local)",
+    "func": "var state = flow.get('tsea_state') || {};\n\nmsg.payload = {\n    ok: true,\n    source: 'node_red_local',\n    plc: {\n        host: '172.24.10.10',\n        port: 502,\n        model: 'Altus XP325',\n        reachable: false\n    },\n    pumps: {\n        pump_b1: state.etapa_atual === 10,\n        pump_b2: state.etapa_atual === 20,\n        oil_valve: state.etapa_atual === 30\n    },\n    alarms: {\n        alarm_green: state.finalizado === true || state.emergencia_ativa === false,\n        alarm_yellow: state.ciclo_ativo === true && state.finalizado === false,\n        alarm_red: state.emergencia_ativa === true\n    },\n    status: {\n        ciclo_ativo: state.ciclo_ativo === true,\n        finalizado: state.finalizado === true,\n        emergencia_ativa: state.emergencia_ativa === true\n    },\n    registers: {\n        etapa_atual: state.etapa_atual || 0,\n        codigo_alarme: state.codigo_alarme || 0\n    },\n    timestamp: new Date().toISOString()\n};\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 420,
+    "y": 360,
+    "wires": [["http-status-resp"]]
+  },
+
+  {
+    "id": "http-status-resp",
+    "type": "http response",
+    "z": "tab.tsea",
+    "name": "responder 200 JSON",
+    "statusCode": "200",
+    "headers": { "content-type": "application/json" },
+    "x": 700,
+    "y": 360,
+    "wires": [[]]
+  },
+
+  {
+    "id": "inject-reset",
+    "type": "inject",
+    "z": "tab.tsea",
+    "name": "boot",
+    "props": [{ "p": "payload" }, { "p": "topic", "vt": "str" }],
+    "repeat": "",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "0.3",
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 130,
+    "y": 480,
+    "wires": [["function-init"]]
+  },
+
+  {
+    "id": "function-init",
+    "type": "function",
+    "z": "tab.tsea",
+    "name": "init estado",
+    "func": "flow.set('tsea_state', {\n    ciclo_ativo: false,\n    finalizado: false,\n    emergencia_ativa: false,\n    etapa_atual: 0,\n    codigo_alarme: 0\n});\nmsg.payload = 'OK';\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 350,
+    "y": 480,
+    "wires": [[]]
+  }
+]

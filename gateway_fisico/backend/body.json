@@ -1,0 +1,6 @@
+﻿{
+    "title":  "Teste Fallback",
+    "metric":  "operations_by_day",
+    "period":  "month",
+    "chart_type":  "bar"
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "RC-01",
+    "title": "REGULADOR MEDIO",
+    "name": "REGULADOR MEDIO",
+    "tank_type": "MEDIO",
+    "estimated_seconds": 120,
+    "max_cycle_seconds": 120,
+    "target_pressure_mbar": 2.0,
+    "roots_start_pressure_mbar": 10.0,
+    "b2_start_seconds": 60,
+    "oil_start_seconds": 100,
+    "stabilization_seconds": 110,
+    "oil_per_tank_l": 20.0,
+    "note": ""
+  },
+  {
+    "id": "RC-02",
+    "title": "TESTE",
+    "name": "TESTE",
+    "tank_type": "PEQUENO",
+    "estimated_seconds": 120,
+    "max_cycle_seconds": 120,
+    "target_pressure_mbar": 0.2,
+    "roots_start_pressure_mbar": 0.6,
+    "b2_start_seconds": 60,
+    "oil_start_seconds": 100,
+    "stabilization_seconds": 110,
+    "oil_per_tank_l": 20.0,
+    "note": ""
+  }
+]

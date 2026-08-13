@@ -1,0 +1,113 @@
+﻿{
+    "enabled":  true,
+    "mode":  "BANCADA_SEGURA",
+    "host":  "172.24.10.15",
+    "port":  502,
+    "unit_id":  1,
+    "timeout_s":  2.0,
+    "bench_outputs_allow_actuators":  true,
+    "node_red_url":  "http://127.0.0.1:1880",
+    "description":  "Bancada IoT SENAI - CLP Altus XP325 - 3 motores + 3 farois. Node-RED faz a ponte HTTP \u003c-\u003e Modbus TCP.",
+    "sensor":  {
+                   "model":  "Bancada IoT SENAI (motor + LED)",
+                   "type":  "DIGITAL_FEEDBACK",
+                   "range_min_kpa":  -100,
+                   "range_max_kpa":  100,
+                   "numeric_pressure_available":  false,
+                   "out1_description":  "Feedback Motor 1 (Bomba B1)",
+                   "out2_description":  "Feedback Motor 2 (Bomba B2)"
+               },
+    "inputs":  {
+                   "emergency":  {
+                                     "type":  "discrete_input",
+                                     "address":  0
+                                 },
+                   "feedback_motor1":  {
+                                           "type":  "discrete_input",
+                                           "address":  1
+                                       },
+                   "feedback_motor2":  {
+                                           "type":  "discrete_input",
+                                           "address":  2
+                                       },
+                   "feedback_motor3":  {
+                                           "type":  "discrete_input",
+                                           "address":  3
+                                       },
+                   "start_button":  {
+                                        "type":  "discrete_input",
+                                        "address":  4
+                                    },
+                   "stop_button":  {
+                                       "type":  "discrete_input",
+                                       "address":  5
+                                   }
+               },
+    "outputs":  {
+                    "pump_b1":  {
+                                    "type":  "coil",
+                                    "address":  0,
+                                    "tag":  "DO_Bomba1",
+                                    "physical":  "Q0.0 -\u003e Motor 1 (Bomba B1)"
+                                },
+                    "pump_b2":  {
+                                    "type":  "coil",
+                                    "address":  1,
+                                    "tag":  "DO_Bomba2",
+                                    "physical":  "Q0.1 -\u003e Motor 2 (Bomba B2 Roots)"
+                                },
+                    "oil_valve":  {
+                                      "type":  "coil",
+                                      "address":  2,
+                                      "tag":  "DO_Oleo",
+                                      "physical":  "Q0.2 -\u003e Motor 3 (Sistema de Oleo)"
+                                  },
+                    "alarm_green":  {
+                                        "type":  "coil",
+                                        "address":  3,
+                                        "tag":  "DO_FarolVerde",
+                                        "physical":  "Q0.3"
+                                    },
+                    "alarm_yellow":  {
+                                         "type":  "coil",
+                                         "address":  4,
+                                         "tag":  "DO_FarolAmarelo",
+                                         "physical":  "Q0.4"
+                                     },
+                    "alarm_red":  {
+                                      "type":  "coil",
+                                      "address":  5,
+                                      "tag":  "DO_FarolVermelho",
+                                      "physical":  "Q0.5"
+                                  }
+                },
+    "status_coils":  {
+                         "ciclo_ativo":  {
+                                             "type":  "coil",
+                                             "address":  16,
+                                             "tag":  "ST_CicloAtivo"
+                                         },
+                         "finalizado":  {
+                                            "type":  "coil",
+                                            "address":  17,
+                                            "tag":  "ST_Finalizado"
+                                        },
+                         "emergencia_ativa":  {
+                                                  "type":  "coil",
+                                                  "address":  18,
+                                                  "tag":  "ST_EmergenciaAtiva"
+                                              }
+                     },
+    "registers":  {
+                      "etapa_atual":  {
+                                          "type":  "holding_register",
+                                          "address":  0,
+                                          "tag":  "ST_EtapaAtual"
+                                      },
+                      "codigo_alarme":  {
+                                            "type":  "holding_register",
+                                            "address":  1,
+                                            "tag":  "ST_CodigoAlarme"
+                                        }
+                  }
+}

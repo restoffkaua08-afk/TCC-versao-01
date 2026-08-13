@@ -1,0 +1,28 @@
+[
+  {
+    "id": "TQ-01",
+    "code": "TQ-01",
+    "name": "GRANDE",
+    "type": "REGULADOR",
+    "volume_liters": 500.0,
+    "diameter_mm": 900.0,
+    "height_mm": 1800.0,
+    "wall_thickness_mm": 50.0,
+    "structural_limit_mbar": 100.0,
+    "status": "available",
+    "note": ""
+  },
+  {
+    "id": "TQ-02",
+    "code": "TQ-02",
+    "name": "MEDIO",
+    "type": "REGULADOR",
+    "volume_liters": 200.0,
+    "diameter_mm": 500.0,
+    "height_mm": 900.0,
+    "wall_thickness_mm": 40.0,
+    "structural_limit_mbar": 35.0,
+    "status": "available",
+    "note": ""
+  }
+]

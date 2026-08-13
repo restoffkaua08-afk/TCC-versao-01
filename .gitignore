@@ -1,33 +1,55 @@
-# Python
+﻿# Dependências
+node_modules/
 .venv/
+.venv_gateway/
 venv/
+env/
+
+# Builds
+dist/
+build/
+coverage/
+.next/
+.vite/
+
+# Python
 __pycache__/
-*.py[cod]
+*.pyc
 .pytest_cache/
 .mypy_cache/
 
-# Node.js
-node_modules/
-**/node_modules/
-dist/
-**/dist/
+# Logs e temporários
 *.log
+*.tmp
+*.bak
+*.bak_*
+backup_*/
+backups/
+temp/
+tmp/
+logs/
+old/
+antigo/
 
-# Environment and secrets
-.env
-.env.*
-!.env.example
-**/.env
-**/.env.*
-!**/.env.example
-
-# Local data
-*.db
-*.sqlite
-*.sqlite3
-
-# Editors and systems
-.vscode/
-.idea/
+# Sistema
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Arquivos sensíveis locais
+.env
+.env.local
+*.local.json
+gateway_fisico/backend/data/google_oauth_client_secret.local.json
+gateway_fisico/backend/data/google_oauth_token.local.json
+gateway_fisico/backend/data/google_oauth_state.local.json
+gateway_fisico/backend/data/google_sheets_config.local.json
+gateway_fisico/backend/data/google_sheets_generated.local.json
+
+# Arquivos colados/exportados do ChatGPT
+Texto colado*
+Código colado*
+Markdown* colado*
