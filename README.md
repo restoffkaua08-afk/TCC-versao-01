@@ -119,25 +119,19 @@ Os comandos realizados pela interface percorrem o Gateway e o Node-RED até cheg
 
 ### Operação pela IHM
 
-<!-- Remova este comentário quando o arquivo demo-ihm.gif for adicionado.
 <img width="100%" src="./.github/assets/demo-ihm.gif" alt="Demonstração da operação no TSEA V-Twin" />
--->
 
 <!-- Adicione a captura em .github/assets/ihm-operador.png -->
 
 ### IHM do operador
 
-<!-- Remova este comentário quando a imagem ihm-operador.png for adicionada.
 <img width="100%" src="./.github/assets/ihm-operador.png" alt="Interface da IHM do operador" />
--->
 
 <!-- Adicione a captura em .github/assets/sistema-gerente.png -->
 
 ### Supervisão e rastreabilidade
 
-<!-- Remova este comentário quando a imagem sistema-gerente.png for adicionada.
 <img width="100%" src="./.github/assets/sistema-gerente.png" alt="Painel de supervisão e rastreabilidade" />
--->
 
 </div>
 
