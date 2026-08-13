@@ -1,0 +1,28 @@
+[
+  {
+    "id": "MG-01",
+    "code": "MG-01",
+    "label": "MG-01",
+    "descricao": "MG-01",
+    "length_m": 12.0,
+    "internal_diameter_mm": 21.0,
+    "internal_volume_l": 4.156327,
+    "calibrated_loss_mbar": 12.0,
+    "loss_base_mbar": 12.0,
+    "status": "available",
+    "note": "Perda calibrada deve ser ajustada depois do ensaio real."
+  },
+  {
+    "id": "MG-02",
+    "code": "MG-02",
+    "label": "MG-02",
+    "descricao": "MG-02",
+    "length_m": 21.0,
+    "internal_diameter_mm": 12.0,
+    "internal_volume_l": 2.375044,
+    "calibrated_loss_mbar": 1.0,
+    "loss_base_mbar": 1.0,
+    "status": "available",
+    "note": "Perda calibrada deve ser ajustada depois do ensaio real."
+  }
+]

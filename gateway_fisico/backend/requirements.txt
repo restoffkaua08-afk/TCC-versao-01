@@ -1,0 +1,14 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+python-multipart==0.0.19
+pymodbus>=3.6,<4
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+XlsxWriter

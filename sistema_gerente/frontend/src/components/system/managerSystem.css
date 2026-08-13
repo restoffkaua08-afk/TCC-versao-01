@@ -1,0 +1,1777 @@
+﻿:root {
+  --manager-sidebar: #0f172a;
+  --manager-sidebar-2: #111827;
+  --manager-topbar-height: 58px;
+  --manager-red: #b91c1c;
+  --manager-ok: #16a34a;
+  --manager-alert: #dc2626;
+}
+
+.manager-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 80;
+  height: var(--manager-topbar-height);
+  display: grid;
+  grid-template-columns: 240px 1fr 240px;
+  align-items: center;
+  padding: 0 18px;
+  background: var(--manager-sidebar);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.manager-topbar__brand {
+  justify-self: start;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.manager-topbar__title {
+  justify-self: center;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.manager-topbar__actions {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.manager-topbar__status {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.manager-topbar__status.is-ok {
+  background: var(--manager-ok);
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.18);
+}
+
+.manager-topbar__status.is-alert {
+  background: var(--manager-alert);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.18);
+}
+
+.manager-topbar__settings {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.manager-topbar__settings:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.manager-splash {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  color: var(--manager-red);
+}
+
+.manager-splash__mark {
+  position: relative;
+  animation: managerSplashIn 900ms ease both;
+}
+
+.manager-splash__mark strong {
+  display: block;
+  font-size: clamp(54px, 9vw, 112px);
+  line-height: 0.9;
+  letter-spacing: 0.08em;
+  font-weight: 950;
+}
+
+.manager-splash__mark span {
+  position: absolute;
+  right: 0.3em;
+  bottom: -1.4em;
+  font-size: clamp(18px, 2.4vw, 32px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+@keyframes managerSplashIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.manager-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+}
+
+.manager-login__card {
+  width: min(360px, calc(100vw - 32px));
+  min-height: 430px;
+  padding: 38px 30px;
+  border-radius: 24px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.manager-login__card h1 {
+  margin: 0 0 16px;
+  text-align: center;
+  color: var(--manager-red);
+  font-size: 40px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.manager-login__card input {
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+}
+
+.manager-login__card input:focus {
+  border-color: var(--manager-red);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.12);
+}
+
+.manager-login__card button {
+  height: 46px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--manager-red);
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.manager-login__error {
+  color: var(--manager-red);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.manager-settings {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+}
+
+.manager-settings__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.manager-settings__panel {
+  position: relative;
+  width: min(860px, calc(100vw - 42px));
+  height: min(560px, calc(100vh - 42px));
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 30px 100px rgba(15, 23, 42, 0.28);
+}
+
+.manager-settings__side {
+  background: var(--manager-sidebar);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.manager-settings__side button {
+  height: 44px;
+  border: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  background: transparent;
+  color: #cbd5e1;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.manager-settings__side button.is-active,
+.manager-settings__side button:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
+}
+
+.manager-settings__content {
+  position: relative;
+  padding: 32px;
+  overflow: auto;
+}
+
+.manager-settings__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.manager-user-card {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.manager-user-card__avatar {
+  width: 112px;
+  height: 112px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 34px;
+  font-weight: 950;
+  border: 6px solid #f8fafc;
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.12);
+}
+
+.manager-user-card__info {
+  display: grid;
+  gap: 14px;
+}
+
+.manager-user-card__info div {
+  display: grid;
+  gap: 4px;
+}
+
+.manager-user-card__info span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.manager-user-card__info strong {
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.manager-user-card__logout {
+  margin-top: 8px;
+  width: fit-content;
+  height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--manager-red);
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.manager-access-list {
+  display: grid;
+  gap: 10px;
+}
+
+.manager-access-item {
+  min-height: 62px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.manager-access-item div {
+  display: grid;
+  gap: 4px;
+}
+
+.manager-access-item strong {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.manager-access-item span,
+.manager-access-item time,
+.manager-access-list__empty {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+/* =========================================================
+   CODIGO 2/4 - BARRA SUPERIOR FIXA E MENU COM ICONES
+   ========================================================= */
+
+.app-shell {
+  padding-top: var(--manager-topbar-height);
+}
+
+.content {
+  padding-top: 0 !important;
+}
+
+.legacy-topbar {
+  display: none !important;
+}
+
+.sidebar {
+  top: var(--manager-topbar-height) !important;
+  height: calc(100vh - var(--manager-topbar-height)) !important;
+}
+
+.sidebar-header {
+  min-height: 58px !important;
+  justify-content: center !important;
+  padding-inline: 12px !important;
+}
+
+.sidebar-header .brand-mark,
+.sidebar-header .brand-copy {
+  display: none !important;
+}
+
+.sidebar-footer {
+  display: none !important;
+}
+
+.nav-item-dot {
+  display: none !important;
+}
+
+.nav-item-icon {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  opacity: 0.88;
+}
+
+.nav-item-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.nav-item {
+  gap: 12px !important;
+}
+
+.nav-item.active .nav-item-icon {
+  opacity: 1;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center !important;
+  padding-inline: 0 !important;
+}
+
+.sidebar.collapsed .nav-item-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.sidebar.collapsed .nav-item-text {
+  display: none !important;
+}
+
+.manager-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  height: var(--manager-topbar-height);
+  display: grid;
+  grid-template-columns: 240px 1fr 240px;
+  align-items: center;
+  padding: 0 18px;
+  background: var(--manager-sidebar);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.manager-topbar__left {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: start;
+}
+
+.manager-topbar__menu {
+  display: none;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.manager-topbar__menu span {
+  display: block;
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.manager-topbar__brand {
+  justify-self: start;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.manager-topbar__title {
+  justify-self: center;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.manager-topbar__actions {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.manager-topbar__status {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.manager-topbar__status.is-ok {
+  background: var(--manager-ok);
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.18);
+}
+
+.manager-topbar__status.is-alert {
+  background: var(--manager-alert);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.18);
+}
+
+.manager-topbar__settings {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.manager-topbar__settings:hover,
+.manager-topbar__menu:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+@media (max-width: 900px) {
+  .manager-topbar {
+    grid-template-columns: 120px 1fr 120px;
+  }
+
+  .manager-topbar__menu {
+    display: inline-flex;
+  }
+
+  .manager-topbar__brand {
+    font-size: 13px;
+  }
+}
+/* =========================================================
+   CODIGO 2.1 - AJUSTE DE TAMANHO
+   Barra superior maior e menu recolhido mais largo.
+   ========================================================= */
+
+:root {
+  --manager-topbar-height: 70px;
+}
+
+/* Barra superior */
+.manager-topbar {
+  height: 70px !important;
+  min-height: 70px !important;
+  grid-template-columns: 270px 1fr 270px !important;
+  padding: 0 24px !important;
+}
+
+.manager-topbar__brand {
+  font-size: 18px !important;
+  letter-spacing: 0.18em !important;
+}
+
+.manager-topbar__title {
+  font-size: 19px !important;
+  font-weight: 950 !important;
+}
+
+.manager-topbar__actions {
+  gap: 18px !important;
+}
+
+.manager-topbar__status {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+.manager-topbar__status.is-ok {
+  box-shadow: 0 0 0 5px rgba(22, 163, 74, 0.20) !important;
+}
+
+.manager-topbar__status.is-alert {
+  box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.20) !important;
+}
+
+.manager-topbar__settings,
+.manager-topbar__menu {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 15px !important;
+}
+
+.manager-topbar__settings svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+/* Espaçamento geral por causa da topbar maior */
+.app-shell {
+  padding-top: 70px !important;
+}
+
+.sidebar {
+  top: 70px !important;
+  height: calc(100vh - 70px) !important;
+}
+
+/* Menu lateral recolhido mais largo */
+.sidebar.collapsed {
+  width: 88px !important;
+  min-width: 88px !important;
+  max-width: 88px !important;
+}
+
+.sidebar.collapsed .sidebar-header {
+  padding-inline: 10px !important;
+}
+
+.sidebar.collapsed .nav {
+  padding-inline: 10px !important;
+}
+
+.sidebar.collapsed .nav-item {
+  width: 60px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 0 !important;
+  margin-inline: auto !important;
+  justify-content: center !important;
+  border-radius: 17px !important;
+}
+
+.sidebar.collapsed .nav-item-icon {
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+  border-radius: 16px !important;
+}
+
+.sidebar.collapsed .nav-item-icon svg {
+  width: 25px !important;
+  height: 25px !important;
+}
+
+.nav-item-icon svg {
+  width: 23px !important;
+  height: 23px !important;
+}
+
+/* Quando o menu estiver aberto, deixa os itens um pouco mais presentes também */
+.sidebar:not(.collapsed) .nav-item {
+  min-height: 52px !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-icon {
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-text strong,
+.sidebar:not(.collapsed) .nav-item-text span {
+  transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+  .manager-topbar {
+    grid-template-columns: 150px 1fr 150px !important;
+    padding: 0 16px !important;
+  }
+
+  .manager-topbar__brand {
+    font-size: 15px !important;
+  }
+
+  .manager-topbar__title {
+    font-size: 17px !important;
+  }
+}
+/* =========================================================
+   CODIGO 3/4 - LOGIN E SPLASH
+   ========================================================= */
+
+.manager-splash {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  color: var(--manager-red);
+}
+
+.manager-splash__mark {
+  position: relative;
+  animation: managerSplashIn 900ms ease both;
+}
+
+.manager-splash__mark strong {
+  display: block;
+  font-size: clamp(62px, 10vw, 126px);
+  line-height: 0.88;
+  letter-spacing: 0.08em;
+  font-weight: 950;
+}
+
+.manager-splash__mark span {
+  position: absolute;
+  right: 0.32em;
+  bottom: -1.35em;
+  font-size: clamp(20px, 2.7vw, 34px);
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+@keyframes managerSplashIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.manager-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+}
+
+.manager-login__card {
+  width: min(380px, calc(100vw - 32px));
+  min-height: 450px;
+  padding: 40px 32px;
+  border-radius: 26px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 26px 78px rgba(15, 23, 42, 0.14);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.manager-login__card h1 {
+  margin: 0 0 18px;
+  text-align: center;
+  color: var(--manager-red);
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.manager-login__card input {
+  height: 48px;
+  border-radius: 15px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0 15px;
+  font-size: 14px;
+  font-weight: 750;
+  outline: none;
+}
+
+.manager-login__card input:focus {
+  border-color: var(--manager-red);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.12);
+}
+
+.manager-login__card button {
+  height: 48px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--manager-red);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.manager-login__card button:hover {
+  filter: brightness(0.95);
+}
+
+.manager-login__error {
+  color: var(--manager-red);
+  font-size: 13px;
+  font-weight: 850;
+  text-align: center;
+}
+/* =========================================================
+   CODIGO 2.2 - MENU LATERAL REVISADO
+   Espacamento, icones e engrenagem refinados.
+   ========================================================= */
+
+/* Barra lateral aberta */
+.sidebar:not(.collapsed) {
+  width: 294px !important;
+  min-width: 294px !important;
+  max-width: 294px !important;
+}
+
+.sidebar:not(.collapsed) .nav {
+  padding: 12px 14px !important;
+  gap: 7px !important;
+}
+
+.sidebar:not(.collapsed) .nav-item {
+  min-height: 58px !important;
+  padding: 10px 14px !important;
+  gap: 14px !important;
+  border-radius: 18px !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-icon {
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-text {
+  min-width: 0 !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-text strong {
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-text span {
+  margin-top: 3px !important;
+  font-size: 11.5px !important;
+  line-height: 1.15 !important;
+  opacity: 0.72 !important;
+}
+
+/* Barra lateral fechada */
+.sidebar.collapsed {
+  width: 94px !important;
+  min-width: 94px !important;
+  max-width: 94px !important;
+}
+
+.sidebar.collapsed .nav {
+  padding: 12px 12px !important;
+  gap: 9px !important;
+  align-items: center !important;
+}
+
+.sidebar.collapsed .nav-item {
+  width: 66px !important;
+  min-width: 66px !important;
+  height: 62px !important;
+  min-height: 62px !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  border-radius: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sidebar.collapsed .nav-item-icon {
+  width: 54px !important;
+  min-width: 54px !important;
+  height: 54px !important;
+  border-radius: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sidebar.collapsed .nav-item-icon svg {
+  width: 27px !important;
+  height: 27px !important;
+}
+
+.sidebar.collapsed .nav-item-text {
+  display: none !important;
+}
+
+/* Estado visual dos icones */
+.nav-item {
+  color: #94a3b8 !important;
+}
+
+.nav-item:hover {
+  color: #e2e8f0 !important;
+}
+
+.nav-item.active {
+  color: #ffffff !important;
+}
+
+.nav-item.active .nav-item-icon {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+.nav-item:hover .nav-item-icon {
+  background: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Evita qualquer corte interno */
+.sidebar,
+.nav,
+.nav-item,
+.nav-item-icon {
+  overflow: visible !important;
+}
+
+/* Engrenagem da topbar */
+.manager-topbar__settings {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 16px !important;
+}
+
+.manager-topbar__settings svg {
+  width: 26px !important;
+  height: 26px !important;
+  stroke-width: 2.05px !important;
+}
+
+.manager-topbar__settings:hover {
+  transform: translateY(-1px);
+}
+
+.manager-topbar__settings:active {
+  transform: translateY(0);
+}
+
+/* Botao hamburguer alinhado com os novos tamanhos */
+.manager-topbar__menu {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 16px !important;
+}
+
+.manager-topbar__menu span {
+  width: 18px !important;
+  height: 2px !important;
+}
+
+/* Header lateral limpo e com respiro */
+.sidebar-header {
+  min-height: 68px !important;
+  padding: 14px 12px !important;
+}
+
+.sidebar.collapsed .sidebar-header {
+  min-height: 68px !important;
+}
+/* =========================================================
+   CODIGO 4/5 - SIDEBAR, MODO ESCURO E RESPONSIVIDADE GERAL
+   ========================================================= */
+
+/* ---------- SIDEBAR ABERTA: corrige icone tampando texto ---------- */
+
+.sidebar:not(.collapsed) {
+  width: 318px !important;
+  min-width: 318px !important;
+  max-width: 318px !important;
+}
+
+.sidebar:not(.collapsed) .nav {
+  padding: 14px 16px !important;
+  gap: 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.sidebar:not(.collapsed) .nav-item {
+  width: 100% !important;
+  min-height: 60px !important;
+  padding: 10px 14px !important;
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-icon {
+  grid-column: 1 !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  border-radius: 15px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: static !important;
+  transform: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+  flex: none !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+  display: block !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-text {
+  grid-column: 2 !important;
+  display: grid !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  gap: 3px !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-text strong,
+.sidebar:not(.collapsed) .nav-item-text span {
+  display: block !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-text strong {
+  font-size: 14.5px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+}
+
+.sidebar:not(.collapsed) .nav-item-text span {
+  font-size: 11.5px !important;
+  line-height: 1.2 !important;
+  opacity: 0.74 !important;
+}
+
+/* ---------- SIDEBAR FECHADA ---------- */
+
+.sidebar.collapsed {
+  width: 96px !important;
+  min-width: 96px !important;
+  max-width: 96px !important;
+}
+
+.sidebar.collapsed .nav {
+  padding: 14px 13px !important;
+  gap: 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.sidebar.collapsed .nav-item {
+  width: 68px !important;
+  min-width: 68px !important;
+  max-width: 68px !important;
+  height: 62px !important;
+  min-height: 62px !important;
+  max-height: 62px !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  border-radius: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
+}
+
+.sidebar.collapsed .nav-item-icon {
+  width: 56px !important;
+  min-width: 56px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  border-radius: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: static !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.sidebar.collapsed .nav-item-icon svg {
+  width: 27px !important;
+  height: 27px !important;
+}
+
+.sidebar.collapsed .nav-item-text {
+  display: none !important;
+}
+
+/* ---------- TOPBAR AJUSTES DE EQUILIBRIO ---------- */
+
+.manager-topbar {
+  min-width: 0 !important;
+}
+
+.manager-topbar__title {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.manager-topbar__settings svg {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+/* ---------- MODO ESCURO REFEITO ---------- */
+
+html.dark,
+body.dark,
+.dark,
+[data-theme="dark"],
+.theme-dark {
+  color-scheme: dark;
+}
+
+html.dark body,
+body.dark,
+.dark body,
+[data-theme="dark"] body,
+.theme-dark body {
+  background: #020617 !important;
+  color: #e5e7eb !important;
+}
+
+html.dark .app-shell,
+body.dark .app-shell,
+.dark .app-shell,
+[data-theme="dark"] .app-shell,
+.theme-dark .app-shell {
+  background:
+    radial-gradient(circle at top right, rgba(30, 64, 175, 0.16), transparent 34%),
+    linear-gradient(135deg, #020617 0%, #0f172a 48%, #111827 100%) !important;
+  color: #e5e7eb !important;
+}
+
+html.dark .content,
+body.dark .content,
+.dark .content,
+[data-theme="dark"] .content,
+.theme-dark .content {
+  background: transparent !important;
+  color: #e5e7eb !important;
+}
+
+html.dark .manager-topbar,
+body.dark .manager-topbar,
+.dark .manager-topbar,
+[data-theme="dark"] .manager-topbar,
+.theme-dark .manager-topbar,
+html.dark .sidebar,
+body.dark .sidebar,
+.dark .sidebar,
+[data-theme="dark"] .sidebar,
+.theme-dark .sidebar {
+  background: #020617 !important;
+  border-color: rgba(148, 163, 184, 0.16) !important;
+}
+
+html.dark .sidebar:not(.collapsed) .nav-item-icon,
+body.dark .sidebar:not(.collapsed) .nav-item-icon,
+.dark .sidebar:not(.collapsed) .nav-item-icon,
+[data-theme="dark"] .sidebar:not(.collapsed) .nav-item-icon,
+.theme-dark .sidebar:not(.collapsed) .nav-item-icon {
+  background: rgba(148, 163, 184, 0.10) !important;
+}
+
+html.dark .nav-item,
+body.dark .nav-item,
+.dark .nav-item,
+[data-theme="dark"] .nav-item,
+.theme-dark .nav-item {
+  color: #94a3b8 !important;
+}
+
+html.dark .nav-item:hover,
+body.dark .nav-item:hover,
+.dark .nav-item:hover,
+[data-theme="dark"] .nav-item:hover,
+.theme-dark .nav-item:hover {
+  color: #e2e8f0 !important;
+  background: rgba(148, 163, 184, 0.08) !important;
+}
+
+html.dark .nav-item.active,
+body.dark .nav-item.active,
+.dark .nav-item.active,
+[data-theme="dark"] .nav-item.active,
+.theme-dark .nav-item.active {
+  color: #ffffff !important;
+  background: rgba(37, 99, 235, 0.20) !important;
+}
+
+html.dark .nav-item.active .nav-item-icon,
+body.dark .nav-item.active .nav-item-icon,
+.dark .nav-item.active .nav-item-icon,
+[data-theme="dark"] .nav-item.active .nav-item-icon,
+.theme-dark .nav-item.active .nav-item-icon {
+  background: rgba(59, 130, 246, 0.24) !important;
+}
+
+html.dark .card,
+body.dark .card,
+.dark .card,
+[data-theme="dark"] .card,
+.theme-dark .card,
+html.dark .panel,
+body.dark .panel,
+.dark .panel,
+[data-theme="dark"] .panel,
+.theme-dark .panel,
+html.dark .section,
+body.dark .section,
+.dark .section,
+[data-theme="dark"] .section,
+.theme-dark .section,
+html.dark .tc-panel,
+body.dark .tc-panel,
+.dark .tc-panel,
+[data-theme="dark"] .tc-panel,
+.theme-dark .tc-panel,
+html.dark .tc-card,
+body.dark .tc-card,
+.dark .tc-card,
+[data-theme="dark"] .tc-card,
+.theme-dark .tc-card,
+html.dark .sheets-generator-card,
+body.dark .sheets-generator-card,
+.dark .sheets-generator-card,
+[data-theme="dark"] .sheets-generator-card,
+.theme-dark .sheets-generator-card,
+html.dark .metric-card,
+body.dark .metric-card,
+.dark .metric-card,
+[data-theme="dark"] .metric-card,
+.theme-dark .metric-card {
+  background: rgba(15, 23, 42, 0.94) !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+.theme-dark h1,
+.theme-dark h2,
+.theme-dark h3,
+.theme-dark h4 {
+  color: #f8fafc !important;
+}
+
+html.dark p,
+html.dark span,
+html.dark small,
+html.dark label,
+body.dark p,
+body.dark span,
+body.dark small,
+body.dark label,
+.dark p,
+.dark span,
+.dark small,
+.dark label,
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] small,
+[data-theme="dark"] label,
+.theme-dark p,
+.theme-dark span,
+.theme-dark small,
+.theme-dark label {
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea,
+body.dark input,
+body.dark select,
+body.dark textarea,
+.dark input,
+.dark select,
+.dark textarea,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+.theme-dark input,
+.theme-dark select,
+.theme-dark textarea {
+  background: #020617 !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+  color: #f8fafc !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder,
+body.dark input::placeholder,
+body.dark textarea::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder,
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder,
+.theme-dark input::placeholder,
+.theme-dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+html.dark table,
+body.dark table,
+.dark table,
+[data-theme="dark"] table,
+.theme-dark table {
+  background: transparent !important;
+  color: #e5e7eb !important;
+}
+
+html.dark th,
+body.dark th,
+.dark th,
+[data-theme="dark"] th,
+.theme-dark th {
+  background: rgba(15, 23, 42, 0.96) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(148, 163, 184, 0.16) !important;
+}
+
+html.dark td,
+body.dark td,
+.dark td,
+[data-theme="dark"] td,
+.theme-dark td {
+  background: rgba(15, 23, 42, 0.74) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+html.dark tr:hover td,
+body.dark tr:hover td,
+.dark tr:hover td,
+[data-theme="dark"] tr:hover td,
+.theme-dark tr:hover td {
+  background: rgba(30, 41, 59, 0.92) !important;
+}
+
+html.dark .manager-settings__panel,
+body.dark .manager-settings__panel,
+.dark .manager-settings__panel,
+[data-theme="dark"] .manager-settings__panel,
+.theme-dark .manager-settings__panel {
+  background: #0f172a !important;
+  color: #e5e7eb !important;
+}
+
+html.dark .manager-settings__content,
+body.dark .manager-settings__content,
+.dark .manager-settings__content,
+[data-theme="dark"] .manager-settings__content,
+.theme-dark .manager-settings__content {
+  background: #0f172a !important;
+}
+
+html.dark .manager-settings__close,
+body.dark .manager-settings__close,
+.dark .manager-settings__close,
+[data-theme="dark"] .manager-settings__close,
+.theme-dark .manager-settings__close {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .manager-user-card__avatar,
+body.dark .manager-user-card__avatar,
+.dark .manager-user-card__avatar,
+[data-theme="dark"] .manager-user-card__avatar,
+.theme-dark .manager-user-card__avatar {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #0f172a !important;
+}
+
+html.dark .manager-user-card__info strong,
+body.dark .manager-user-card__info strong,
+.dark .manager-user-card__info strong,
+[data-theme="dark"] .manager-user-card__info strong,
+.theme-dark .manager-user-card__info strong {
+  color: #f8fafc !important;
+}
+
+html.dark .manager-access-item,
+body.dark .manager-access-item,
+.dark .manager-access-item,
+[data-theme="dark"] .manager-access-item,
+.theme-dark .manager-access-item {
+  background: #111827 !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+}
+
+/* ---------- RESPONSIVIDADE GERAL ---------- */
+
+@media (max-width: 1280px) {
+  .sidebar:not(.collapsed) {
+    width: 286px !important;
+    min-width: 286px !important;
+    max-width: 286px !important;
+  }
+
+  .manager-topbar {
+    grid-template-columns: 220px 1fr 220px !important;
+  }
+
+  .content {
+    padding-inline: 18px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .sidebar:not(.collapsed) {
+    width: 270px !important;
+    min-width: 270px !important;
+    max-width: 270px !important;
+  }
+
+  .manager-topbar {
+    grid-template-columns: 160px 1fr 160px !important;
+    padding-inline: 16px !important;
+  }
+
+  .manager-topbar__brand {
+    font-size: 15px !important;
+  }
+
+  .manager-topbar__title {
+    font-size: 17px !important;
+  }
+
+  .content {
+    padding-inline: 14px !important;
+  }
+
+  .sheets-form-grid,
+  .grid,
+  .cards-grid,
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .manager-topbar {
+    grid-template-columns: 110px 1fr 110px !important;
+    height: 64px !important;
+    min-height: 64px !important;
+  }
+
+  .app-shell {
+    padding-top: 64px !important;
+  }
+
+  .sidebar {
+    top: 64px !important;
+    height: calc(100vh - 64px) !important;
+  }
+
+  .manager-topbar__brand {
+    display: none !important;
+  }
+
+  .manager-topbar__title {
+    font-size: 16px !important;
+  }
+
+  .manager-topbar__settings,
+  .manager-topbar__menu {
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  .manager-settings__panel {
+    width: calc(100vw - 24px) !important;
+    height: calc(100vh - 24px) !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .manager-settings__side {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    padding: 12px !important;
+  }
+
+  .manager-settings__side button {
+    min-width: 130px !important;
+  }
+
+  .manager-user-card {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .content {
+    padding-inline: 10px !important;
+  }
+
+  .manager-topbar {
+    grid-template-columns: 54px 1fr 96px !important;
+    padding-inline: 10px !important;
+  }
+
+  .manager-topbar__title {
+    font-size: 15px !important;
+  }
+
+  .sheets-form-grid,
+  .grid,
+  .cards-grid,
+  .metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .card,
+  .panel,
+  .section,
+  .tc-panel,
+  .tc-card,
+  .sheets-generator-card {
+    border-radius: 16px !important;
+    padding: 16px !important;
+  }
+
+  table {
+    min-width: 720px;
+  }
+
+  .table-wrap,
+  .table-container,
+  .tc-table-wrap {
+    overflow-x: auto !important;
+  }
+}
+/* =========================================================
+   REMOVER BOTAO VISUAL PLC FISICO
+   Esse controle era apenas visual/dev e nao faz parte do gerente final.
+   ========================================================= */
+
+.plc-floating-toggle,
+.plc-mode-toggle,
+.physical-plc-toggle,
+.dev-plc-toggle,
+.floating-plc-button,
+.gateway-mode-toggle,
+.simulation-mode-toggle,
+button[title*="PLC"],
+button[aria-label*="PLC"],
+button[class*="plc"],
+button[class*="PLC"],
+div[class*="plc-floating"],
+div[class*="plc-mode"],
+div[class*="gateway-mode"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+/* =========================================================
+   CODIGO 5/5 - CONFIGURACOES E ACESSOS
+   ========================================================= */
+
+.manager-settings__panel {
+  width: min(920px, calc(100vw - 42px)) !important;
+  height: min(580px, calc(100vh - 42px)) !important;
+}
+
+.manager-settings__content {
+  padding: 34px !important;
+}
+
+.manager-access-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.1fr);
+  gap: 18px;
+  height: 100%;
+}
+
+.manager-access-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.manager-access-item {
+  min-height: 66px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.manager-access-item.is-active {
+  border-color: rgba(37, 99, 235, 0.42);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.manager-access-item div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.manager-access-item strong,
+.manager-access-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manager-access-item strong {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.manager-access-item span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.manager-access-item button {
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.manager-access-detail {
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 22px;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.manager-access-detail div {
+  display: grid;
+  gap: 5px;
+}
+
+.manager-access-detail span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.manager-access-detail strong {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.manager-access-detail__empty,
+.manager-access-list__empty {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Modo escuro do menu de acessos */
+html.dark .manager-access-item,
+body.dark .manager-access-item,
+.dark .manager-access-item,
+[data-theme="dark"] .manager-access-item,
+.theme-dark .manager-access-item {
+  background: #111827 !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+}
+
+html.dark .manager-access-item strong,
+body.dark .manager-access-item strong,
+.dark .manager-access-item strong,
+[data-theme="dark"] .manager-access-item strong,
+.theme-dark .manager-access-item strong,
+html.dark .manager-access-detail strong,
+body.dark .manager-access-detail strong,
+.dark .manager-access-detail strong,
+[data-theme="dark"] .manager-access-detail strong,
+.theme-dark .manager-access-detail strong {
+  color: #f8fafc !important;
+}
+
+html.dark .manager-access-detail,
+body.dark .manager-access-detail,
+.dark .manager-access-detail,
+[data-theme="dark"] .manager-access-detail,
+.theme-dark .manager-access-detail {
+  background: #111827 !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+}
+
+html.dark .manager-access-item button,
+body.dark .manager-access-item button,
+.dark .manager-access-item button,
+[data-theme="dark"] .manager-access-item button,
+.theme-dark .manager-access-item button {
+  background: #2563eb !important;
+}
+
+/* Oculta qualquer botao de logs antigo que ainda sobre visualmente na rastreabilidade */
+button[value="logs"],
+[data-tab="logs"],
+.traceability-tab-logs,
+.trace-tab-logs {
+  display: none !important;
+}
+
+@media (max-width: 820px) {
+  .manager-access-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .manager-access-detail {
+    min-height: 220px;
+  }
+}

@@ -1,0 +1,3827 @@
+﻿:root {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #080b09;
+  background: #d7dbd7;
+
+  --screen: #d9ddd9;
+  --panel: #f7fbf7;
+  --panel-2: #e7ebe7;
+  --line: #101410;
+  --muted: #5e6860;
+
+  --green: #22c833;
+  --yellow: #f1c232;
+  --red: #e33131;
+  --blue: #153ed6;
+  --orange: #ff862e;
+  --vacuum: #ff3a31;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100vh;
+  margin: 0;
+}
+
+body {
+  overflow: auto;
+  background:
+    radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px),
+    linear-gradient(135deg, #eef0ed, #cfd6d1);
+  background-size: 18px 18px, auto;
+}
+
+/* =========================================================
+   TABLET INDUSTRIAL
+========================================================= */
+
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operação,
+.finalizacao {
+  width: min(1360px, calc(100vw - 24px));
+  height: min(805px, calc(100vh - 24px));
+  min-height: 690px;
+  margin: 12px auto;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  /* menos borda desperdiÃƒÂ§ada, mais tela ÃƒÂºtil */
+  padding: 92px 172px 74px;
+
+  border-radius: 88px 100px 88px 100px;
+
+  background:
+    radial-gradient(circle at 72px 50%, #e8ffff 0 27px, #59fff1 28px 34px, #0d8c80 35px 43px, #111 44px 51px, transparent 52px),
+    radial-gradient(circle at calc(100% - 72px) 50%, #ff3340 0 29px, #d20d18 30px 38px, #111 39px 49px, transparent 50px),
+
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) left 112px / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) left 176px / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) left calc(100% - 138px) / 132px 7px no-repeat,
+
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) right 112px / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) right 176px / 132px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,0.13) 35px 92px, transparent 93px) right calc(100% - 138px) / 132px 7px no-repeat,
+
+    radial-gradient(ellipse at 50% 48%, rgba(255,255,255,0.86), rgba(255,255,255,0.25) 48%, transparent 72%),
+    linear-gradient(145deg, #fafbf6 0%, #e3e7e0 48%, #cad1cb 100%);
+
+  box-shadow:
+    0 34px 80px rgba(20, 30, 25, 0.38),
+    inset 0 0 0 7px rgba(255,255,255,0.78),
+    inset 0 -28px 48px rgba(50,60,54,0.14),
+    inset 0 18px 36px rgba(255,255,255,0.65);
+}
+
+/* tela interna alinhada com o novo padding */
+.boot::before,
+.inicial::before,
+.preparo::before,
+.registros-dia::before,
+.operação::before,
+.finalizacao::before {
+  content: "";
+  position: absolute;
+  left: 154px;
+  right: 154px;
+  top: 64px;
+  bottom: 52px;
+  z-index: 0;
+  pointer-events: none;
+
+  border-radius: 12px;
+  border: 7px solid #111;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.16), transparent 34%),
+    var(--screen);
+
+  box-shadow:
+    inset 0 0 0 4px #6f7c72,
+    inset 0 0 24px rgba(0,0,0,0.18),
+    0 8px 20px rgba(0,0,0,0.25);
+}
+
+.boot > *,
+.inicial > :not(.drawer),
+.preparo > :not(.drawer),
+.registros-dia > :not(.drawer),
+.operação > :not(.drawer),
+.finalizacao > :not(.drawer) {
+  position: relative;
+  z-index: 2;
+}
+
+.boot::after,
+.inicial::after,
+.preparo::after,
+.registros-dia::after,
+.operação::after,
+.finalizacao::after {
+  display: none;
+}
+
+/* =========================================================
+   BOOT
+========================================================= */
+
+.boot {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+}
+
+.boot::before {
+  background:
+    radial-gradient(circle at center, rgba(39,255,35,0.22), transparent 48%),
+    #050805;
+}
+
+.boot-title {
+  font-size: clamp(3.8rem, 9vw, 7rem);
+  font-weight: 950;
+  letter-spacing: 0.2em;
+  color: #eaffea;
+  text-shadow: 0 0 22px rgba(61,255,61,0.8);
+}
+
+.boot-sub {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.26em;
+  color: #9bff9b;
+}
+
+/* =========================================================
+   DRAWER
+========================================================= */
+
+.drawer {
+  position: fixed;
+  top: 0;
+  left: -340px;
+  width: 320px;
+  height: 100vh;
+  z-index: 3000;
+  background: #f4f5f2;
+  border-right: 8px solid #111;
+  box-shadow: 10px 0 28px rgba(0,0,0,0.24);
+  transition: left 0.22s ease;
+  padding: 18px;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.drawer.open {
+  left: 0;
+}
+
+.drawer > div {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.drawer button {
+  min-height: 54px;
+  border: 4px solid #111;
+  background: #fff;
+  color: #111;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.drawer button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   INICIO
+========================================================= */
+
+.inicial {
+  display: grid;
+  place-items: center;
+}
+
+.buttons {
+  width: min(760px, 100%);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px;
+}
+
+.big-btn {
+  min-height: 190px;
+  border: 7px solid #111;
+  border-radius: 0;
+  background: var(--panel);
+  color: #111;
+  font-size: 1.35rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: inset 0 -10px 0 rgba(0,0,0,0.08);
+}
+
+.big-btn:hover {
+  background: #e8f8e7;
+}
+
+/* =========================================================
+   TELAS DE PREPARO / REGISTROS / FINALIZACAO
+========================================================= */
+
+.preparo,
+.registros-dia,
+.finalizacao {
+  display: grid;
+  grid-template-rows: 48px minmax(0, 1fr) 58px;
+  gap: 10px;
+}
+
+.preparo h2,
+.registros-dia h2,
+.finalizacao h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 950;
+  letter-spacing: 0.03em;
+  border-bottom: 5px solid #111;
+  padding-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recipes {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  overflow: hidden;
+}
+
+.recipe-card {
+  background: var(--panel);
+  border: 5px solid #9da59e;
+  border-radius: 0;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+  cursor: pointer;
+  min-height: 0;
+  font-weight: 850;
+  overflow: hidden;
+}
+
+.recipe-card.selected {
+  border-color: var(--green);
+  background: #e6f8e4;
+}
+
+.recipe-title {
+  font-size: 1rem;
+  font-weight: 950;
+  border-bottom: 3px solid #111;
+  padding-bottom: 6px;
+}
+
+.recipe-note {
+  background: #fff4be;
+  border: 3px solid #d39a16;
+  padding: 6px;
+  font-weight: 900;
+}
+
+.field {
+  display: grid;
+  gap: 5px;
+  margin: 8px 0;
+}
+
+.field label {
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select,
+textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 4px solid #777;
+  background: #fff;
+  padding: 0 10px;
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+
+textarea {
+  min-height: 78px;
+  padding: 8px;
+}
+
+.checklist {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.checklist label {
+  min-height: 44px;
+  border: 4px solid #777;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.checklist input {
+  width: 22px;
+  height: 22px;
+}
+
+.next-btn,
+.start-btn,
+.cancel-btn,
+.finalizacao > button,
+.registros-dia > button,
+.preparo > button {
+  min-height: 50px;
+  border: 5px solid #111;
+  background: var(--panel);
+  font-size: 0.95rem;
+  font-weight: 950;
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+.start-btn {
+  background: #dff8d7;
+}
+
+.cancel-btn {
+  background: #ddd;
+  margin-right: 10px;
+}
+
+button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.resumo {
+  background: var(--panel);
+  border: 5px solid #111;
+  border-radius: 0;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+  font-weight: 900;
+  overflow: auto;
+}
+
+.oil-warning,
+.oil-ok {
+  border: 4px solid #111;
+  padding: 10px;
+  font-weight: 950;
+  margin: 8px 0;
+}
+
+.oil-warning {
+  background: #ffd1d1;
+}
+
+.oil-ok {
+  background: #dff8d7;
+}
+
+.warn-text {
+  color: #9b1111;
+  font-weight: 950;
+  background: #ffd1d1;
+  border: 3px solid #9b1111;
+  padding: 8px;
+}
+
+/* =========================================================
+   OPERACAO - melhor aproveitamento da tela interna
+========================================================= */
+
+.operação {
+  display: grid;
+  grid-template-rows: 58px minmax(0, 1fr) 66px;
+  gap: 8px;
+}
+
+.topbar {
+  min-height: 58px;
+  background: var(--panel);
+  border: 5px solid #111;
+  border-radius: 0;
+  padding: 0 10px;
+  display: grid;
+  grid-template-columns: 50px 0.75fr 1.35fr 0.9fr 1.1fr;
+  align-items: center;
+  gap: 8px;
+  font-weight: 950;
+  font-size: 0.92rem;
+  overflow: hidden;
+}
+
+.menu-btn {
+  width: 42px;
+  height: 38px;
+  border: 4px solid #111;
+  background: #fff;
+  font-size: 1.28rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.topbar > div {
+  height: 100%;
+  border-left: 2px solid #c8cec8;
+  padding-left: 7px;
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  min-width: 0;
+}
+
+.topbar span {
+  font-size: 0.5rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  color: #48524b;
+}
+
+.topbar strong {
+  font-size: 0.76rem;
+  font-weight: 950;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.alarm-mini.ok {
+  background: #dff8d7;
+}
+
+.alarm-mini.bad {
+  background: #ffd1d1;
+}
+
+.content-area {
+  min-height: 0;
+  background: var(--screen);
+  border: 5px solid #111;
+  border-radius: 0;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.bottom-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.bottom-tabs button {
+  min-height: 66px;
+  border: 6px solid #111;
+  border-radius: 0;
+  background: var(--panel);
+  color: #111;
+  font-size: 0.9rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.bottom-tabs button.active {
+  background: #1f2937;
+  color: #fff;
+}
+
+/* =========================================================
+   ABA REGULADORES - mais visual, menos embolado
+========================================================= */
+
+.tanks-grid {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.tank-card {
+  background: var(--panel);
+  border: 5px solid #111;
+  border-radius: 0;
+  padding: 12px;
+  text-align: center;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto;
+  align-content: start;
+  gap: 6px;
+  font-weight: 900;
+  overflow: hidden;
+}
+
+.tank-card::before {
+  content: "";
+  width: 84px;
+  height: 118px;
+  justify-self: center;
+  border: 5px solid #111;
+  border-radius: 50% / 12%;
+  background:
+    linear-gradient(to top, var(--orange) 0 26%, var(--vacuum) 26% 62%, #d9d9d9 62% 100%);
+  box-shadow: inset 0 12px 0 rgba(255,255,255,0.45);
+}
+
+.tank-card > div:first-child {
+  font-size: 1.55rem;
+  font-weight: 950;
+}
+
+.tank-card .ok,
+.ok {
+  background: var(--green);
+  border: 3px solid #098000;
+  padding: 6px;
+  font-weight: 950;
+}
+
+/* =========================================================
+   ABA BOMBAS
+========================================================= */
+
+.bombas-grid {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 10px;
+}
+
+.bombas-grid > div {
+  background: var(--panel);
+  border: 5px solid #111;
+  border-radius: 0;
+  padding: 12px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 950;
+  overflow: hidden;
+}
+
+.bombas-grid > div:nth-child(1)::before,
+.bombas-grid > div:nth-child(2)::before {
+  content: "";
+  width: 58px;
+  height: 58px;
+  border: 5px solid #111;
+  background: var(--blue);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+/* =========================================================
+   ABA OLEO
+========================================================= */
+
+.óleo-grid {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.25fr repeat(2, 1fr);
+  grid-auto-rows: minmax(66px, 1fr);
+  gap: 10px;
+  overflow: hidden;
+}
+
+.óleo-grid > div {
+  background: var(--panel);
+  border: 5px solid #111;
+  border-radius: 0;
+  padding: 10px;
+  font-size: 0.92rem;
+  font-weight: 950;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.óleo-grid > div:nth-child(1) {
+  grid-row: span 3;
+  font-size: 1.12rem;
+  position: relative;
+  padding-top: 132px;
+}
+
+.óleo-grid > div:nth-child(1)::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 88px;
+  height: 108px;
+  border: 5px solid #111;
+  border-radius: 50% / 12%;
+  background: linear-gradient(to top, var(--orange) 0 70%, #f1f1f1 70% 100%);
+}
+
+/* =========================================================
+   ABA INFORMACOES
+========================================================= */
+
+.info-grid {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.05fr 0.9fr 1.05fr;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.etapas {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  margin: 0;
+}
+
+.etapas div {
+  border: 4px solid #999;
+  border-radius: 0;
+  background: #efefef;
+  padding: 8px;
+  font-size: 0.74rem;
+  font-weight: 950;
+}
+
+.etapas .active {
+  background: var(--yellow);
+  color: #000;
+  border-color: #111;
+}
+
+.etapas .done {
+  background: var(--green);
+  color: #000;
+  border-color: #0b8500;
+}
+
+.info-grid > div:nth-child(2) {
+  background: var(--panel);
+  border: 5px solid #111;
+  border-radius: 0;
+  padding: 12px;
+  display: grid;
+  gap: 7px;
+  align-content: start;
+  font-weight: 900;
+  overflow: auto;
+}
+
+.logs {
+  background: var(--panel);
+  border: 5px solid #111;
+  border-radius: 0;
+  padding: 10px;
+  font-family: Consolas, monospace;
+  font-size: 0.7rem;
+  overflow: auto;
+}
+
+/* =========================================================
+   REGISTROS / FINALIZACAO / ALARMES
+========================================================= */
+
+.registros-dia ul {
+  min-height: 0;
+  overflow: auto;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.registros-dia li {
+  background: var(--panel);
+  border: 4px solid #111;
+  padding: 12px;
+  font-weight: 900;
+}
+
+.finalizacao {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 48px minmax(0, 1fr) 58px;
+}
+
+.finalizacao h2 {
+  grid-column: 1 / 3;
+}
+
+.finalizacao .resumo {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: stretch;
+  overflow: auto;
+}
+
+.finalizacao .checklist {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: stretch;
+  overflow: auto;
+  margin: 0;
+}
+
+.finalizacao > button {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: end;
+  min-width: 220px;
+}
+
+.alarm-screen {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 48px minmax(0, 1fr) 58px;
+}
+
+.alarm-screen h2 {
+  grid-column: 1 / 3;
+}
+
+.alarm-summary {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: stretch;
+}
+
+.alarm-log {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: stretch;
+  min-height: 100%;
+}
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (max-width: 1240px), (max-height: 760px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operação,
+  .finalizacao {
+    transform: scale(0.9);
+    transform-origin: top center;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 1050px), (max-height: 680px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operação,
+  .finalizacao {
+    transform: scale(0.82);
+  }
+}
+
+/* =========================================================
+   PATCH IHM OPERACIONAL - REVISAO VISUAL, TANQUES, BOMBAS,
+   OLEO, ALARMES E BOTOES PADRONIZADOS
+========================================================= */
+
+.standard-btn,
+.next-btn,
+.start-btn,
+.cancel-btn,
+.finalizacao > button,
+.registros-dia > button,
+.preparo > button {
+  min-height: 54px;
+  min-width: 210px;
+  max-width: 320px;
+  justify-self: center;
+  align-self: center;
+  border: 5px solid #111;
+  border-radius: 0;
+  background: #f7fbf7;
+  color: #111;
+  font-size: 0.92rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  display: inline-grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 18px;
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,0.12);
+}
+
+.standard-btn.compact {
+  min-height: 52px;
+  min-width: 220px;
+}
+
+.button-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+
+.start-btn {
+  background: #25ce3f;
+}
+
+.cancel-btn {
+  background: #d4d7d2;
+}
+
+.form-grid,
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+
+.ihm-buttons {
+  justify-items: center;
+}
+
+.checklist.refined {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.checklist.refined label {
+  min-height: 72px;
+  align-items: center;
+  text-align: left;
+  padding: 8px 10px;
+}
+
+.checklist.refined label span {
+  display: grid;
+  gap: 3px;
+}
+
+.checklist.refined small {
+  display: block;
+  color: #4c554d;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.textarea-label {
+  grid-column: 1 / -1;
+  min-height: 112px !important;
+  align-items: start !important;
+}
+
+.textarea-label textarea {
+  width: 100%;
+  min-height: 72px;
+}
+
+.bottom-tabs button {
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bottom-tabs button.active {
+  background: #0b5cff;
+  color: #fff;
+  border-color: #06143a;
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 5px rgba(11, 92, 255, 0.24), inset 0 -7px 0 rgba(0,0,0,0.22);
+}
+
+.alarm-shadow-yellow::before {
+  box-shadow:
+    inset 0 0 0 4px #6f7c72,
+    inset 0 0 42px rgba(255, 194, 0, 0.74),
+    0 8px 20px rgba(0,0,0,0.25) !important;
+}
+
+.alarm-shadow-red::before {
+  box-shadow:
+    inset 0 0 0 4px #6f7c72,
+    inset 0 0 58px rgba(230, 0, 0, 0.82),
+    0 8px 20px rgba(0,0,0,0.25) !important;
+}
+
+.alarm-overlay {
+  position: absolute;
+  inset: 64px 154px 52px;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,0.18);
+  pointer-events: auto;
+}
+
+.alarm-overlay.yellow {
+  background: rgba(255, 190, 0, 0.18);
+}
+
+.alarm-overlay.red {
+  background: rgba(180, 0, 0, 0.22);
+}
+
+.alarm-modal {
+  width: min(560px, 88%);
+  background: #fff;
+  border: 7px solid #111;
+  padding: 22px;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.32);
+}
+
+.alarm-overlay.yellow .alarm-modal {
+  background: #fff4bf;
+}
+
+.alarm-overlay.red .alarm-modal {
+  background: #ffd0d0;
+}
+
+.alarm-modal h2 {
+  margin: 0;
+  font-size: 1.28rem;
+  border: 0;
+  white-space: normal;
+}
+
+.alarm-modal p {
+  margin: 0;
+  font-weight: 900;
+}
+
+.alarm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.alarm-actions button,
+.emergency-inline {
+  min-height: 46px;
+  border: 4px solid #111;
+  background: #fff;
+  font-weight: 950;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.alarm-actions .secondary {
+  background: #e8e8e8;
+}
+
+.emergency-round {
+  width: 146px;
+  height: 146px;
+  border-radius: 50%;
+  border: 8px solid #111;
+  background: radial-gradient(circle at 35% 28%, #ff9b9b, #e00000 58%, #860000);
+  color: #fff;
+  font-weight: 950;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 0 0 8px rgba(255,0,0,0.18), 0 12px 22px rgba(0,0,0,0.36);
+}
+
+.emergency-inline {
+  background: #df1f1f;
+  color: #fff;
+}
+
+/* TANQUES EM MOVIMENTO */
+
+.tanks-grid.animated {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.process-tank-card {
+  background: var(--panel);
+  border: 5px solid #111;
+  padding: 12px;
+  display: grid;
+  grid-template-rows: auto minmax(190px, 1fr) auto;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.tank-name {
+  font-size: 1.35rem;
+  font-weight: 950;
+  text-align: center;
+  border-bottom: 4px solid #111;
+  padding-bottom: 5px;
+}
+
+.process-visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 205px;
+}
+
+.vacuum-line {
+  position: absolute;
+  left: 8%;
+  right: 50%;
+  top: 36%;
+  height: 8px;
+  border: 3px solid #111;
+  background: #cfd5d0;
+}
+
+.oil-hose {
+  position: absolute;
+  right: 10%;
+  left: 52%;
+  top: 56%;
+  height: 10px;
+  border: 3px solid #111;
+  background: #d6a65a;
+}
+
+.oil-hose::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: -14px;
+  width: 10px;
+  height: 38px;
+  border: 3px solid #111;
+  background: #d6a65a;
+}
+
+.oil-hose span,
+.pipe-hose span {
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffb323;
+  box-shadow: 0 0 12px #ffb323;
+  animation: oilPulse 0.8s infinite ease-in-out;
+}
+
+.oil-hose span:nth-child(1) { left: 12%; animation-delay: 0s; }
+.oil-hose span:nth-child(2) { left: 45%; animation-delay: 0.16s; }
+.oil-hose span:nth-child(3) { left: 78%; animation-delay: 0.32s; }
+
+.process-tank {
+  position: relative;
+  width: 102px;
+  height: 172px;
+  border: 6px solid #111;
+  border-radius: 50% / 10%;
+  overflow: hidden;
+  background: #e9ece8;
+  box-shadow: inset 0 12px 0 rgba(255,255,255,0.55);
+}
+
+.vacuum-zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: linear-gradient(180deg, rgba(255,58,49,0.72), rgba(255,58,49,0.26));
+  transition: height 0.6s ease;
+}
+
+.oil-level {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #ffce67, #c57a18);
+  transition: height 0.8s ease;
+}
+
+.tank-readings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  font-weight: 900;
+  font-size: 0.78rem;
+}
+
+.tank-readings span {
+  color: #4a554b;
+}
+
+.tank-readings b {
+  text-align: right;
+}
+
+/* BOMBAS */
+
+.machines-layout {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.pump-stack {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px;
+  min-height: 0;
+}
+
+.pump-card {
+  background: var(--panel);
+  border: 5px solid #111;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+  align-content: center;
+}
+
+.pump-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pump-head strong {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 950;
+}
+
+.pump-head small {
+  display: block;
+  font-weight: 900;
+  color: #4d574f;
+}
+
+.pump-card p {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.pump-card b {
+  justify-self: start;
+  border: 3px solid #111;
+  padding: 4px 10px;
+  background: #eef2ef;
+}
+
+.machine-led {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  border: 5px solid #111;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.machine-led.off {
+  background: radial-gradient(circle at 35% 28%, #6a94ff, #153ed6 62%, #071c70);
+}
+
+.machine-led.on {
+  background: radial-gradient(circle at 35% 28%, #baffc1, #22c833 58%, #078d18);
+  box-shadow: 0 0 18px rgba(34, 200, 51, 0.85), 0 0 34px rgba(34, 200, 51, 0.5);
+}
+
+.machine-led.on span {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #baffc1;
+  box-shadow: 0 0 10px #22c833;
+  animation: ledOrbit 1.1s infinite ease-in-out;
+}
+
+.machine-led.on span:nth-child(1) { left: -9px; top: 22px; animation-delay: 0s; }
+.machine-led.on span:nth-child(2) { right: -8px; top: 10px; animation-delay: 0.2s; }
+.machine-led.on span:nth-child(3) { left: 24px; bottom: -10px; animation-delay: 0.4s; }
+
+.machine-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  min-height: 0;
+}
+
+.machine-info-grid article {
+  background: var(--panel);
+  border: 5px solid #111;
+  padding: 12px;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.machine-info-grid span {
+  font-size: 0.72rem;
+  font-weight: 950;
+  color: #4c554d;
+  text-transform: uppercase;
+}
+
+.machine-info-grid b {
+  font-size: 1.08rem;
+  font-weight: 950;
+}
+
+.machine-info-grid small {
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+/* OLEO */
+
+.oil-layout {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 240px 1fr 1fr;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.oil-reservoir-card,
+.oil-flow-card {
+  background: var(--panel);
+  border: 5px solid #111;
+  padding: 12px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.oil-reservoir-card h3,
+.oil-flow-card h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 950;
+}
+
+.oil-reservoir {
+  width: 96px;
+  height: 170px;
+  border: 6px solid #111;
+  border-radius: 50% / 10%;
+  position: relative;
+  overflow: hidden;
+  background: #eef1ed;
+}
+
+.oil-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #ffd16d, #c47a19);
+  transition: height 0.8s ease;
+}
+
+.oil-demo-line {
+  width: 100%;
+  min-height: 170px;
+  position: relative;
+  display: grid;
+  grid-template-columns: 80px 1fr 90px;
+  align-items: center;
+  gap: 8px;
+}
+
+.pipe-reservoir,
+.pipe-tank {
+  width: 76px;
+  height: 118px;
+  border: 5px solid #111;
+  border-radius: 50% / 12%;
+  background: #ecefec;
+  position: relative;
+  overflow: hidden;
+  justify-self: center;
+}
+
+.pipe-reservoir::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70%;
+  background: linear-gradient(180deg, #ffd16d, #c47a19);
+}
+
+.pipe-tank-oil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #ffd16d, #c47a19);
+  transition: height 0.8s ease;
+}
+
+.pipe-hose {
+  position: relative;
+  height: 12px;
+  border: 4px solid #111;
+  background: #d6a65a;
+}
+
+.pipe-hose::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: -24px;
+  width: 12px;
+  height: 62px;
+  border: 4px solid #111;
+  background: #d6a65a;
+}
+
+.pipe-hose span:nth-child(1) { left: 10%; animation-delay: 0s; }
+.pipe-hose span:nth-child(2) { left: 34%; animation-delay: 0.12s; }
+.pipe-hose span:nth-child(3) { left: 58%; animation-delay: 0.24s; }
+.pipe-hose span:nth-child(4) { left: 82%; animation-delay: 0.36s; }
+
+.oil-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-height: 0;
+}
+
+.oil-metrics article {
+  background: var(--panel);
+  border: 5px solid #111;
+  padding: 10px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.oil-metrics span {
+  font-size: 0.7rem;
+  font-weight: 950;
+  color: #4c554d;
+  text-transform: uppercase;
+}
+
+.oil-metrics b {
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+@keyframes ledOrbit {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+@keyframes oilPulse {
+  0% { opacity: 0.2; transform: translate(-4px, -50%) scale(0.7); }
+  50% { opacity: 1; transform: translate(3px, -50%) scale(1.25); }
+  100% { opacity: 0.2; transform: translate(9px, -50%) scale(0.7); }
+}
+
+@media (max-width: 1100px) {
+  .machines-layout,
+  .oil-layout {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+
+  .machine-info-grid,
+  .oil-metrics,
+  .form-grid,
+  .review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   PATCH FIX BOMBAS INDUSTRIAIS E ALARMES ESTAVEIS
+========================================================= */
+
+/* Evita que modais de alarme entrem no grid da tela e quebrem a IHM */
+.alarm-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 24px !important;
+  pointer-events: auto !important;
+  background: rgba(0, 0, 0, 0.28) !important;
+}
+
+.alarm-overlay.yellow {
+  background:
+    radial-gradient(circle at center, rgba(255, 205, 43, 0.34), rgba(0, 0, 0, 0.22) 68%) !important;
+}
+
+.alarm-overlay.red {
+  background:
+    radial-gradient(circle at center, rgba(229, 35, 35, 0.40), rgba(0, 0, 0, 0.30) 68%) !important;
+}
+
+.alarm-modal {
+  width: min(520px, calc(100vw - 48px)) !important;
+  max-height: min(520px, calc(100vh - 48px)) !important;
+  overflow: auto !important;
+  background: #fff !important;
+  border: 8px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 22px !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: start !important;
+  gap: 14px !important;
+  text-align: center !important;
+  transform: none !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.42) !important;
+}
+
+.alarm-overlay.yellow .alarm-modal {
+  background: #fff3b2 !important;
+}
+
+.alarm-overlay.red .alarm-modal {
+  background: #ffd0d0 !important;
+}
+
+.alarm-modal h2 {
+  margin: 0 !important;
+  padding: 0 0 10px !important;
+  width: 100% !important;
+  border-bottom: 5px solid #111 !important;
+  color: #111 !important;
+  font-size: 1.18rem !important;
+  font-weight: 950 !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+.alarm-modal p {
+  margin: 0 !important;
+  font-size: 0.92rem !important;
+  font-weight: 900 !important;
+  line-height: 1.35 !important;
+  color: #111 !important;
+}
+
+.alarm-actions {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+.alarm-actions button {
+  min-height: 46px !important;
+  min-width: 190px !important;
+  border: 4px solid #111 !important;
+  background: #fff !important;
+  color: #111 !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+}
+
+.alarm-actions .secondary {
+  background: #e5e5e5 !important;
+}
+
+.emergency-round {
+  width: 138px !important;
+  height: 138px !important;
+  border-radius: 50% !important;
+  border: 8px solid #111 !important;
+  background: radial-gradient(circle at 35% 26%, #ff9a9a, #e00000 58%, #790000) !important;
+  color: #fff !important;
+  font-weight: 950 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.05 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  box-shadow: 0 0 0 8px rgba(255,0,0,0.18), 0 14px 28px rgba(0,0,0,0.38) !important;
+}
+
+/* Sombreamento de alarme sem deformar o tablet */
+.alarm-shadow-yellow::before {
+  box-shadow:
+    inset 0 0 0 4px #6f7c72,
+    inset 0 0 38px rgba(255, 205, 43, 0.88),
+    0 8px 20px rgba(0,0,0,0.25) !important;
+}
+
+.alarm-shadow-red::before {
+  box-shadow:
+    inset 0 0 0 4px #6f7c72,
+    inset 0 0 54px rgba(229, 35, 35, 0.94),
+    0 8px 20px rgba(0,0,0,0.25) !important;
+}
+
+/* Menu bombas: layout industrial e sem cortes */
+.content-area {
+  overflow: auto !important;
+}
+
+.machines-layout {
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: 250px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  overflow: auto !important;
+  align-items: stretch !important;
+}
+
+.pump-stack {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: repeat(3, minmax(105px, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.pump-card {
+  min-height: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.82), rgba(229,234,229,0.92)),
+    #e9eee9 !important;
+  border: 5px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 9px !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  gap: 6px !important;
+  align-content: stretch !important;
+  overflow: hidden !important;
+  box-shadow:
+    inset 0 -8px 0 rgba(0,0,0,0.08),
+    inset 0 0 0 2px rgba(255,255,255,0.65) !important;
+}
+
+.pump-card::before {
+  content: "ACIONAMENTO" !important;
+  display: block !important;
+  justify-self: end !important;
+  background: #111 !important;
+  color: #fff !important;
+  font-size: 0.52rem !important;
+  font-weight: 950 !important;
+  padding: 3px 6px !important;
+  letter-spacing: 0.06em !important;
+}
+
+.pump-head {
+  display: grid !important;
+  grid-template-columns: 64px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.pump-head strong {
+  display: block !important;
+  font-size: 1.12rem !important;
+  font-weight: 950 !important;
+  color: #111 !important;
+  line-height: 1 !important;
+}
+
+.pump-head small {
+  display: block !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+  color: #38433b !important;
+  line-height: 1.15 !important;
+}
+
+.pump-card p {
+  margin: 0 !important;
+  font-size: 0.68rem !important;
+  font-weight: 850 !important;
+  line-height: 1.18 !important;
+  color: #182019 !important;
+  overflow: hidden !important;
+}
+
+.pump-state-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  border-top: 3px solid #111 !important;
+  padding-top: 5px !important;
+}
+
+.pump-state-row b {
+  border: 3px solid #111 !important;
+  background: #fff !important;
+  padding: 3px 8px !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+}
+
+.pump-state-row small {
+  font-size: 0.62rem !important;
+  font-weight: 900 !important;
+  color: #3c453d !important;
+}
+
+/* Bolinha da bomba mais simples e industrial */
+.machine-led {
+  position: relative !important;
+  width: 52px !important;
+  height: 52px !important;
+  border: 5px solid #111 !important;
+  border-radius: 50% !important;
+  flex: none !important;
+}
+
+.machine-led.off {
+  background: #1247d9 !important;
+  box-shadow: inset 0 8px 0 rgba(255,255,255,0.28) !important;
+}
+
+.machine-led.on {
+  background: #18d232 !important;
+  box-shadow:
+    inset 0 8px 0 rgba(255,255,255,0.28),
+    0 0 18px rgba(24, 210, 50, 0.78) !important;
+}
+
+/* Pontos simples em volta da bolinha, piscando juntos */
+.led-dots {
+  position: absolute !important;
+  inset: -17px !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+}
+
+.led-dots span {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 5px !important;
+  height: 5px !important;
+  margin-left: -2.5px !important;
+  margin-top: -2.5px !important;
+  border-radius: 50% !important;
+  background: #19ff3c !important;
+  box-shadow: 0 0 8px rgba(25, 255, 60, 0.95) !important;
+  animation: simplePumpBlink 1s infinite step-end !important;
+}
+
+.led-dots span:nth-child(1)  { transform: rotate(0deg) translate(39px); }
+.led-dots span:nth-child(2)  { transform: rotate(30deg) translate(39px); }
+.led-dots span:nth-child(3)  { transform: rotate(60deg) translate(39px); }
+.led-dots span:nth-child(4)  { transform: rotate(90deg) translate(39px); }
+.led-dots span:nth-child(5)  { transform: rotate(120deg) translate(39px); }
+.led-dots span:nth-child(6)  { transform: rotate(150deg) translate(39px); }
+.led-dots span:nth-child(7)  { transform: rotate(180deg) translate(39px); }
+.led-dots span:nth-child(8)  { transform: rotate(210deg) translate(39px); }
+.led-dots span:nth-child(9)  { transform: rotate(240deg) translate(39px); }
+.led-dots span:nth-child(10) { transform: rotate(270deg) translate(39px); }
+.led-dots span:nth-child(11) { transform: rotate(300deg) translate(39px); }
+.led-dots span:nth-child(12) { transform: rotate(330deg) translate(39px); }
+
+@keyframes simplePumpBlink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0.15;
+  }
+}
+
+/* Cards tÃƒÂ©cnicos do lado direito */
+.machine-info-grid {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: minmax(86px, 1fr) !important;
+  gap: 8px !important;
+  overflow: auto !important;
+}
+
+.machine-info-grid article {
+  min-height: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.82), rgba(231,236,231,0.92)),
+    #edf1ed !important;
+  border: 5px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 9px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,0.08) !important;
+}
+
+.machine-info-grid article span {
+  font-size: 0.62rem !important;
+  font-weight: 950 !important;
+  color: #3e4941 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+.machine-info-grid article b {
+  font-size: 0.92rem !important;
+  font-weight: 950 !important;
+  color: #111 !important;
+  line-height: 1.05 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+.machine-info-grid article small {
+  font-size: 0.62rem !important;
+  font-weight: 850 !important;
+  color: #4c554d !important;
+  line-height: 1.15 !important;
+}
+
+/* Reduz risco de corte em telas menores */
+@media (max-width: 1120px), (max-height: 720px) {
+  .machines-layout {
+    grid-template-columns: 220px minmax(0, 1fr) !important;
+  }
+
+  .pump-stack {
+    grid-template-rows: repeat(3, minmax(92px, 1fr)) !important;
+  }
+
+  .machine-info-grid {
+    grid-auto-rows: minmax(76px, 1fr) !important;
+  }
+
+  .pump-card p,
+  .machine-info-grid article small {
+    display: none !important;
+  }
+
+  .machine-led {
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  .led-dots span:nth-child(n) {
+    transform-origin: center !important;
+  }
+}
+
+
+/* =========================================================
+   PATCH FINAL BOMBAS SEM BOLINHAS E ALARME ESTAVEL
+========================================================= */
+
+/* Remove definitivamente os pontos/bolinhas em volta */
+.led-dots,
+.led-dots span,
+.machine-led span,
+.machine-led.on span {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+
+/* Aba Bombas: uso melhor do espaco, visual industrial */
+.content-area {
+  overflow: hidden !important;
+}
+
+.machines-layout {
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: 255px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  overflow: hidden !important;
+  align-items: stretch !important;
+}
+
+.pump-stack {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+.pump-card {
+  position: relative !important;
+  min-height: 0 !important;
+  background:
+    linear-gradient(180deg, #f5f8f5 0%, #dde4de 100%) !important;
+  border: 5px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 8px !important;
+  display: grid !important;
+  grid-template-rows: auto 1fr auto !important;
+  gap: 5px !important;
+  align-content: stretch !important;
+  overflow: hidden !important;
+  box-shadow:
+    inset 0 -8px 0 rgba(0,0,0,0.10),
+    inset 0 0 0 2px rgba(255,255,255,0.55) !important;
+}
+
+/* Remove etiqueta que estava ocupando espaco e cortando o card */
+.pump-card::before {
+  display: none !important;
+  content: none !important;
+}
+
+.pump-head {
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 9px !important;
+  min-width: 0 !important;
+}
+
+.pump-head strong {
+  display: block !important;
+  font-size: 1.05rem !important;
+  font-weight: 950 !important;
+  color: #111 !important;
+  line-height: 1.02 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.pump-head small {
+  display: block !important;
+  font-size: 0.66rem !important;
+  font-weight: 900 !important;
+  color: #38433b !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+}
+
+.pump-card p {
+  margin: 0 !important;
+  font-size: 0.66rem !important;
+  font-weight: 850 !important;
+  line-height: 1.12 !important;
+  color: #182019 !important;
+  overflow: hidden !important;
+}
+
+.pump-state-row {
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  align-items: center !important;
+  gap: 6px !important;
+  border-top: 3px solid #111 !important;
+  padding-top: 5px !important;
+  min-width: 0 !important;
+}
+
+.pump-state-row b {
+  border: 3px solid #111 !important;
+  background: #fff !important;
+  padding: 3px 7px !important;
+  font-size: 0.66rem !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+}
+
+.pump-state-row small {
+  font-size: 0.6rem !important;
+  font-weight: 900 !important;
+  color: #3c453d !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Bola industrial simples */
+.machine-led {
+  position: relative !important;
+  width: 50px !important;
+  height: 50px !important;
+  border: 5px solid #111 !important;
+  border-radius: 50% !important;
+  flex: none !important;
+  display: block !important;
+}
+
+.machine-led.off {
+  background: #1047d8 !important;
+  box-shadow:
+    inset 0 9px 0 rgba(255,255,255,0.25),
+    inset 0 -8px 0 rgba(0,0,0,0.16) !important;
+  animation: none !important;
+}
+
+.machine-led.on {
+  background: #20d638 !important;
+  box-shadow:
+    inset 0 9px 0 rgba(255,255,255,0.28),
+    inset 0 -8px 0 rgba(0,0,0,0.16),
+    0 0 16px rgba(32, 214, 56, 0.65) !important;
+  animation: pumpLampBlink 1s infinite step-end !important;
+}
+
+@keyframes pumpLampBlink {
+  0%, 49% {
+    background: #20d638;
+    box-shadow:
+      inset 0 9px 0 rgba(255,255,255,0.28),
+      inset 0 -8px 0 rgba(0,0,0,0.16),
+      0 0 18px rgba(32, 214, 56, 0.75);
+  }
+
+  50%, 100% {
+    background: #0f8f20;
+    box-shadow:
+      inset 0 9px 0 rgba(255,255,255,0.18),
+      inset 0 -8px 0 rgba(0,0,0,0.20),
+      0 0 3px rgba(32, 214, 56, 0.18);
+  }
+}
+
+/* Cards tÃƒÂ©cnicos sem cortar texto importante */
+.machine-info-grid {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: minmax(78px, 1fr) !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+.machine-info-grid article {
+  min-height: 0 !important;
+  background:
+    linear-gradient(180deg, #f6f8f6 0%, #e0e6e0 100%) !important;
+  border: 5px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 8px !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,0.08) !important;
+}
+
+.machine-info-grid article span {
+  font-size: 0.6rem !important;
+  font-weight: 950 !important;
+  color: #3e4941 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+.machine-info-grid article b {
+  font-size: 0.86rem !important;
+  font-weight: 950 !important;
+  color: #111 !important;
+  line-height: 1.05 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+.machine-info-grid article small {
+  font-size: 0.58rem !important;
+  font-weight: 850 !important;
+  color: #4c554d !important;
+  line-height: 1.1 !important;
+}
+
+/* Alarme: fica dentro da tela interna, não distorce o tablet */
+.alarm-overlay {
+  position: absolute !important;
+  left: 154px !important;
+  right: 154px !important;
+  top: 64px !important;
+  bottom: 52px !important;
+  z-index: 9999 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 18px !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+
+.alarm-overlay.yellow {
+  background: rgba(255, 205, 43, 0.20) !important;
+}
+
+.alarm-overlay.red {
+  background: rgba(229, 35, 35, 0.24) !important;
+}
+
+.alarm-modal {
+  width: min(500px, 92%) !important;
+  max-height: 92% !important;
+  overflow: auto !important;
+  background: #fff !important;
+  border: 7px solid #111 !important;
+  border-radius: 0 !important;
+  padding: 18px !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: start !important;
+  gap: 12px !important;
+  text-align: center !important;
+  transform: none !important;
+  box-shadow: 0 18px 42px rgba(0,0,0,0.35) !important;
+}
+
+.alarm-overlay.yellow .alarm-modal {
+  background: #fff3b2 !important;
+}
+
+.alarm-overlay.red .alarm-modal {
+  background: #ffd0d0 !important;
+}
+
+.alarm-modal h2 {
+  margin: 0 !important;
+  padding: 0 0 8px !important;
+  width: 100% !important;
+  border-bottom: 5px solid #111 !important;
+  color: #111 !important;
+  font-size: 1.08rem !important;
+  font-weight: 950 !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+.alarm-modal p {
+  margin: 0 !important;
+  font-size: 0.86rem !important;
+  font-weight: 900 !important;
+  line-height: 1.3 !important;
+  color: #111 !important;
+}
+
+.alarm-actions {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.alarm-actions button {
+  min-height: 44px !important;
+  min-width: 170px !important;
+  border: 4px solid #111 !important;
+  background: #fff !important;
+  color: #111 !important;
+  font-size: 0.78rem !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+}
+
+.alarm-actions .secondary {
+  background: #e5e5e5 !important;
+}
+
+.emergency-round {
+  width: 128px !important;
+  height: 128px !important;
+  border-radius: 50% !important;
+  border: 8px solid #111 !important;
+  background: radial-gradient(circle at 35% 26%, #ff9a9a, #e00000 58%, #790000) !important;
+  color: #fff !important;
+  font-weight: 950 !important;
+  font-size: 0.88rem !important;
+  line-height: 1.05 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  box-shadow: 0 0 0 8px rgba(255,0,0,0.18), 0 12px 24px rgba(0,0,0,0.34) !important;
+}
+
+/* Responsivo: ainda mais compacto */
+@media (max-width: 1120px), (max-height: 720px) {
+  .machines-layout {
+    grid-template-columns: 225px minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .pump-head {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
+  }
+
+  .machine-led {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .pump-card p,
+  .machine-info-grid article small {
+    display: none !important;
+  }
+
+  .machine-info-grid {
+    grid-auto-rows: minmax(68px, 1fr) !important;
+  }
+}
+
+
+/* =========================================================
+   PATCH AUMENTA TABLET IHM
+   Apenas aumenta o tablet e a tela interna.
+   Não altera logica, bloqueios, Gateway ou rastreabilidade.
+========================================================= */
+
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operação,
+.finalizacao,
+.screen,
+.boot-screen {
+  width: min(1500px, calc(100vw - 8px)) !important;
+  height: min(890px, calc(100vh - 8px)) !important;
+  min-height: min(780px, calc(100vh - 8px)) !important;
+  margin: 4px auto !important;
+
+  /*
+    Antes a borda consumia muito espaco.
+    Mantem o tablet, mas deixa a tela interna maior.
+  */
+  padding: 72px 122px 58px !important;
+}
+
+/* Tela interna maior dentro da moldura */
+.boot::before,
+.inicial::before,
+.preparo::before,
+.registros-dia::before,
+.operação::before,
+.finalizacao::before,
+.screen::before,
+.boot-screen::before {
+  left: 104px !important;
+  right: 104px !important;
+  top: 48px !important;
+  bottom: 38px !important;
+}
+
+/* Ajusta botao/luz lateral para a borda menor */
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operação,
+.finalizacao,
+.screen,
+.boot-screen {
+  background:
+    radial-gradient(circle at 52px 50%, #e8ffff 0 23px, #59fff1 24px 30px, #0d8c80 31px 38px, #111 39px 45px, transparent 46px),
+    radial-gradient(circle at calc(100% - 52px) 50%, #ff3340 0 25px, #d20d18 26px 34px, #111 35px 43px, transparent 44px),
+
+    linear-gradient(90deg, transparent 0 26px, rgba(0,0,0,0.13) 27px 80px, transparent 81px) left 98px / 108px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 26px, rgba(0,0,0,0.13) 27px 80px, transparent 81px) left 154px / 108px 7px no-repeat,
+
+    linear-gradient(90deg, transparent 0 26px, rgba(0,0,0,0.13) 27px 80px, transparent 81px) right 98px / 108px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 26px, rgba(0,0,0,0.13) 27px 80px, transparent 81px) right 154px / 108px 7px no-repeat,
+
+    radial-gradient(ellipse at 50% 48%, rgba(255,255,255,0.86), rgba(255,255,255,0.25) 48%, transparent 72%),
+    linear-gradient(145deg, #fafbf6 0%, #e3e7e0 48%, #cad1cb 100%) !important;
+}
+
+/* Garante que a operação usa melhor o espaco interno */
+.operação {
+  grid-template-rows: 64px minmax(0, 1fr) 68px !important;
+  gap: 10px !important;
+}
+
+.topbar {
+  height: 64px !important;
+}
+
+.bottom-tabs,
+.tabs {
+  height: 68px !important;
+}
+
+.bottom-tabs button,
+.tabs button {
+  height: 68px !important;
+}
+
+/* Footer das telas de preparo/finalizacao acompanha a nova borda */
+.footer-actions {
+  left: 122px !important;
+  right: 122px !important;
+  bottom: 58px !important;
+}
+
+/* Alarme fica dentro da nova tela interna maior */
+.alarm-overlay {
+  left: 122px !important;
+  right: 122px !important;
+  top: 72px !important;
+  bottom: 58px !important;
+}
+
+/* Escala mais suave em telas menores, sem esmagar tanto */
+@media (max-width: 1360px), (max-height: 800px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operação,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    transform: scale(0.96) !important;
+    transform-origin: center center !important;
+  }
+}
+
+@media (max-width: 1180px), (max-height: 700px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operação,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    transform: scale(0.9) !important;
+  }
+}
+
+
+/* =========================================================
+   PATCH TABLET PADRAO 16 10 IHM
+   Ajusta o tablet para proporcao horizontal de tablet.
+   Apenas CSS. Não altera logica, Gateway ou rastreabilidade.
+========================================================= */
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  margin: 0 !important;
+}
+
+body {
+  display: grid !important;
+  place-items: center !important;
+  background:
+    radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px),
+    linear-gradient(135deg, #eef0ed, #cbd3cd) !important;
+  background-size: 18px 18px, auto !important;
+}
+
+/*
+  Tablet horizontal em proporcao 16:10.
+  Em telas grandes fica 1500 x 937.
+  Em telas menores, ele reduz mantendo proporcao.
+*/
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operação,
+.finalizacao,
+.screen,
+.boot-screen {
+  width: min(1500px, calc(100vw - 16px)) !important;
+  aspect-ratio: 16 / 10 !important;
+  height: auto !important;
+  max-height: calc(100vh - 16px) !important;
+  min-height: 760px !important;
+  margin: 8px auto !important;
+
+  /*
+    Moldura de tablet com tela maior.
+    Borda ainda aparece, mas desperdiça menos espaço.
+  */
+  padding: 78px 126px 62px !important;
+
+  border-radius: 86px 98px 86px 98px !important;
+}
+
+/* Se a altura da tela for menor, mantém proporção e reduz tudo sem esmagar */
+@media (max-height: 900px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operação,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    width: min(calc((100vh - 16px) * 1.6), calc(100vw - 16px)) !important;
+    min-height: unset !important;
+  }
+}
+
+/* Tela interna do tablet maior e mais alta */
+.boot::before,
+.inicial::before,
+.preparo::before,
+.registros-dia::before,
+.operação::before,
+.finalizacao::before,
+.screen::before,
+.boot-screen::before {
+  left: 108px !important;
+  right: 108px !important;
+  top: 52px !important;
+  bottom: 42px !important;
+}
+
+/* Reposiciona luzes e detalhes laterais para a nova proporção */
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operação,
+.finalizacao,
+.screen,
+.boot-screen {
+  background:
+    radial-gradient(circle at 54px 50%, #e8ffff 0 24px, #59fff1 25px 31px, #0d8c80 32px 39px, #111 40px 46px, transparent 47px),
+    radial-gradient(circle at calc(100% - 54px) 50%, #ff3340 0 26px, #d20d18 27px 35px, #111 36px 44px, transparent 45px),
+
+    linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.13) 29px 82px, transparent 83px) left 108px / 112px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.13) 29px 82px, transparent 83px) left 166px / 112px 7px no-repeat,
+
+    linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.13) 29px 82px, transparent 83px) right 108px / 112px 7px no-repeat,
+    linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.13) 29px 82px, transparent 83px) right 166px / 112px 7px no-repeat,
+
+    radial-gradient(ellipse at 50% 48%, rgba(255,255,255,0.86), rgba(255,255,255,0.25) 48%, transparent 72%),
+    linear-gradient(145deg, #fafbf6 0%, #e3e7e0 48%, #cad1cb 100%) !important;
+}
+
+/* Conteúdo interno acompanha a altura maior */
+.operação {
+  grid-template-rows: 68px minmax(0, 1fr) 72px !important;
+  gap: 10px !important;
+}
+
+.topbar {
+  height: 68px !important;
+}
+
+.bottom-tabs,
+.tabs {
+  height: 72px !important;
+}
+
+.bottom-tabs button,
+.tabs button {
+  height: 72px !important;
+}
+
+/* Footer das telas de preparo/finalizacao na nova moldura */
+.footer-actions {
+  left: 126px !important;
+  right: 126px !important;
+  bottom: 62px !important;
+}
+
+/* Alarme fica dentro da área útil do tablet */
+.alarm-overlay {
+  left: 126px !important;
+  right: 126px !important;
+  top: 78px !important;
+  bottom: 62px !important;
+}
+
+/* Mais altura útil para grids */
+.recipe-grid,
+.checklist,
+.check-grid,
+.records-list {
+  max-height: calc(100% - 118px) !important;
+}
+
+.operation-content {
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+/* Evita escala antiga acumulada de outros patches */
+@media (max-width: 1360px), (max-height: 800px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operação,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    transform: none !important;
+  }
+}
+
+
+
+/* =========================================================
+   PATCH PONTUAL TABLET OLEO BOMBAS
+   Ajuste pequeno:
+   - aumenta tablet de verdade
+   - remove card isolado do reservatorio
+   - prioriza bombas
+   - não altera logica, checklist, Gateway ou rastreabilidade
+========================================================= */
+
+/* Aumenta largura E altura sem forcar proporcao que reduza o tablet */
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operação,
+.finalizacao,
+.screen,
+.boot-screen {
+  width: min(1580px, calc(100vw - 4px)) !important;
+  height: min(940px, calc(100vh - 4px)) !important;
+  max-height: calc(100vh - 4px) !important;
+  min-height: min(860px, calc(100vh - 4px)) !important;
+  aspect-ratio: auto !important;
+  margin: 2px auto !important;
+
+  /* borda menor para ganhar area interna */
+  padding: 66px 104px 52px !important;
+}
+
+/* Tela interna maior */
+.boot::before,
+.inicial::before,
+.preparo::before,
+.registros-dia::before,
+.operação::before,
+.finalizacao::before,
+.screen::before,
+.boot-screen::before {
+  left: 88px !important;
+  right: 88px !important;
+  top: 42px !important;
+  bottom: 34px !important;
+}
+
+/* Corrige qualquer escala antiga que tenha ficado acumulada */
+@media (max-width: 1360px), (max-height: 800px) {
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operação,
+  .finalizacao,
+  .screen,
+  .boot-screen {
+    transform: none !important;
+  }
+}
+
+/* Operação aproveita melhor a nova altura */
+.operação {
+  grid-template-rows: 62px minmax(0, 1fr) 66px !important;
+  gap: 8px !important;
+}
+
+.topbar {
+  height: 62px !important;
+}
+
+.content-area {
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+.bottom-tabs,
+.tabs {
+  height: 66px !important;
+}
+
+.bottom-tabs button,
+.tabs button {
+  height: 66px !important;
+}
+
+/* Footer e alarme ajustados à moldura maior */
+.footer-actions {
+  left: 104px !important;
+  right: 104px !important;
+  bottom: 52px !important;
+}
+
+.alarm-overlay {
+  left: 104px !important;
+  right: 104px !important;
+  top: 66px !important;
+  bottom: 52px !important;
+}
+
+/* =========================================================
+   BOMBAS: bombas primeiro, informações secundárias compactas
+========================================================= */
+
+.machines-layout.machines-priority {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(470px, 1.65fr) minmax(260px, 0.7fr) !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+.pump-stack-priority {
+  display: grid !important;
+  grid-template-rows: repeat(3, 1fr) !important;
+  gap: 12px !important;
+  min-height: 0 !important;
+}
+
+.pump-stack-priority .pump-card {
+  min-height: 0 !important;
+  padding: 14px !important;
+  border-width: 5px !important;
+}
+
+.pump-stack-priority .pump-head strong {
+  font-size: 1.25rem !important;
+}
+
+.pump-stack-priority .pump-head small {
+  font-size: 0.78rem !important;
+}
+
+.pump-stack-priority .pump-card p {
+  font-size: 0.78rem !important;
+  line-height: 1.2 !important;
+}
+
+.pump-info-compact {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: repeat(4, 1fr) !important;
+  gap: 10px !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.pump-info-compact article {
+  min-height: 0 !important;
+  padding: 10px !important;
+}
+
+.pump-info-compact article span {
+  font-size: 0.66rem !important;
+}
+
+.pump-info-compact article b {
+  font-size: 0.98rem !important;
+}
+
+.pump-info-compact article small {
+  font-size: 0.62rem !important;
+  line-height: 1.05 !important;
+}
+
+/* =========================================================
+   ÓLEO: sem card separado de reservatório
+========================================================= */
+
+.oil-layout.oil-layout-focused {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.45fr) minmax(230px, 0.55fr) !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+.oil-flow-card.oil-flow-main {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: 34px 62px minmax(0, 1fr) 26px !important;
+  gap: 10px !important;
+  padding: 12px !important;
+}
+
+.oil-inline-metrics {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.oil-inline-metrics div {
+  border: 4px solid #111 !important;
+  background: #f7fbf7 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  padding: 5px !important;
+  box-shadow: inset 0 -5px 0 rgba(0,0,0,0.08) !important;
+}
+
+.oil-inline-metrics span {
+  color: #4c554d !important;
+  font-size: 0.58rem !important;
+  font-weight: 950 !important;
+  text-transform: uppercase !important;
+}
+
+.oil-inline-metrics b {
+  font-size: 0.82rem !important;
+  font-weight: 950 !important;
+}
+
+.oil-source-with-level {
+  position: relative !important;
+}
+
+.oil-source-with-level::after {
+  display: none !important;
+}
+
+.pipe-reservoir-oil {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(180deg, #ffd16d, #c47a19) !important;
+  transition: height 0.8s ease !important;
+}
+
+.oil-metrics-focused {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: repeat(4, 1fr) !important;
+  gap: 10px !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.oil-metrics-focused article {
+  min-height: 0 !important;
+  padding: 10px !important;
+}
+
+.oil-reservoir-card {
+  display: none !important;
+}
+
+/* Se a tela for menor, ainda prioriza bombas e óleo sem quebrar */
+@media (max-width: 1100px), (max-height: 720px) {
+  .machines-layout.machines-priority {
+    grid-template-columns: minmax(390px, 1.4fr) minmax(220px, 0.6fr) !important;
+  }
+
+  .oil-layout.oil-layout-focused {
+    grid-template-columns: minmax(0, 1.3fr) minmax(210px, 0.55fr) !important;
+  }
+
+  .oil-inline-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+
+
+
+/* =========================================================
+   PATCH LIMITES OPERACIONAIS E MENU IHM
+   Ajuste pontual: validação visual e botão MENU.
+========================================================= */
+
+.limit-box {
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  gap: 5px !important;
+  line-height: 1.15 !important;
+}
+
+.limit-box b {
+  font-size: 0.95rem !important;
+  font-weight: 950 !important;
+}
+
+.limit-box span {
+  display: block !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+}
+
+.warn-text {
+  color: #8a0000 !important;
+  background: #ffd4d4 !important;
+  border: 4px solid #111 !important;
+  padding: 8px !important;
+  font-weight: 950 !important;
+}
+
+/* Corrige de vez o botão MENU dentro da barra superior */
+.operação .topbar {
+  grid-template-columns: minmax(84px, 98px) repeat(4, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+.operação .topbar > div,
+.operação .topbar > button {
+  min-width: 0 !important;
+  height: 100% !important;
+}
+
+.menu-btn {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  border: 5px solid #111 !important;
+  background: #f7fbf7 !important;
+  color: #111 !important;
+  font-size: 0.78rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1 !important;
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,0.10) !important;
+  position: relative !important;
+  z-index: 50 !important;
+  pointer-events: auto !important;
+  overflow: hidden !important;
+}
+
+.menu-btn:hover {
+  background: #e5f7e5 !important;
+}
+
+/* Drawer acima da tela e clicável */
+.drawer {
+  z-index: 9000 !important;
+  pointer-events: auto !important;
+}
+
+.drawer.open {
+  left: 0 !important;
+}
+
+.drawer button {
+  pointer-events: auto !important;
+}
+
+/* Evita texto espremido nos cards da topbar */
+.topbar div span,
+.topbar div strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.topbar div strong {
+  white-space: nowrap !important;
+}
+
+
+
+
+/* =========================================================
+   PATCH PROFISSIONAL CHAO DE FABRICA IHM
+   Validação, menu, diagnóstico e alarmes.
+========================================================= */
+
+.limit-box {
+  align-content: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+  gap: 5px !important;
+  line-height: 1.15 !important;
+}
+
+.limit-box b {
+  font-size: 0.95rem !important;
+  font-weight: 950 !important;
+}
+
+.limit-box span {
+  display: block !important;
+  font-size: 0.7rem !important;
+  font-weight: 900 !important;
+}
+
+.warn-text {
+  color: #8a0000 !important;
+  background: #ffd4d4 !important;
+  border: 4px solid #111 !important;
+  padding: 8px !important;
+  font-weight: 950 !important;
+}
+
+.operação .topbar {
+  grid-template-columns: minmax(84px, 98px) repeat(4, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+.menu-btn {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  border: 5px solid #111 !important;
+  background: #f7fbf7 !important;
+  color: #111 !important;
+  font-size: 0.78rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1 !important;
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,0.10) !important;
+  position: relative !important;
+  z-index: 50 !important;
+  pointer-events: auto !important;
+  overflow: hidden !important;
+}
+
+.menu-btn:hover {
+  background: #e5f7e5 !important;
+}
+
+.drawer {
+  z-index: 9000 !important;
+  pointer-events: auto !important;
+}
+
+.drawer.open {
+  left: 0 !important;
+}
+
+.drawer button {
+  pointer-events: auto !important;
+}
+
+.diagnostic-panel {
+  background: var(--panel, #f7fbf7) !important;
+  border: 5px solid #111 !important;
+  padding: 12px !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 6px 12px !important;
+  align-content: start !important;
+  overflow: auto !important;
+}
+
+.diagnostic-panel p {
+  margin: 0 !important;
+  padding: 6px !important;
+  background: rgba(255,255,255,0.55) !important;
+  border: 2px solid rgba(0,0,0,0.18) !important;
+  font-size: 0.74rem !important;
+  font-weight: 850 !important;
+}
+
+.alarm-summary p {
+  border-bottom: 2px solid rgba(0,0,0,0.15) !important;
+  padding-bottom: 5px !important;
+}
+
+.alarm-summary p b {
+  color: #111 !important;
+}
+
+.alarm-screen .logs,
+.alarm-log {
+  max-height: 230px !important;
+  overflow: auto !important;
+}
+
+/* Topbar sem texto quebrando */
+.topbar div span,
+.topbar div strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.topbar div strong {
+  white-space: nowrap !important;
+}
+
+/* Botões críticos com leitura industrial */
+.start-btn:disabled,
+.next-btn:disabled,
+.standard-btn:disabled {
+  background: #d4d8d3 !important;
+  color: #606660 !important;
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,0.08) !important;
+}
+
+.start-btn:not(:disabled) {
+  background: #22d34a !important;
+}
+
+.emergency-inline {
+  min-height: 54px !important;
+  border: 5px solid #111 !important;
+  font-weight: 950 !important;
+}
+
+
+
+.hardwareDock {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9999;
+  font-family: inherit;
+}
+
+.hardwareDockButton {
+  min-width: 118px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 16px;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, .92);
+  color: #fff;
+  box-shadow: 0 18px 45px rgba(0,0,0,.35);
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+}
+
+.hardwareDockButton span {
+  font-size: 11px;
+  opacity: .72;
+  letter-spacing: .08em;
+}
+
+.hardwareDockButton strong {
+  font-size: 13px;
+}
+
+.hardwareDockButton.ok {
+  border-color: rgba(34,197,94,.55);
+}
+
+.hardwareDockButton.warn {
+  border-color: rgba(245,158,11,.65);
+}
+
+.hardwareDockButton.bad {
+  border-color: rgba(239,68,68,.75);
+}
+
+.hardwarePanel {
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 96px));
+  overflow: auto;
+  margin-bottom: 10px;
+  border: 1px solid rgba(148,163,184,.25);
+  border-radius: 22px;
+  padding: 16px;
+  background: rgba(15, 23, 42, .97);
+  color: #e5e7eb;
+  box-shadow: 0 26px 80px rgba(0,0,0,.48);
+  backdrop-filter: blur(18px);
+}
+
+.hardwarePanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.hardwarePanelHeader span {
+  color: #93c5fd;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.hardwarePanelHeader h3 {
+  margin: 3px 0 0;
+  font-size: 18px;
+}
+
+.hardwareClose {
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 10px;
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.hardwareError {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  background: rgba(239,68,68,.16);
+  border: 1px solid rgba(239,68,68,.38);
+}
+
+.hardwareError span {
+  font-size: 12px;
+  color: #fecaca;
+}
+
+.hardwareGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+
+.hardwareGrid article {
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(255,255,255,.05);
+}
+
+.hardwareGrid article.ok {
+  border-color: rgba(34,197,94,.38);
+}
+
+.hardwareGrid article.warn {
+  border-color: rgba(245,158,11,.5);
+}
+
+.hardwareGrid article.bad {
+  border-color: rgba(239,68,68,.5);
+}
+
+.hardwareGrid span,
+.hardwareOutputs span {
+  display: block;
+  color: #94a3b8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.hardwareGrid strong,
+.hardwareOutputs b {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #f8fafc;
+}
+
+.hardwareOutputs {
+  margin-top: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255,255,255,.04);
+}
+
+.hardwareOutputs h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.hardwareOutputs > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 14px;
+  align-items: center;
+}
+
+.hardwareActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.hardwareActions button {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hardwareActions button.danger {
+  background: #dc2626;
+}
+
+.hardwareActions button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.hardwareNote {
+  margin: 12px 0 0;
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+
+/* === IHM BOOT ANIMACAO LIMPA === */
+
+/* Mantém a IHM sem margem externa */
+html,
+body,
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100vw !important;
+  min-width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Remove carcaça preta apenas nas telas principais */
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operação,
+.operacao,
+.finalizacao,
+.alarmes {
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* BOOT: tela branca, TSEA vermelho, energia menor */
+.boot {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  min-width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #ffffff !important;
+  color: #b91c1c !important;
+  isolation: isolate !important;
+}
+
+/* Mata qualquer moldura/pseudo-elemento antigo do boot */
+.boot::before,
+.boot::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Agrupa visualmente TSEA + energia sem precisar mudar JSX */
+.boot-title,
+.boot-sub {
+  position: relative !important;
+  z-index: 2 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #b91c1c !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.boot-title {
+  font-size: clamp(76px, 13vw, 158px) !important;
+  line-height: 0.86 !important;
+  letter-spacing: 0.08em !important;
+  font-weight: 950 !important;
+  transform-origin: center !important;
+  animation: tseaBootLogoIn 1050ms cubic-bezier(.2,.9,.2,1) both,
+             tseaBootLogoHold 1700ms 1050ms ease both,
+             tseaBootLogoOut 650ms 2850ms ease both !important;
+}
+
+.boot-sub {
+  margin-top: 12px !important;
+  font-size: clamp(20px, 2.7vw, 38px) !important;
+  line-height: 1 !important;
+  letter-spacing: 0.09em !important;
+  font-weight: 850 !important;
+  text-transform: lowercase !important;
+  animation: tseaBootSubIn 850ms 260ms cubic-bezier(.2,.9,.2,1) both,
+             tseaBootLogoOut 650ms 2850ms ease both !important;
+}
+
+/* Fundo branco com leve brilho vermelho, sem parecer IA */
+.boot::selection {
+  background: transparent;
+}
+
+@keyframes tseaBootLogoIn {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.975);
+    filter: blur(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes tseaBootSubIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes tseaBootLogoHold {
+  from {
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    transform: translateY(0) scale(1.01);
+  }
+}
+
+@keyframes tseaBootLogoOut {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+/* === FIM IHM BOOT ANIMACAO LIMPA === */
+
+
+/* === IHM FULLSCREEN FINAL SEM TABLET === */
+
+/* Viewport real: sem margem, sem scroll externo e sem limite de tela */
+html,
+body,
+#root {
+  width: 100vw !important;
+  width: 100dvw !important;
+  min-width: 100vw !important;
+  min-width: 100dvw !important;
+  max-width: 100vw !important;
+  max-width: 100dvw !important;
+
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Todas as telas reais da IHM coladas nas quatro bordas */
+.boot,
+.inicial,
+.preparo,
+.registros-dia,
+.operação,
+.operacao,
+.finalizacao,
+.alarmes {
+  position: fixed !important;
+  inset: 0 !important;
+
+  width: 100vw !important;
+  width: 100dvw !important;
+  min-width: 100vw !important;
+  min-width: 100dvw !important;
+  max-width: 100vw !important;
+  max-width: 100dvw !important;
+
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+
+  margin: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  aspect-ratio: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Mata a estética antiga de tablet sem afetar os cards internos */
+.inicial::before,
+.inicial::after,
+.preparo::before,
+.preparo::after,
+.registros-dia::before,
+.registros-dia::after,
+.operação::before,
+.operação::after,
+.operacao::before,
+.operacao::after,
+.finalizacao::before,
+.finalizacao::after,
+.alarmes::before,
+.alarmes::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Fundo da área útil, agora ocupando a tela inteira */
+.inicial,
+.preparo,
+.registros-dia,
+.operação,
+.operacao,
+.finalizacao,
+.alarmes {
+  background:
+    radial-gradient(circle at 16% 12%, rgba(255, 255, 255, 0.65), transparent 30%),
+    linear-gradient(145deg, #f7f4e8 0%, #e6e4d9 46%, #cfd5d2 100%) !important;
+  overflow: auto !important;
+}
+
+/* Boot preservado: tela branca e animação que ficou boa */
+.boot {
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+}
+
+/* Inicial realmente centralizada na tela toda */
+.inicial {
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+/* Telas de preparação, registros, finalização e alarmes com respiro interno menor */
+.preparo,
+.registros-dia,
+.finalizacao,
+.alarmes {
+  padding: clamp(22px, 3vw, 42px) !important;
+}
+
+/* Operação usa mais área útil */
+.operação,
+.operacao {
+  padding: clamp(10px, 1.4vw, 18px) !important;
+}
+
+/* Garante que blocos principais não fiquem presos no tamanho antigo */
+.preparo > *,
+.registros-dia > *,
+.finalizacao > *,
+.alarmes > *,
+.operação > *,
+.operacao > * {
+  max-width: none !important;
+}
+
+/* Remove qualquer sobra de estrutura antiga caso ela ainda exista em algum CSS legado */
+.ihm-stage,
+.industrial-tablet,
+.ihm-screen {
+  width: 100vw !important;
+  width: 100dvw !important;
+  min-width: 100vw !important;
+  min-width: 100dvw !important;
+  max-width: 100vw !important;
+  max-width: 100dvw !important;
+
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Esconde peças físicas antigas */
+.tablet-grip,
+.hardware-button,
+.hardware-emergency {
+  display: none !important;
+}
+
+/* Mobile/tablet real: mantém tela cheia sem cortar conteúdo */
+@media (max-width: 900px) {
+  html,
+  body,
+  #root {
+    overflow: auto !important;
+    max-height: none !important;
+  }
+
+  .boot,
+  .inicial,
+  .preparo,
+  .registros-dia,
+  .operação,
+  .operacao,
+  .finalizacao,
+  .alarmes {
+    position: relative !important;
+    inset: auto !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+}
+
+/* === FIM IHM FULLSCREEN FINAL SEM TABLET === */\n\n
+/* === IHM BOTOES E RECEITAS FINAL === */
+
+/* Tela inicial: ícones acima dos botões */
+.ihm-start-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(38px, 7vw, 92px) !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.ihm-start-action-group {
+  display: grid !important;
+  justify-items: center !important;
+  gap: 16px !important;
+}
+
+.ihm-start-icon {
+  width: 76px !important;
+  height: 76px !important;
+  border-radius: 26px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+
+.ihm-start-icon svg {
+  width: 46px !important;
+  height: 46px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.9 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.ihm-start-button {
+  width: clamp(168px, 19vw, 218px) !important;
+  min-width: clamp(168px, 19vw, 218px) !important;
+  max-width: 228px !important;
+  min-height: clamp(168px, 19vw, 218px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 28px !important;
+  padding: 22px !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  font-size: clamp(17px, 1.9vw, 22px) !important;
+  line-height: 1.1 !important;
+  font-weight: 950 !important;
+}
+
+/* Receitas com 4 quadrados internos */
+.recipe-card-refined {
+  min-height: 312px !important;
+  padding: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+.recipe-info-grid-refined {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+.recipe-info-box {
+  min-height: 96px !important;
+  border-radius: 18px !important;
+  padding: 12px 10px !important;
+  background: rgba(15, 23, 42, 0.06) !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  gap: 6px !important;
+  text-align: center !important;
+  color: inherit !important;
+}
+
+.recipe-card-refined.selected .recipe-info-box {
+  background: rgba(255, 255, 255, 0.13) !important;
+}
+
+.recipe-info-box svg {
+  width: 25px !important;
+  height: 25px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.9 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.recipe-info-box small {
+  font-size: 11px !important;
+  line-height: 1 !important;
+  font-weight: 850 !important;
+  opacity: 0.72 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+.recipe-info-box strong {
+  max-width: 100% !important;
+  font-size: 13px !important;
+  line-height: 1.16 !important;
+  font-weight: 950 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.recipe-card-refined .recipe-note {
+  margin-top: auto !important;
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .ihm-start-actions {
+    flex-direction: column !important;
+    gap: 26px !important;
+  }
+
+  .recipe-info-grid-refined {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* === FIM IHM BOTOES E RECEITAS FINAL === */
+\n
+
+
+/* === IHM CHECKLIST AREA BOTAO JUSTA === */
+
+/* Tela do checklist pré-operacional:
+   h2 em cima, checklist ocupando o meio, botão só com a altura dele. */
+.preparo:has(> .checklist.refined) {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  row-gap: 10px !important;
+  overflow: hidden !important;
+  padding-top: clamp(18px, 2.4vw, 34px) !important;
+  padding-right: clamp(18px, 2.8vw, 38px) !important;
+  padding-bottom: 12px !important;
+  padding-left: clamp(18px, 2.8vw, 38px) !important;
+}
+
+.preparo:has(> .checklist.refined) > h2 {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.05 !important;
+}
+
+.preparo:has(> .checklist.refined) > .checklist.refined {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-content: start !important;
+  gap: 9px !important;
+  padding-right: 8px !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+/* Botão CONTINUAR do checklist pré: área justa no botão */
+.preparo:has(> .checklist.refined) > .next-btn,
+.preparo:has(> .checklist.refined) > button.standard-btn.compact {
+  justify-self: center !important;
+  align-self: center !important;
+  width: auto !important;
+  min-width: 160px !important;
+  max-width: 240px !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  margin: 4px 0 0 0 !important;
+  padding: 8px 22px !important;
+  border-radius: 14px !important;
+  line-height: 1 !important;
+  flex: none !important;
+}
+
+/* Tela de checklist final:
+   h2, resumo, checklist e botão FINALIZAR sem reservar espaço enorme. */
+.finalizacao:has(> .checklist.refined) {
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+  row-gap: 9px !important;
+  overflow: hidden !important;
+  padding-top: clamp(16px, 2.2vw, 30px) !important;
+  padding-right: clamp(18px, 2.8vw, 38px) !important;
+  padding-bottom: 12px !important;
+  padding-left: clamp(18px, 2.8vw, 38px) !important;
+}
+
+.finalizacao:has(> .checklist.refined) > h2 {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.05 !important;
+}
+
+.finalizacao:has(> .checklist.refined) > .resumo {
+  margin: 0 !important;
+  padding: 12px 14px !important;
+  max-height: 18vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.finalizacao:has(> .checklist.refined) > .resumo p {
+  margin-top: 2px !important;
+  margin-bottom: 2px !important;
+}
+
+.finalizacao:has(> .checklist.refined) > .checklist.refined {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-content: start !important;
+  gap: 9px !important;
+  padding-right: 8px !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+/* Botão FINALIZAR: área justa no botão */
+.finalizacao:has(> .checklist.refined) > button.standard-btn.compact {
+  justify-self: center !important;
+  align-self: center !important;
+  width: auto !important;
+  min-width: 160px !important;
+  max-width: 240px !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  margin: 4px 0 0 0 !important;
+  padding: 8px 22px !important;
+  border-radius: 14px !important;
+  line-height: 1 !important;
+  flex: none !important;
+}
+
+/* Cards do checklist mais compactos para caber melhor */
+.preparo:has(> .checklist.refined) > .checklist.refined label,
+.finalizacao:has(> .checklist.refined) > .checklist.refined label {
+  min-height: auto !important;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+
+.preparo:has(> .checklist.refined) > .checklist.refined label span,
+.finalizacao:has(> .checklist.refined) > .checklist.refined label span {
+  gap: 2px !important;
+}
+
+.preparo:has(> .checklist.refined) > .checklist.refined label small,
+.finalizacao:has(> .checklist.refined) > .checklist.refined label small {
+  line-height: 1.22 !important;
+}
+
+/* Scroll discreto, só se precisar */
+.preparo:has(> .checklist.refined) > .checklist.refined::-webkit-scrollbar,
+.finalizacao:has(> .checklist.refined) > .checklist.refined::-webkit-scrollbar,
+.finalizacao:has(> .checklist.refined) > .resumo::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.preparo:has(> .checklist.refined) > .checklist.refined::-webkit-scrollbar-thumb,
+.finalizacao:has(> .checklist.refined) > .checklist.refined::-webkit-scrollbar-thumb,
+.finalizacao:has(> .checklist.refined) > .resumo::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: rgba(15, 23, 42, 0.22) !important;
+}
+
+/* === FIM IHM CHECKLIST AREA BOTAO JUSTA === */
