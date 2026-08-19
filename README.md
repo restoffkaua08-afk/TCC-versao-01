@@ -36,6 +36,20 @@ flowchart LR
 | CLP Altus XP325 | Execução da sequência de controle e tratamento de emergência |
 | Bancada IoT | Representação física dos atuadores industriais |
 
+## Demonstração
+
+### Operação pela IHM
+
+![Demonstração da IHM](./.github/assets/demo-ihm.gif)
+
+### Interface do operador
+
+![IHM do operador](./.github/assets/ihm-operador.png)
+
+### Supervisão e rastreabilidade
+
+![Sistema gerente](./.github/assets/sistema-gerente.png)
+
 ## Tecnologias
 
 - **Front-end:** React, TypeScript, JavaScript, HTML e CSS
